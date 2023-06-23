@@ -14,6 +14,14 @@ object "EcAdd" {
                         one := 0x1
                   }
 
+                  function A() -> a {
+                        a := 
+                  }
+
+                  function B() -> b {
+                        b := 
+                  }
+
                   // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
                   function ALT_BN128_GROUP_SIZE() -> ret {
                         ret := 0x4c8d1c3c7c0f9a086d3d9b2f5a3b7e5d6f
@@ -74,6 +82,49 @@ object "EcAdd" {
                         ret := eq(y_squared, x_qubed_plus_three)
                   }
 
+                  function power(base, exponent, modulus) -> quotient {
+                        switch exponent
+                        case 0 { quotient := 1 }
+                        case 1 { quotient := base }
+                        default {
+                              quotient := power(mul(base, base), div(exponent, 2))
+                              switch mod(exponent, 2)
+                                    case 1 { quotient := mul(base, quotient) }
+                        }
+                  }
+
+                  function divmod(uint256_dividend, uint256_divisor, uint256_modulus) -> quotient {
+                        quiotient := mulmod(uint256_dividend, power(uint256_divisor, sub(ALT_BN128_GROUP_SIZE(), 2)))
+                  }
+
+                  function powermod(
+                        uint256_base,
+                        uint256_exponent,
+                        uint256_modulus,
+                  ) -> power {
+                        let exp := mod(uint256_exponent, sub(ALT_BN128_GROUP_SIZE(), 1))
+                        power := 1
+                        for { let i := 0 } lt(i, exponent) { i := add(i, 1) }
+                        {
+                              power := mulmod(power, base, modulus)
+                        }
+                  }
+
+                  function submod(
+                        uint256_minuend,
+                        uint256_subtrahend,
+                        uint256_modulus,
+                  ) -> difference {
+                        difference := addmod(uint256_minuend, sub(ALT_BN128_GROUP_SIZE(), uint256_subtrahend), ALT_BN128_GROUP_SIZE())
+                  }
+
+                  function isInfinity(
+                        uint256_x,
+                        uint256_y,
+                  ) -> ret {
+                        ret := and(eq(x, ZERO()), eq(y, ZERO()))
+                  }
+
                   ////////////////////////////////////////////////////////////////
                   //                      FALLBACK
                   ////////////////////////////////////////////////////////////////
@@ -92,28 +143,58 @@ object "EcAdd" {
                   // Ensure that the point is in the right subgroup (if needed).
 
                   // Add the points.
-                  if and(eq(x1, ZERO()), eq(y1 == ONE())) {
-                        let x3 := x2
-                        let y3 := y2
-                        // Store the data in memory, so the ecAdd circuit will read it 
-                        mstore(0, x3)
-                        mstore(32, y3)
-                  } else if and(eq(x2 == ONE()), eq(y2 == ZERO())) {
-                        let x3 := x1
-                        let y3 := y1
-                        // Store the data in memory, so the ecAdd circuit will read it 
-                        mstore(0, x3)
-                        mstore(32, y3)
-                  } else {
-                        let x3 := addFieldElements(x1, x2, p)
-                        let y3 := addFieldElements(y1, y2, p)
+                  if and(isInfinity(x1, y1), isInfinity(x2, y2)) {
+                        // Infinity + Infinity = Infinity
+                        mstore(0, ZERO())
+                        mstore(32, ZERO())
+                  } else if and(isInfinity(x1, y1), not(isInfinity(x2, y2))) {
+                        // Infinity + P = P
+                        mstore(0, x2)
+                        mstore(32, y2)
+                  } else if and(not(isInfinity(x1, y1)), isInfinity(x2, y2)) {
+                        // P + Infinity = P
+                        mstore(0, x1)
+                        mstore(32, y1)
+                  } else if and(eq(x1, x2), not(eq(y1, y2))) {
+                        // P + (-P) = Infinity
+                        mstore(0, ZERO())
+                        mstore(32, ZERO())
+                  } else if and(eq(x1, x2), or(eq(y1, ZERO()), eq(y2, ZERO()))) {
+                        // P + P = Infinity
+                        mstore(0, ZERO())
+                        mstore(32, ZERO())
+                  } else if and(eq(x1, x2) eq(y1, y2)) {
+                        // P + P = 2P
+
+                        // (3 * x1^2 + a) / (2 * y1)
+                        let slope := divmod(addmod(mulmod(3, powermod(x1, 2, ALT_BN128_GROUP_SIZE())), ZERO(), ALT_BN128_GROUP_SIZE())mulmod(y1, 2, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
+                        // x3 = slope^2 - 2 * x1
+                        let x3 = submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE), mulmod(2, x1, ALT_BN128_GROUP_SIZE()))
+                        // y3 = slope * (x1 - x3) - y1
+                        let y3 = submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE());
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
                               return(0, 0)
                         }
 
-                        // Store the data in memory, so the ecAdd circuit will read it 
+                        mstore(0, x3)
+                        mstore(32, y3)
+                  } else if not(eq(x1, x2)) {
+                        // P1 + P2 = P3
+
+                        // (y2 - y1) / (x2 - x1)
+                        let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_SIZE()), submod(x2, x1, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
+                        // x3 = slope^2 - x1 - x2
+                        let x3 = submod(submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE()), x1, ALT_BN128_GROUP_SIZE()), x2, ALT_BN128_GROUP_SIZE())
+                        // y3 = slope * (x1 - x3) - y1
+                        let y3 = submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
+
+                        // Ensure that the new point is in the curve
+                        if not(pointIsInCurve(x3, y3)) {
+                              return(0, 0)
+                        }
+
                         mstore(0, x3)
                         mstore(32, y3)
                   }
@@ -125,8 +206,10 @@ object "EcAdd" {
                         // if the input points are packed in a single word (points as tuples of coordinates)
                         4, // input length in words (x1, y1, x2, y2)
                         0, // output offset in words
+                        // TODO: Double check that the input length is 4 because it could be 1
+                        // if the input points are packed in a single word (points as tuples of coordinates)
                         2, // output length in words (x3, y3)
-                        0  // No special meaning, ecrecover circuit doesn't check this value
+                        0  // No special meaning, ecAdd circuit doesn't check this value
                   )
                   let gasToPay := ECADD_GAS_COST()
       
@@ -139,7 +222,8 @@ object "EcAdd" {
                         return(0, 0)
                   }
                   default {
-                        return(32, 32)
+                        // TODO: Check that we're returning the right stuff.
+                        return(0, 64)
                   }
 		}
 	}
