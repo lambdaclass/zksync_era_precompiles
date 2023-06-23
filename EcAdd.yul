@@ -14,14 +14,6 @@ object "EcAdd" {
                         one := 0x1
                   }
 
-                  function A() -> a {
-                        a := 
-                  }
-
-                  function B() -> b {
-                        b := 
-                  }
-
                   // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
                   function ALT_BN128_GROUP_SIZE() -> ret {
                         ret := 0x4c8d1c3c7c0f9a086d3d9b2f5a3b7e5d6f
