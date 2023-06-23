@@ -86,7 +86,7 @@ object "EcAdd" {
 
                   // Ensure that the points are in the curve (Y^2 = X^3 + 3).
                   if or(not(pointIsInCurve(x1, y1)), not(pointIsInCurve(x2, y2))) {
-                        revert(0, 0)
+                        return(0, 0)
                   }
 
                   // Ensure that the point is in the right subgroup (if needed).
@@ -110,7 +110,7 @@ object "EcAdd" {
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
-                              revert(0, 0)
+                              return(0, 0)
                         }
 
                         // Store the data in memory, so the ecAdd circuit will read it 
