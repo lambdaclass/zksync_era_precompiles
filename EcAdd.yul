@@ -132,6 +132,11 @@ object "EcAdd" {
                         return(0, 0)
                   }
 
+                  // Ensure that the coordinates are between 0 and the group order.
+                  if or(gt(x, submod(ALT_BN128_GROUP_ORDER(), 1)), gt(y, submod(ALT_BN128_GROUP_ORDER(), 1))) {
+                        return(0, 0)
+                  }
+
                   // Ensure that the point is in the right subgroup (if needed).
 
                   // Add the points.
