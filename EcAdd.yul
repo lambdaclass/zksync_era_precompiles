@@ -21,7 +21,7 @@ object "EcAdd" {
                   }
 
                   // ////////////////////////////////////////////////////////////////
-                  // //                      HELPER FUNCTIONS
+                  //                      HELPER FUNCTIONS
                   // ////////////////////////////////////////////////////////////////
 
                   // @dev Packs precompile parameters into one word.
@@ -136,8 +136,6 @@ object "EcAdd" {
                         return(0, 0)
                   }
 
-                  // Ensure that the point is in the right subgroup (if needed).
-
                   // Add the points.
                   if and(isInfinity(x1, y1), isInfinity(x2, y2)) {
                         // Infinity + Infinity = Infinity
@@ -204,12 +202,8 @@ object "EcAdd" {
                   // Return the result
                   let precompileParams := unsafePackPrecompileParams(
                         0, // input offset in words
-                        // TODO: Double check that the input length is 4 because it could be 2
-                        // if the input points are packed in a single word (points as tuples of coordinates)
                         4, // input length in words (x1, y1, x2, y2)
                         0, // output offset in words
-                        // TODO: Double check that the input length is 4 because it could be 1
-                        // if the input points are packed in a single word (points as tuples of coordinates)
                         2, // output length in words (x3, y3)
                         0  // No special meaning, ecAdd circuit doesn't check this value
                   )
@@ -224,7 +218,6 @@ object "EcAdd" {
                         return(0, 0)
                   }
                   default {
-                        // TODO: Check that we're returning the right stuff.
                         return(0, 64)
                   }
 		}
