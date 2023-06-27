@@ -66,10 +66,10 @@ object "EcAdd" {
                         uint256_x,
                         uint256_y,
                   ) -> ret {
-                        let y_squared = mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_SIZE())
-                        let x_squared = mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_SIZE())
-                        let x_qubed = mulmod(x_squared, uint256_x, ALT_BN128_GROUP_SIZE())
-                        let x_qubed_plus_three = addmod(x_qubed, 3, ALT_BN128_GROUP_SIZE())
+                        let y_squared := mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_SIZE())
+                        let x_squared := mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_SIZE())
+                        let x_qubed := mulmod(x_squared, uint256_x, ALT_BN128_GROUP_SIZE())
+                        let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_SIZE())
 
                         ret := eq(y_squared, x_qubed_plus_three)
                   }
@@ -94,7 +94,7 @@ object "EcAdd" {
                         uint256_exponent,
                         uint256_modulus,
                   ) -> power {
-                        let exp := mod(uint256_exponent, sub(ALT_BN128_GROUP_SIZE(), 1))
+                        let exponent := mod(uint256_exponent, sub(ALT_BN128_GROUP_SIZE(), 1))
                         power := 1
                         for { let i := 0 } lt(i, exponent) { i := add(i, 1) }
                         {
@@ -107,7 +107,7 @@ object "EcAdd" {
                         uint256_subtrahend,
                         uint256_modulus,
                   ) -> difference {
-                        difference := addmod(uint256_minuend, sub(ALT_BN128_GROUP_SIZE(), uint256_subtrahend), ALT_BN128_GROUP_SIZE())
+                        difference := addmod(uint256_minuend, sub(uint256_modulus, uint256_subtrahend), uint256_modulus)
                   }
 
                   function isInfinity(
@@ -133,7 +133,7 @@ object "EcAdd" {
                   }
 
                   // Ensure that the coordinates are between 0 and the group order.
-                  if or(gt(x, submod(ALT_BN128_GROUP_ORDER(), 1)), gt(y, submod(ALT_BN128_GROUP_ORDER(), 1))) {
+                  if or(gt(x, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER())), gt(y, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER()))) {
                         return(0, 0)
                   }
 
@@ -144,31 +144,36 @@ object "EcAdd" {
                         // Infinity + Infinity = Infinity
                         mstore(0, ZERO())
                         mstore(32, ZERO())
-                  } else if and(isInfinity(x1, y1), not(isInfinity(x2, y2))) {
+                  }
+                  if and(isInfinity(x1, y1), not(isInfinity(x2, y2))) {
                         // Infinity + P = P
                         mstore(0, x2)
                         mstore(32, y2)
-                  } else if and(not(isInfinity(x1, y1)), isInfinity(x2, y2)) {
+                  }
+                  if and(not(isInfinity(x1, y1)), isInfinity(x2, y2)) {
                         // P + Infinity = P
                         mstore(0, x1)
                         mstore(32, y1)
-                  } else if and(eq(x1, x2), not(eq(y1, y2))) {
+                  }
+                  if and(eq(x1, x2), not(eq(y1, y2))) {
                         // P + (-P) = Infinity
                         mstore(0, ZERO())
                         mstore(32, ZERO())
-                  } else if and(eq(x1, x2), or(eq(y1, ZERO()), eq(y2, ZERO()))) {
+                  }
+                  if and(eq(x1, x2), or(eq(y1, ZERO()), eq(y2, ZERO()))) {
                         // P + P = Infinity
                         mstore(0, ZERO())
                         mstore(32, ZERO())
-                  } else if and(eq(x1, x2) eq(y1, y2)) {
+                  }
+                  if and(eq(x1, x2), eq(y1, y2)) {
                         // P + P = 2P
 
                         // (3 * x1^2 + a) / (2 * y1)
-                        let slope := divmod(addmod(mulmod(3, powermod(x1, 2, ALT_BN128_GROUP_SIZE())), ZERO(), ALT_BN128_GROUP_SIZE())mulmod(y1, 2, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
+                        let slope := divmod(addmod(mulmod(3, powermod(x1, 2, ALT_BN128_GROUP_SIZE())), ZERO(), ALT_BN128_GROUP_SIZE()), mulmod(y1, 2, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
                         // x3 = slope^2 - 2 * x1
-                        let x3 = submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE), mulmod(2, x1, ALT_BN128_GROUP_SIZE()))
+                        let x3 := submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE), mulmod(2, x1, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_ORDER())
                         // y3 = slope * (x1 - x3) - y1
-                        let y3 = submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE());
+                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
@@ -177,15 +182,16 @@ object "EcAdd" {
 
                         mstore(0, x3)
                         mstore(32, y3)
-                  } else if not(eq(x1, x2)) {
+                  }
+                  if not(eq(x1, x2)) {
                         // P1 + P2 = P3
 
                         // (y2 - y1) / (x2 - x1)
                         let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_SIZE()), submod(x2, x1, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
                         // x3 = slope^2 - x1 - x2
-                        let x3 = submod(submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE()), x1, ALT_BN128_GROUP_SIZE()), x2, ALT_BN128_GROUP_SIZE())
+                        let x3 := submod(submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE()), x1, ALT_BN128_GROUP_SIZE()), x2, ALT_BN128_GROUP_SIZE())
                         // y3 = slope * (x1 - x3) - y1
-                        let y3 = submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
+                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
