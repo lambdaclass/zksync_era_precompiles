@@ -10,12 +10,8 @@ object "EcAdd" {
                         zero := 0x0
                   }
 
-                  function ONE() -> one {
-                        one := 0x1
-                  }
-
                   // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
-                  function ALT_BN128_GROUP_SIZE() -> ret {
+                  function ALT_BN128_GROUP_ORDER() -> ret {
                         ret := 0x4c8d1c3c7c0f9a086d3d9b2f5a3b7e5d6f
                   }
       
@@ -24,9 +20,9 @@ object "EcAdd" {
                         ret := 0x1f4
                   }
 
-                  ////////////////////////////////////////////////////////////////
-                  //                      HELPER FUNCTIONS
-                  ////////////////////////////////////////////////////////////////
+                  // ////////////////////////////////////////////////////////////////
+                  // //                      HELPER FUNCTIONS
+                  // ////////////////////////////////////////////////////////////////
 
                   // @dev Packs precompile parameters into one word.
                   // Note: functions expect to work with 32/64 bits unsigned integers.
@@ -58,7 +54,7 @@ object "EcAdd" {
                         uint256_augend,
                         uint256_addend,
                   ) -> sum {
-                        sum := addmod(uint256_augend, uint256_addend, ALT_BN128_GROUP_SIZE())
+                        sum := addmod(uint256_augend, uint256_addend, ALT_BN128_GROUP_ORDER())
                   }
 
                   // Returns 1 if (x, y) is in the curve, 0 otherwise
@@ -66,10 +62,10 @@ object "EcAdd" {
                         uint256_x,
                         uint256_y,
                   ) -> ret {
-                        let y_squared := mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_SIZE())
-                        let x_squared := mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_SIZE())
-                        let x_qubed := mulmod(x_squared, uint256_x, ALT_BN128_GROUP_SIZE())
-                        let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_SIZE())
+                        let y_squared := mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_ORDER())
+                        let x_squared := mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_ORDER())
+                        let x_qubed := mulmod(x_squared, uint256_x, ALT_BN128_GROUP_ORDER())
+                        let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_ORDER())
 
                         ret := eq(y_squared, x_qubed_plus_three)
                   }
@@ -86,7 +82,7 @@ object "EcAdd" {
                   }
 
                   function divmod(uint256_dividend, uint256_divisor, uint256_modulus) -> quotient {
-                        quiotient := mulmod(uint256_dividend, power(uint256_divisor, sub(ALT_BN128_GROUP_SIZE(), 2)))
+                        quotient := mulmod(uint256_dividend, power(uint256_divisor, sub(ALT_BN128_GROUP_ORDER(), 2)), ALT_BN128_GROUP_ORDER())
                   }
 
                   function powermod(
@@ -94,11 +90,11 @@ object "EcAdd" {
                         uint256_exponent,
                         uint256_modulus,
                   ) -> power {
-                        let exponent := mod(uint256_exponent, sub(ALT_BN128_GROUP_SIZE(), 1))
+                        let exponent := mod(uint256_exponent, sub(ALT_BN128_GROUP_ORDER(), 1))
                         power := 1
                         for { let i := 0 } lt(i, exponent) { i := add(i, 1) }
                         {
-                              power := mulmod(power, base, modulus)
+                              power := mulmod(power, uint256_base, uint256_modulus)
                         }
                   }
 
@@ -114,7 +110,7 @@ object "EcAdd" {
                         uint256_x,
                         uint256_y,
                   ) -> ret {
-                        ret := and(eq(x, ZERO()), eq(y, ZERO()))
+                        ret := and(eq(uint256_x, ZERO()), eq(uint256_y, ZERO()))
                   }
 
                   ////////////////////////////////////////////////////////////////
@@ -133,7 +129,10 @@ object "EcAdd" {
                   }
 
                   // Ensure that the coordinates are between 0 and the group order.
-                  if or(gt(x, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER())), gt(y, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER()))) {
+                  if or(gt(x1, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER())), gt(y1, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER()))) {
+                        return(0, 0)
+                  }
+                  if or(gt(x2, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER())), gt(y2, submod(ALT_BN128_GROUP_ORDER(), 1, ALT_BN128_GROUP_ORDER()))) {
                         return(0, 0)
                   }
 
@@ -169,11 +168,11 @@ object "EcAdd" {
                         // P + P = 2P
 
                         // (3 * x1^2 + a) / (2 * y1)
-                        let slope := divmod(addmod(mulmod(3, powermod(x1, 2, ALT_BN128_GROUP_SIZE())), ZERO(), ALT_BN128_GROUP_SIZE()), mulmod(y1, 2, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
+                        let slope := divmod(addmod(mulmod(3, powermod(x1, 2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), ZERO(), ALT_BN128_GROUP_ORDER()), mulmod(y1, 2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                         // x3 = slope^2 - 2 * x1
-                        let x3 := submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE), mulmod(2, x1, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_ORDER())
+                        let x3 := submod(powermod(slope, 2, ALT_BN128_GROUP_ORDER()), mulmod(2, x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                         // y3 = slope * (x1 - x3) - y1
-                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
+                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
@@ -187,11 +186,11 @@ object "EcAdd" {
                         // P1 + P2 = P3
 
                         // (y2 - y1) / (x2 - x1)
-                        let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_SIZE()), submod(x2, x1, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE())
+                        let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_ORDER()), submod(x2, x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                         // x3 = slope^2 - x1 - x2
-                        let x3 := submod(submod(powermod(slope, 2, ALT_BN128_GROUP_SIZE()), x1, ALT_BN128_GROUP_SIZE()), x2, ALT_BN128_GROUP_SIZE())
+                        let x3 := submod(submod(powermod(slope, 2, ALT_BN128_GROUP_ORDER()), x1, ALT_BN128_GROUP_ORDER()), x2, ALT_BN128_GROUP_ORDER())
                         // y3 = slope * (x1 - x3) - y1
-                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_SIZE()), ALT_BN128_GROUP_SIZE()), y1, ALT_BN128_GROUP_SIZE())
+                        let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
 
                         // Ensure that the new point is in the curve
                         if not(pointIsInCurve(x3, y3)) {
