@@ -74,7 +74,7 @@ object "EcAdd" {
                         ret := eq(y_squared, x_qubed_plus_three)
                   }
 
-                  function power(base, exponent, modulus) -> quotient {
+                  function power(base, exponent) -> quotient {
                         switch exponent
                         case 0 { quotient := 1 }
                         case 1 { quotient := base }
