@@ -2,6 +2,22 @@ object "Modexp" {
 	code { }
 	object "Modexp_deployed" {
 		code {
+            ////////////////////////////////////////////////////////////////
+            //                      CONSTANTS
+            ////////////////////////////////////////////////////////////////
+
+            function ZERO() -> zero {
+                zero := 0x0
+            }
+
+            function ONE() -> one {
+                one := 0x1
+            }
+
+            ////////////////////////////////////////////////////////////////
+            //                      FALLBACK
+            ////////////////////////////////////////////////////////////////
+
             let base := calldataload(0)
             let exponent := calldataload(32)
             let modulus := calldataload(64)
