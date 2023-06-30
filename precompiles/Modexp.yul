@@ -57,9 +57,22 @@ object "ModExp" {
             let base_length := calldataload(0)
             let exponent_length := calldataload(32)
             let modulus_length := calldataload(64)
-            let base :=
-            let exponent :=
-            let modulus :=
+            let base := calldatacopy(0, 64, base_length)
+            let exponent := calldatacopy(base_length, 96, exponent_length)
+            let modulus := calldatacopy(add(base_length, exponent_length), 128, modulus_length)
+
+            // base^0 % modulus = 1
+            if iszero(exponent) {
+                mstore(0, ONE())
+                return(0, 32)
+            }
+
+            // base^exponent % 0 = 0
+            if iszero(modulus) {
+                let s := add(add(base_length, exponent_length), modulus_length)
+                mstore(0, ZERO())
+                return(s, modulus_length)
+            }
 
             let pow := 1
             base := mod(base, modulus)
