@@ -116,6 +116,11 @@ object "EcMul" {
                   }
 
                   function double(sint256_x, sint256_y) -> x, y {
+                        if isInfinity(sint256_x, sint256_y) {
+                              x := ZERO()
+                              y := ZERO()
+                              return(x, y)
+                        }
                         // (3 * sint256_x^2 + a) / (2 * sint256_y)
                         let slope := divmod(addmod(mulmod(3, powmod(sint256_x, 2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), ZERO(), ALT_BN128_GROUP_ORDER()), mulmod(2, sint256_y, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                         // x = slope^2 - 2 * sint256_x
@@ -125,6 +130,16 @@ object "EcMul" {
                   }
 
                   function addPoints(sint256_x1, sint256_y1, sint256_x2, sint256_y2) -> x3, y3 {
+                        if isInfinity(sint256_x1, sint256_y1) {
+                              x3 := sint256_x2
+                              y3 := sint256_y2
+                              return(x3, y3)
+                        }
+                        if isInfinity(sint256_x2, sint256_y2) {
+                              x3 := sint256_x1
+                              y3 := sint256_y1
+                              return(x3, y3)
+                        }
                         if and(eq(sint256_x1, sint256_x2), eq(sint256_y1, sint256_y2)) {
                               // Double
                               x3, y3 := double(sint256_x1, sint256_y1)
@@ -146,11 +161,6 @@ object "EcMul" {
                   let x := calldataload(0)
                   let y := calldataload(32)
                   let scalar := calldataload(64)
-
-                  // // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                  // if not(pointIsInCurve(x, y)) {
-                  //       return(0, 0)
-                  // }
 
                   // Ensure that the scalar is a number between 0 and 2^256 - 1.
                   if gt(scalar, sub(shl(1, 256), 1)) {
@@ -188,85 +198,52 @@ object "EcMul" {
                         mstore(32, y)
                         return(0, 64)
                   }
-                  if iszero(mod(scalar, 2)) {
-                        // Ensure that the coordinates are between 0 and the group order.
-                        if or(gt(x, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y, sub(ALT_BN128_GROUP_ORDER(), 1))) {
-                              return(0, 0)
-                        }
 
-                        // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x, y)) {
-                              return(0, 0)
-                        }
-
-                        let x2 := x
-                        let y2 := y
-                        for { let i := 0 } lt(i, scalar) { i := add(i, 2) } {
-                              x2, y2 := double(x2, y2)
-                        }
-
-                        // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x2, y2)) {
-                              return(0, 0)
-                        }
-
-                        mstore(0, x2)
-                        mstore(32, y2)
-                        return(0, 64)
-                  }
-                  if iszero(iszero(mod(scalar, 2))) {
-                        // Ensure that the coordinates are between 0 and the group order.
-                        if or(gt(x, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y, sub(ALT_BN128_GROUP_ORDER(), 1))) {
-                              return(0, 0)
-                        }
-
-                        // // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x, y)) {
-                              return(0, 0)
-                        }
-
-                        let x2 := x
-                        let y2 := y
-                        for { let i := 0 } lt(i, sub(scalar, 1)) { i := add(i, 2) } {
-                              x2, y2 := double(x2, y2)
-                        }
-                        x2, y2 := addPoints(x2, y2, x, y)
-
-                        // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x2, y2)) {
-                              return(0, 0)
-                        }
-
-                        mstore(0, x2)
-                        mstore(32, y2)
-                        return(0, 64)
-                  }
-
-                  // Return the result
-                  let precompileParams := unsafePackPrecompileParams(
-                        0, // input offset in words
-                        // TODO: Double check that the input length is 4 because it could be 2
-                        // if the input points are packed in a single word (points as tuples of coordinates)
-                        3, // input length in words (x, y, scalar)
-                        0, // output offset in words
-                        // TODO: Double check that the input length is 4 because it could be 1
-                        // if the input points are packed in a single word (points as tuples of coordinates)
-                        2, // output length in words (x, y)
-                        0  // No special meaning, ecMul circuit doesn't check this value
-                  )
-                  let gasToPay := ECMUL_GAS_COST()
-      
-                  // Check whether the call is successfully handled by the ecMul circuit
-                  let success := precompileCall(precompileParams, gasToPay)
-                  let internalSuccess := mload(0)
-      
-                  switch and(success, internalSuccess)
-                  case 0 {
+                  // Ensure that the coordinates are between 0 and the group order.
+                  if or(gt(x, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y, sub(ALT_BN128_GROUP_ORDER(), 1))) {
                         return(0, 0)
                   }
-                  default {
-                        return(0, 64)
+
+                  // Ensure that the point is in the curve (Y^2 = X^3 + 3).
+                  if iszero(pointIsInCurve(x, y)) {
+                        return(0, 0)
                   }
+
+                  let x2 := ZERO()
+                  let y2 := ZERO()
+                  for { let i := 0 } lt(i, scalar) { i := add(i, 1) } {
+                        x2, y2 := addPoints(x, y, x2, y2)
+                  }
+
+                  mstore(0, x2)
+                  mstore(32, y2)
+                  return(0, 64)
+
+                  // // Return the result
+                  // let precompileParams := unsafePackPrecompileParams(
+                  //       0, // input offset in words
+                  //       // TODO: Double check that the input length is 4 because it could be 2
+                  //       // if the input points are packed in a single word (points as tuples of coordinates)
+                  //       3, // input length in words (x, y, scalar)
+                  //       0, // output offset in words
+                  //       // TODO: Double check that the input length is 4 because it could be 1
+                  //       // if the input points are packed in a single word (points as tuples of coordinates)
+                  //       2, // output length in words (x, y)
+                  //       0  // No special meaning, ecMul circuit doesn't check this value
+                  // )
+                  // let gasToPay := ECMUL_GAS_COST()
+      
+                  // // Check whether the call is successfully handled by the ecMul circuit
+                  // let success := precompileCall(precompileParams, gasToPay)
+                  // let internalSuccess := mload(0)
+      
+                  // switch and(success, internalSuccess)
+                  // case 0 {
+                  //       return(0, 0)
+                  // }
+                  // default {
+                  //       return(0, 64)
+                  // }
 		}
 	}
 }
