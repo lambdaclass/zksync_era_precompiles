@@ -90,7 +90,6 @@ object "EcMul" {
                   ) -> pow {
                         pow := 1
                         let base := mod(uint256_base, uint256_modulus)
-                        let exponent := mod(uint256_exponent, sub(uint256_modulus, 1))
                         for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
                               if eq(mod(exponent, 2), ONE()) {
                                     pow := mulmod(pow, base, uint256_modulus)
