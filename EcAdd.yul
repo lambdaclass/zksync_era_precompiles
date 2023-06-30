@@ -151,9 +151,9 @@ object "EcAdd" {
                         }
 
                         // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        // if iszero(pointIsInCurve(x2, y2)) {
-                        //       return(0, 0)
-                        // }
+                        if iszero(pointIsInCurve(x2, y2)) {
+                              return(0, 0)
+                        }
 
                         mstore(0, x2)
                         mstore(32, y2)
@@ -167,16 +167,16 @@ object "EcAdd" {
                               return(0, 0)
                         }
 
-                        // // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        // if iszero(pointIsInCurve(x1, y1)) {
-                        //       return(0, 0)
-                        // }
+                        // Ensure that the point is in the curve (Y^2 = X^3 + 3).
+                        if iszero(pointIsInCurve(x1, y1)) {
+                              return(0, 0)
+                        }
 
                         mstore(0, x1)
                         mstore(32, y1)
                         return(0, 64)
                   }
-                  if and(eq(x1, x2), not(eq(y1, y2))) {
+                  if and(eq(x1, x2), eq(not(y1), y2)) {
                         // P + (-P) = Infinity
                         mstore(0, ZERO())
                         mstore(32, ZERO())
@@ -184,6 +184,12 @@ object "EcAdd" {
                   }
                   if and(eq(x1, x2), or(eq(y1, ZERO()), eq(y2, ZERO()))) {
                         // P1 + P2 = Infinity
+
+                        // Ensure that the coordinates are between 0 and the group order.
+                        if or(gt(x1, sub(ALT_BN128_GROUP_ORDER(), ONE())), gt(y1, sub(ALT_BN128_GROUP_ORDER(), ONE()))) {
+                              return(0, 0)
+                        }
+
                         mstore(0, ZERO())
                         mstore(32, ZERO())
                         return(0, 64)
@@ -197,9 +203,9 @@ object "EcAdd" {
                         }
 
                         // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                        // if iszero(pointIsInCurve(x1, y1)) {
-                        //       return(0, 0)
-                        // }
+                        if iszero(pointIsInCurve(x1, y1)) {
+                              return(0, 0)
+                        }
 
                         // (3 * x1^2 + a) / (2 * y1)
                         let slope := divmod(addmod(mulmod(3, powmod(x1, 2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), ZERO(), ALT_BN128_GROUP_ORDER()), mulmod(2, y1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
@@ -209,9 +215,9 @@ object "EcAdd" {
                         let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
 
                         // Ensure that the new point is in the curve
-                        // if iszero(pointIsInCurve(x3, y3)) {
-                        //       return(0, 0)
-                        // }
+                        if iszero(pointIsInCurve(x3, y3)) {
+                              return(0, 0)
+                        }
 
                         mstore(0, x3)
                         mstore(32, y3)
@@ -227,14 +233,11 @@ object "EcAdd" {
                         if or(gt(x2, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y2, sub(ALT_BN128_GROUP_ORDER(), 1))) {
                               return(0, 0)
                         }
-                        // // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                        // if or(not(pointIsInCurve(x1, y1)), not(pointIsInCurve(x2, y2))) {
-                        //       mstore(0, 0x5)
-                        //       mstore(32, 0x5)
-                        //       return(0, 64)
 
-                        //       return(0, 0)
-                        // }
+                        // Ensure that the points are in the curve (Y^2 = X^3 + 3).
+                        if or(iszero(pointIsInCurve(x1, y1)), iszero(pointIsInCurve(x2, y2))) {
+                              return(0, 0)
+                        }
 
                         // (y2 - y1) / (x2 - x1)
                         let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_ORDER()), submod(x2, x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
@@ -243,14 +246,10 @@ object "EcAdd" {
                         // y3 = slope * (x1 - x3) - y1
                         let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
 
-                        // // Ensure that the new point is in the curve
-                        // if not(pointIsInCurve(x3, y3)) {
-                        //       mstore(0, 0x6)
-                        //       mstore(32, 0x6)
-                        //       return(0, 64)
-
-                        //       return(0, 0)
-                        // }
+                        // Ensure that the new point is in the curve
+                        if iszero(pointIsInCurve(x3, y3)) {
+                              return(0, 0)
+                        }
 
                         mstore(0, x3)
                         mstore(32, y3)
