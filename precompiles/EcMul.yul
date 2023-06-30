@@ -51,16 +51,6 @@ object "EcMul" {
                         ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
                   }
 
-                  // @dev Adds two field elements over a prime field of modulus
-                  // the group size.
-                  // Caller should ensure the type matching before!
-                  function addFieldElements(
-                        uint256_augend,
-                        uint256_addend,
-                  ) -> sum {
-                        sum := addmod(uint256_augend, uint256_addend, ALT_BN128_GROUP_ORDER())
-                  }
-
                   // Returns 1 if (x, y) is in the curve, 0 otherwise
                   function pointIsInCurve(
                         sint256_x,
