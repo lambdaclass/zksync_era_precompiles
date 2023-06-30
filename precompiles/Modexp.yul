@@ -70,7 +70,7 @@ object "ModExp" {
             // base^exponent % 0 = 0
             if iszero(modulus) {
                 let s := add(add(base_length, exponent_length), modulus_length)
-                mstore(0, ZERO())
+                mstore(s, ZERO())
                 return(s, modulus_length)
             }
 
