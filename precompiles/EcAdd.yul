@@ -100,7 +100,6 @@ object "EcAdd" {
                   ) -> pow {
                         pow := 1
                         let base := mod(uint256_base, uint256_modulus)
-                        let exponent := mod(uint256_exponent, sub(uint256_modulus, 1))
                         for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
                               if eq(mod(exponent, 2), ONE()) {
                                     pow := mulmod(pow, base, uint256_modulus)
@@ -214,11 +213,6 @@ object "EcAdd" {
                         // y3 = slope * (x1 - x3) - y1
                         let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
 
-                        // Ensure that the new point is in the curve
-                        if iszero(pointIsInCurve(x3, y3)) {
-                              return(0, 0)
-                        }
-
                         mstore(0, x3)
                         mstore(32, y3)
                         return(0, 64)
@@ -245,11 +239,6 @@ object "EcAdd" {
                         let x3 := submod(mulmod(slope, slope, ALT_BN128_GROUP_ORDER()), addmod(x1, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                         // y3 = slope * (x1 - x3) - y1
                         let y3 := submod(mulmod(slope, submod(x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y1, ALT_BN128_GROUP_ORDER())
-
-                        // Ensure that the new point is in the curve
-                        if iszero(pointIsInCurve(x3, y3)) {
-                              return(0, 0)
-                        }
 
                         mstore(0, x3)
                         mstore(32, y3)
