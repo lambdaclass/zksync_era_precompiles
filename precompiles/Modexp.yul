@@ -18,10 +18,10 @@ object "ModExp" {
                 ret := 20
             }
 
-            function MODEXP_GAS_COST(sint256_length_of_BASE, sint256_length_of_MODULUS) -> modexpGasCost {
-                // TODO: Find the correct amount of gas to burn
-                modexpGasCost := floor(mult_complexity(max(sint256_length_of_BASE, sint256_length_of_MODULUS)) * max(ADJUSTED_EXPONENT_LENGTH, 1) / GQUADDIVISOR)
-            }
+            // function MODEXP_GAS_COST(sint256_length_of_BASE, sint256_length_of_MODULUS) -> modexpGasCost {
+            //     // TODO: Find the correct amount of gas to burn
+            //     modexpGasCost := floor(mult_complexity(max(sint256_length_of_BASE, sint256_length_of_MODULUS)) * max(ADJUSTED_EXPONENT_LENGTH, 1) / GQUADDIVISOR)
+            // }
 
             //////////////////////////////////////////////////////////////////
             //                      HELPER FUNCTIONS
@@ -86,32 +86,33 @@ object "ModExp" {
             }
 
             mstore(0, pow)
+            return(0, modulus_length)
 
-            // Return the result
-            let precompileParams := unsafePackPrecompileParams(
-                  0, // input offset in words
-                  3, // input length in words (base, exponent, modulus)
-                  0, // output offset in words
-                  1, // output length in words (pow)
-                  0  // No special meaning, modexp circuit doesn't check this value
-            )
-            let gasToPay := MODEXP_GAS_COST()
+            // // Return the result
+            // let precompileParams := unsafePackPrecompileParams(
+            //       0, // input offset in words
+            //       3, // input length in words (base, exponent, modulus)
+            //       0, // output offset in words
+            //       1, // output length in words (pow)
+            //       0  // No special meaning, modexp circuit doesn't check this value
+            // )
+            // let gasToPay := MODEXP_GAS_COST()
 
-            // Check whether the call is successfully handled by the ecAdd circuit
-            let success := precompileCall(precompileParams, gasToPay)
-            let internalSuccess := mload(0)
+            // // Check whether the call is successfully handled by the ecAdd circuit
+            // let success := precompileCall(precompileParams, gasToPay)
+            // let internalSuccess := mload(0)
 
-            switch and(success, internalSuccess)
-            case 0 {
-                  mstore(0, 0x7)
-                  mstore(32, 0x7)
-                  return(0, 64)
+            // switch and(success, internalSuccess)
+            // case 0 {
+            //       mstore(0, 0x7)
+            //       mstore(32, 0x7)
+            //       return(0, 64)
 
-                  return(0, 0)
-            }
-            default {
-                  return(0, 64)
-            }
+            //       return(0, 0)
+            // }
+            // default {
+            //       return(0, 64)
+            // }
 		}
 	}
 }
