@@ -21,4 +21,4 @@
 - [EIP-197: Precompiled contracts for optimal ate pairing check on the elliptic curve alt_bn128](https://eips.ethereum.org/EIPS/eip-197)
 - [EIP-198: Big integer modular exponentiation](https://eips.ethereum.org/EIPS/eip-198)
 - [EIP-1108: Reduce alt_bn128 precompile gas costs](https://eips.ethereum.org/EIPS/eip-1108)
-- [https://eips.ethereum.org/EIPS/eip-2565](https://eips.ethereum.org/EIPS/eip-2565)
+- [EIP-2565: ModExp Gas Cost](https://eips.ethereum.org/EIPS/eip-2565)
