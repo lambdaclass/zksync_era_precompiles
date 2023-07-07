@@ -14,15 +14,6 @@ object "ModExp" {
                 one := 0x1
             }
 
-            function GQUADDIVISOR() -> ret {
-                ret := 20
-            }
-
-            // function MODEXP_GAS_COST(sint256_length_of_BASE, sint256_length_of_MODULUS) -> modexpGasCost {
-            //     // TODO: Find the correct amount of gas to burn
-            //     modexpGasCost := floor(mult_complexity(max(sint256_length_of_BASE, sint256_length_of_MODULUS)) * max(ADJUSTED_EXPONENT_LENGTH, 1) / GQUADDIVISOR)
-            // }
-
             //////////////////////////////////////////////////////////////////
             //                      HELPER FUNCTIONS
             //////////////////////////////////////////////////////////////////
@@ -55,64 +46,57 @@ object "ModExp" {
             ////////////////////////////////////////////////////////////////
 
             let base_length := calldataload(0)
+            mstore(0, base_length)
+
             let exponent_length := calldataload(32)
+            mstore(32, exponent_length)
+
             let modulus_length := calldataload(64)
-            let base := calldatacopy(0, 64, base_length)
-            let exponent := calldatacopy(base_length, 96, exponent_length)
-            let modulus := calldatacopy(add(base_length, exponent_length), 128, modulus_length)
+            mstore(64, modulus_length)
+
+            let base_length_pointer := 96
+            calldatacopy(add(96, sub(32, base_length)), base_length_pointer, base_length)
+            
+            let exponent_length_pointer := add(base_length_pointer, base_length)
+            calldatacopy(add(128, sub(32, exponent_length)), exponent_length_pointer, exponent_length)
+            
+            let modulus_length_pointer := add(exponent_length_pointer, exponent_length)
+            calldatacopy(add(160, sub(32, modulus_length)), modulus_length_pointer, modulus_length)
+            
+            let base := mload(96)
+            let exponent := mload(128)
+            let modulus := mload(160)
+
+            // 1^exponent % modulus = 1
+            if eq(base, ONE()) {
+                mstore(196, ONE())
+                return(196, modulus_length)
+            }
 
             // base^0 % modulus = 1
             if iszero(exponent) {
-                mstore(0, ONE())
-                return(0, 32)
+                mstore(196, ONE())
+                return(196, modulus_length)
             }
 
             // base^exponent % 0 = 0
             if iszero(modulus) {
-                let s := add(add(base_length, exponent_length), modulus_length)
-                mstore(s, ZERO())
-                return(s, modulus_length)
+                mstore(196, ZERO())
+                return(196, modulus_length)
             }
 
             let pow := 1
             base := mod(base, modulus)
-            exponent := mod(exponent, sub(modulus, 1))
             for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
-                    if eq(mod(exponent, 2), ONE()) {
-                        pow := mulmod(pow, base, modulus)
-                    }
-                    exponent := shr(1, exponent)
-                    base := mulmod(base, base, modulus)
+                if eq(mod(exponent, 2), ONE()) {
+                    pow := mulmod(pow, base, modulus)
+                }
+                exponent := shr(1, exponent)
+                base := mulmod(base, base, modulus)
             }
 
-            mstore(0, pow)
-            return(0, modulus_length)
-
-            // // Return the result
-            // let precompileParams := unsafePackPrecompileParams(
-            //       0, // input offset in words
-            //       3, // input length in words (base, exponent, modulus)
-            //       0, // output offset in words
-            //       1, // output length in words (pow)
-            //       0  // No special meaning, modexp circuit doesn't check this value
-            // )
-            // let gasToPay := MODEXP_GAS_COST()
-
-            // // Check whether the call is successfully handled by the ecAdd circuit
-            // let success := precompileCall(precompileParams, gasToPay)
-            // let internalSuccess := mload(0)
-
-            // switch and(success, internalSuccess)
-            // case 0 {
-            //       mstore(0, 0x7)
-            //       mstore(32, 0x7)
-            //       return(0, 64)
-
-            //       return(0, 0)
-            // }
-            // default {
-            //       return(0, 64)
-            // }
+            mstore(196, pow)
+            return(196, modulus_length)
 		}
 	}
 }
