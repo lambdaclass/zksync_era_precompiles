@@ -14,14 +14,17 @@ object "EcMul" {
                         one := 0x1
                   }
 
+                  function TWO() -> two {
+                        two := 0x2
+                  }
+
+                  function THREE() -> three {
+                        three := 0x3
+                  }
+
                   // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
                   function ALT_BN128_GROUP_ORDER() -> ret {
                         ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
-                  }
-      
-                  /// @dev The gas cost of processing ecAdd circuit precompile.
-                  function ECMUL_GAS_COST() -> ret {
-                        ret := 40000
                   }
 
                   // ////////////////////////////////////////////////////////////////
@@ -59,20 +62,9 @@ object "EcMul" {
                         let y_squared := mulmod(sint256_y, sint256_y, ALT_BN128_GROUP_ORDER())
                         let x_squared := mulmod(sint256_x, sint256_x, ALT_BN128_GROUP_ORDER())
                         let x_qubed := mulmod(x_squared, sint256_x, ALT_BN128_GROUP_ORDER())
-                        let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_ORDER())
+                        let x_qubed_plus_three := addmod(x_qubed, THREE(), ALT_BN128_GROUP_ORDER())
 
                         ret := eq(y_squared, x_qubed_plus_three)
-                  }
-
-                  function pow(base, exponent) -> quotient {
-                        switch exponent
-                        case 0 { quotient := 1 }
-                        case 1 { quotient := base }
-                        default {
-                              quotient := pow(mul(base, base), div(exponent, 2))
-                              switch mod(exponent, 2)
-                                    case 1 { quotient := mul(base, quotient) }
-                        }
                   }
 
                   function invmod(uint256_base, uint256_modulus) -> inv {
@@ -90,7 +82,8 @@ object "EcMul" {
                   ) -> pow {
                         pow := 1
                         let base := mod(uint256_base, uint256_modulus)
-                        for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
+                        let exponent := uint256_exponent
+                        for { } gt(exponent, ZERO()) { } {
                               if eq(mod(exponent, 2), ONE()) {
                                     pow := mulmod(pow, base, uint256_modulus)
                               }
@@ -118,38 +111,34 @@ object "EcMul" {
                         if isInfinity(sint256_x, sint256_y) {
                               x := ZERO()
                               y := ZERO()
-                              return(x, y)
                         }
-                        // (3 * sint256_x^2 + a) / (2 * sint256_y)
-                        let slope := divmod(addmod(mulmod(3, powmod(sint256_x, 2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), ZERO(), ALT_BN128_GROUP_ORDER()), mulmod(2, sint256_y, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // x = slope^2 - 2 * sint256_x
-                        x := submod(mulmod(slope, slope, ALT_BN128_GROUP_ORDER()), mulmod(2, sint256_x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // y = slope * (sint256_x - x) - sint256_y
-                        y := submod(mulmod(slope, submod(sint256_x, x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), sint256_y, ALT_BN128_GROUP_ORDER())
+                        if iszero(isInfinity(sint256_x, sint256_y)) {
+                              // (3 * sint256_x^2 + a) / (2 * sint256_y)
+                              let slope := divmod(mulmod(3, mulmod(sint256_x, sint256_x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), addmod(sint256_y, sint256_y, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                              // x = slope^2 - 2 * x
+                              x := submod(mulmod(slope, slope, ALT_BN128_GROUP_ORDER()), addmod(sint256_x, sint256_x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                              // y = slope * (sint256_x - x) - sint256_y
+                              y := submod(mulmod(slope, submod(sint256_x, x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), sint256_y, ALT_BN128_GROUP_ORDER())
+                        }
                   }
 
-                  function addPoints(sint256_x1, sint256_y1, sint256_x2, sint256_y2) -> x3, y3 {
-                        if isInfinity(sint256_x1, sint256_y1) {
-                              x3 := sint256_x2
-                              y3 := sint256_y2
-                              return(x3, y3)
-                        }
-                        if isInfinity(sint256_x2, sint256_y2) {
-                              x3 := sint256_x1
-                              y3 := sint256_y1
-                              return(x3, y3)
-                        }
-                        if and(eq(sint256_x1, sint256_x2), eq(sint256_y1, sint256_y2)) {
-                              // Double
-                              x3, y3 := double(sint256_x1, sint256_y1)
-                              return(x3, y3)
-                        }
-                        // (sint256_y2 - sint256_y1) / (sint256_x2 - sint256_x1)
-                        let slope := divmod(submod(sint256_y2, sint256_y1, ALT_BN128_GROUP_ORDER()), submod(sint256_x2, sint256_x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // x3 = slope^2 - sint256_x1 - sint256_x2
-                        x3 := submod(mulmod(slope, slope, ALT_BN128_GROUP_ORDER()), addmod(sint256_x1, sint256_x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // y3 = slope * (sint256_x1 - x3) - sint256_y1
-                        y3 := submod(mulmod(slope, submod(sint256_x1, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), sint256_y1, ALT_BN128_GROUP_ORDER())
+                  function isOnGroupOrder(num) -> ret {
+                        ret := iszero(gt(num, sub(ALT_BN128_GROUP_ORDER(), ONE())))
+                  }
+
+                  function burnGas() {
+                        let precompileParams := unsafePackPrecompileParams(
+                              0, // input offset in words
+                              3, // input length in words (x, y, scalar)
+                              0, // output offset in words
+                              2, // output length in words (x2, y2)
+                              0  // No special meaning
+                        )
+                        let gasToPay := gas()
+            
+                        // Precompiles that do not have a circuit counterpart
+                        // will burn the provided gas by calling this function.
+                        precompileCall(precompileParams, gasToPay)
                   }
 
                   ////////////////////////////////////////////////////////////////
@@ -161,19 +150,12 @@ object "EcMul" {
                   let y := calldataload(32)
                   let scalar := calldataload(64)
 
-                  // Ensure that the scalar is a number between 0 and 2^256 - 1.
-                  if gt(scalar, sub(shl(1, 256), 1)) {
-                        return(0, 0)
-                  }
-
-                  // Add the points.
                   if isInfinity(x, y) {
                         // Infinity * scalar = Infinity
                         mstore(0, ZERO())
                         mstore(32, ZERO())
                         return(0, 64)
                   }
-                  // Multiply the points.
                   if eq(scalar, ZERO()) {
                         // P * 0 = Infinity
                         mstore(0, ZERO())
@@ -184,65 +166,75 @@ object "EcMul" {
                         // P * 1 = P
 
                         // Ensure that the coordinates are between 0 and the group order.
-                        if or(gt(x, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y, sub(ALT_BN128_GROUP_ORDER(), 1))) {
-                              return(0, 0)
+                        if or(iszero(isOnGroupOrder(x)), iszero(isOnGroupOrder(y))) {
+                              burnGas()
+                              revert(0, 0)
                         }
 
                         // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                         if iszero(pointIsInCurve(x, y)) {
-                              return(0, 0)
+                              burnGas()
+                              revert(0, 0)
                         }
 
                         mstore(0, x)
                         mstore(32, y)
                         return(0, 64)
                   }
+                  if eq(scalar, TWO()) {
+                        let x2, y2 := double(x, y)
+                        mstore(0, x2)
+                        mstore(32, y2)
+                        return(0, 64)
+                  }
 
                   // Ensure that the coordinates are between 0 and the group order.
-                  if or(gt(x, sub(ALT_BN128_GROUP_ORDER(), 1)), gt(y, sub(ALT_BN128_GROUP_ORDER(), 1))) {
-                        return(0, 0)
+                  if or(iszero(isOnGroupOrder(x)), iszero(isOnGroupOrder(y))) {
+                        burnGas()
+                        revert(0, 0)
                   }
 
                   // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                   if iszero(pointIsInCurve(x, y)) {
-                        return(0, 0)
+                        burnGas()
+                        revert(0, 0)
                   }
 
-                  let x2 := ZERO()
-                  let y2 := ZERO()
-                  for { let i := 0 } lt(i, scalar) { i := add(i, 1) } {
-                        x2, y2 := addPoints(x, y, x2, y2)
+                  let x2 := x
+                  let y2 := y
+                  for { let i := 2 } lt(i, scalar) { i := add(i, 1) } {
+                        if and(eq(x, x2), eq(y, y2)) {
+                              // Double
+                              x2, y2 := double(x2, y2)
+                        }
+                        if or(iszero(eq(x, x2)), iszero(eq(y, y2))) {
+                              // (y2 - y) / (x2 - x)
+                              let slope := divmod(
+                                    submod(y2, y, ALT_BN128_GROUP_ORDER()), 
+                                    submod(x2, x, ALT_BN128_GROUP_ORDER()), 
+                                    ALT_BN128_GROUP_ORDER()
+                              )
+                              // x2 = slope^2 - (x + x2)
+                              x2 := submod(
+                                    // slope^2
+                                    mulmod(slope, slope, ALT_BN128_GROUP_ORDER()),
+                                    // (x + x2)
+                                    addmod(x, x2, ALT_BN128_GROUP_ORDER()),
+                                    ALT_BN128_GROUP_ORDER()
+                              )
+                              // y2 = slope * (x - x2) - y
+                              y2 := submod(
+                                    // slope * (x - x2)
+                                    mulmod(slope, submod(x, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()),
+                                    y,
+                                    ALT_BN128_GROUP_ORDER()
+                              )
+                        }
                   }
 
                   mstore(0, x2)
                   mstore(32, y2)
                   return(0, 64)
-
-                  // // Return the result
-                  // let precompileParams := unsafePackPrecompileParams(
-                  //       0, // input offset in words
-                  //       // TODO: Double check that the input length is 4 because it could be 2
-                  //       // if the input points are packed in a single word (points as tuples of coordinates)
-                  //       3, // input length in words (x, y, scalar)
-                  //       0, // output offset in words
-                  //       // TODO: Double check that the input length is 4 because it could be 1
-                  //       // if the input points are packed in a single word (points as tuples of coordinates)
-                  //       2, // output length in words (x, y)
-                  //       0  // No special meaning, ecMul circuit doesn't check this value
-                  // )
-                  // let gasToPay := ECMUL_GAS_COST()
-      
-                  // // Check whether the call is successfully handled by the ecMul circuit
-                  // let success := precompileCall(precompileParams, gasToPay)
-                  // let internalSuccess := mload(0)
-      
-                  // switch and(success, internalSuccess)
-                  // case 0 {
-                  //       return(0, 0)
-                  // }
-                  // default {
-                  //       return(0, 64)
-                  // }
 		}
 	}
 }
