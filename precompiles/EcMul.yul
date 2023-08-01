@@ -156,37 +156,6 @@ object "EcMul" {
                         mstore(32, ZERO())
                         return(0, 64)
                   }
-                  if eq(scalar, ZERO()) {
-                        // P * 0 = Infinity
-                        mstore(0, ZERO())
-                        mstore(32, ZERO())
-                        return(0, 64)
-                  }
-                  if eq(scalar, ONE()) {
-                        // P * 1 = P
-
-                        // Ensure that the coordinates are between 0 and the group order.
-                        if or(iszero(isOnGroupOrder(x)), iszero(isOnGroupOrder(y))) {
-                              burnGas()
-                              revert(0, 0)
-                        }
-
-                        // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x, y)) {
-                              burnGas()
-                              revert(0, 0)
-                        }
-
-                        mstore(0, x)
-                        mstore(32, y)
-                        return(0, 64)
-                  }
-                  if eq(scalar, TWO()) {
-                        let x2, y2 := double(x, y)
-                        mstore(0, x2)
-                        mstore(32, y2)
-                        return(0, 64)
-                  }
 
                   // Ensure that the coordinates are between 0 and the group order.
                   if or(iszero(isOnGroupOrder(x)), iszero(isOnGroupOrder(y))) {
@@ -198,6 +167,25 @@ object "EcMul" {
                   if iszero(pointIsInCurve(x, y)) {
                         burnGas()
                         revert(0, 0)
+                  }
+
+                  if eq(scalar, ZERO()) {
+                        // P * 0 = Infinity
+                        mstore(0, ZERO())
+                        mstore(32, ZERO())
+                        return(0, 64)
+                  }
+                  if eq(scalar, ONE()) {
+                        // P * 1 = P
+                        mstore(0, x)
+                        mstore(32, y)
+                        return(0, 64)
+                  }
+                  if eq(scalar, TWO()) {
+                        let x2, y2 := double(x, y)
+                        mstore(0, x2)
+                        mstore(32, y2)
+                        return(0, 64)
                   }
 
                   let x2 := x
