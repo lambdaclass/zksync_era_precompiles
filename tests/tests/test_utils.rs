@@ -66,16 +66,16 @@ pub async fn call(
         .into_iter()
         .map(|o| o.kind)
         .collect();
-        decode(&output_types, &encoded_output)
-            .map_err(|_| ProviderError::CustomError("decode error".to_owned()))
+        Ok(decode(&output_types, &encoded_output).unwrap_or_default())
     } else if let Some(inputs) = inputs {
-        ZKSProvider::call(
+        Ok(ZKSProvider::call(
             provider,
             precompile_address,
             "function_signature",
             Some(inputs.to_vec().iter().map(|x| x.to_string()).collect()),
         )
         .await
+        .unwrap_or_default())
     } else {
         panic!("inputs or data must be provided")
     }
