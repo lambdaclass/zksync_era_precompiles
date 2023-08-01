@@ -175,6 +175,19 @@ object "EcAdd" {
                   }
                   if and(eq(x1, x2), eq(submod(0, y1, ALT_BN128_GROUP_ORDER()), y2)) {
                         // P + (-P) = Infinity
+
+                        // Ensure that the coordinates are between 0 and the group order.
+                        if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
+                              burnGas()
+                              revert(0, 0)
+                        }
+
+                        // Ensure that the points are in the curve (Y^2 = X^3 + 3).
+                        if iszero(pointIsInCurve(x1, y1)) {
+                              burnGas()
+                              revert(0, 0)
+                        }
+
                         mstore(0, ZERO())
                         mstore(32, ZERO())
                         return(0, 64)
