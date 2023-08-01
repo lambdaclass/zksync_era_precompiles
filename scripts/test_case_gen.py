@@ -9,7 +9,8 @@ TEST_DIRS = ['/Users/ivanlitteri/Lambda/tests/GeneralStateTests/stZeroKnowledge'
 ParserState = enum.Enum('ParserState', ['INPUT', 'NOT_INPUT'])
 
 def write_imports(test_file: io.TextIOWrapper, precompile):
-    test_file.write(f"use zksync_web3_rs::zks_utils::{precompile};\n")
+    test_file.write("use hex;\n")
+    test_file.write(f"use zksync_web3_rs::{{zks_utils::{precompile}, types::Bytes}};\n")
     test_file.write("\n")
     test_file.write("mod test_utils;\n")
     test_file.write("use test_utils::{eth_call, era_call};\n")
@@ -19,8 +20,8 @@ def write_test_case(precompile, test_case_data, test_file: io.TextIOWrapper):
     test_file.write("// " + test_case_data["comment"] + "\n")
     test_file.write("#[tokio::test]\n")
     test_file.write("async fn " + test_case_data["name"] + "() {\n")
-    test_file.write(f"\tlet eth_response = eth_call({precompile}, &{test_case_data['parameters']}).await.unwrap();\n".replace("\'", "\""))
-    test_file.write(f"\tlet era_response = era_call({precompile}, &{test_case_data['parameters']}).await.unwrap();\n".replace("\'", "\""))
+    test_file.write(f"\tlet eth_response = eth_call({precompile}, None, Some(Bytes::from(hex::decode(\"{test_case_data['calldata']}\").unwrap()))).await.unwrap();\n".replace("\'", "\""))
+    test_file.write(f"\tlet era_response = era_call({precompile}, None, Some(Bytes::from(hex::decode(\"{test_case_data['calldata']}\").unwrap()))).await.unwrap();\n".replace("\'", "\""))
     test_file.write(f"\tassert_eq!(eth_response, era_response, \"{test_case_data['comment']}\");\n")
     test_file.write("}\n")
     test_file.write("\n")
@@ -49,19 +50,25 @@ def main():
 
                 # Parse ecadd input
                 if precompile == "ecadd":
-                    points = re.findall(r"\([0-9]+, [0-9]+\)", comment)
-                    for point in points:
-                        x, y = point[1:-1].split(", ")
-                        parameters.append(x)
-                        parameters.append(y)
+                    # points = re.findall(r"\([0-9]+, [0-9]+\)", comment)
+                    # for point in points:
+                    #     x, y = point[1:-1].split(", ")
+                    #     parameters.append(x)
+                    #     parameters.append(y)
+
+                    # Skips "0x" and the first 136 bytes
+                    calldata = calldata[138:]
                 # Parse ecmul input
                 elif precompile == "ecmul":
-                    point = re.findall(r"\([0-9]+, [0-9]+\)", comment)[0]
-                    factor = re.findall(r"factor [0-9]+ into", comment)[0].replace("factor ", "").replace(" into", "")
-                    x, y = point[1:-1].split(", ")
-                    parameters.append(x)
-                    parameters.append(y)
-                    parameters.append(factor)
+                    # point = re.findall(r"\([0-9]+, [0-9]+\)", comment)[0]
+                    # factor = re.findall(r"factor [0-9]+ into", comment)[0].replace("factor ", "").replace(" into", "")
+                    # x, y = point[1:-1].split(", ")
+                    # parameters.append(x)
+                    # parameters.append(y)
+                    # parameters.append(factor)
+
+                    # Skips "0x" and the first 136 bytes
+                    calldata = calldata[138:]
                 elif precompile == "ecpairing":
                     continue
 
