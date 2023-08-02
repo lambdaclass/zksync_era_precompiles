@@ -66,7 +66,7 @@ pub async fn call(
         .into_iter()
         .map(|o| o.kind)
         .collect();
-        Ok(decode(&output_types, &encoded_output).unwrap_or_default())
+        decode(&output_types, &encoded_output).map_err(|e| ProviderError::CustomError(format!("decode error: {}", e)))
     } else if let Some(inputs) = inputs {
         Ok(ZKSProvider::call(
             provider,

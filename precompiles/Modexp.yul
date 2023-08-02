@@ -77,6 +77,12 @@ object "ModExp" {
                 return(196, modulus_length)
             }
 
+            // base^exponent % 0 = 0
+            if iszero(modulus) {
+                mstore(196, ZERO())
+                return(196, modulus_length)
+            }
+
             // base^0 % modulus = 1
             if iszero(exponent) {
                 mstore(196, ONE())
