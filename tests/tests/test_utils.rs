@@ -71,7 +71,7 @@ pub async fn call(
         Ok(ZKSProvider::call(
             provider,
             precompile_address,
-            "function_signature",
+            "",
             Some(inputs.to_vec().iter().map(|x| x.to_string()).collect()),
         )
         .await
