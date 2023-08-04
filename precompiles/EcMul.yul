@@ -141,6 +141,10 @@ object "EcMul" {
                         precompileCall(precompileParams, gasToPay)
                   }
 
+                  function lsbIsOne(x) -> ret {
+                        ret := eq(mod(x, 2), 1)
+                  }
+
                   ////////////////////////////////////////////////////////////////
                   //                      FALLBACK
                   ////////////////////////////////////////////////////////////////
@@ -190,38 +194,77 @@ object "EcMul" {
 
                   let x2 := x
                   let y2 := y
-                  for { let i := 2 } lt(i, scalar) { i := add(i, 1) } {
-                        if and(eq(x, x2), eq(y, y2)) {
-                              // Double
-                              x2, y2 := double(x2, y2)
+                  let x_res := ZERO()
+                  let y_res := ZERO()
+                  for {} iszero(eq(scalar, ZERO())) {} {
+                        if lsbIsOne(scalar) {
+                              if and(isInfinity(x_res, y_res), isInfinity(x2, y2)) {
+                                    // Infinity + Infinity = Infinity
+                                    x_res := ZERO()
+                                    y_res := ZERO()
+                                    
+                                    x2, y2 := double(x2, y2)
+                                    // Check next bit
+                                    scalar := shr(1, scalar)
+                                    continue
+                              }
+                              if and(isInfinity(x_res, y_res), iszero(isInfinity(x2, y2))) {
+                                    // Infinity + P = P
+                                    x_res := x2
+                                    y_res := y2
+
+                                    x2, y2 := double(x2, y2)
+                                    // Check next bit
+                                    scalar := shr(1, scalar)
+                                    continue
+                              }
+                              if and(iszero(isInfinity(x_res, y_res)), isInfinity(x2, y2)) {
+                                    // P + Infinity = P
+
+                                    // Check next bit
+                                    scalar := shr(1, scalar)
+                                    continue
+                              }
+                              if and(eq(x_res, x2), eq(submod(0, y_res, ALT_BN128_GROUP_ORDER()), y2)) {
+                                    // P + (-P) = Infinity
+                                    x_res := ZERO()
+                                    y_res := ZERO()
+
+                                    x2, y2 := double(x2, y2)
+                                    // Check next bit
+                                    scalar := shr(1, scalar)
+                                    continue
+                              }
+                              if and(eq(x_res, x2), eq(y_res, y2)) {
+                                    // P + P = 2P
+                                    x_res, y_res := double(x_res, y_res)
+                                    
+                                    x2, y2 := double(x2, y2)
+                                    // Check next bit
+                                    scalar := shr(1, scalar)
+                                    continue
+                              }
+
+                              // P1 + P2 = P3
+                              
+                              // (y2 - y1) / (x2 - x1)
+                              let slope := divmod(submod(y2, y_res, ALT_BN128_GROUP_ORDER()), submod(x2, x_res, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                              // x3 = slope^2 - x1 - x2
+                              let x3 := submod(mulmod(slope, slope, ALT_BN128_GROUP_ORDER()), addmod(x_res, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                              // y3 = slope * (x1 - x3) - y1
+                              let y3 := submod(mulmod(slope, submod(x_res, x3, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), y_res, ALT_BN128_GROUP_ORDER())
+                              
+                              x_res := x3
+                              y_res := y3
                         }
-                        if or(iszero(eq(x, x2)), iszero(eq(y, y2))) {
-                              // (y2 - y) / (x2 - x)
-                              let slope := divmod(
-                                    submod(y2, y, ALT_BN128_GROUP_ORDER()), 
-                                    submod(x2, x, ALT_BN128_GROUP_ORDER()), 
-                                    ALT_BN128_GROUP_ORDER()
-                              )
-                              // x2 = slope^2 - (x + x2)
-                              x2 := submod(
-                                    // slope^2
-                                    mulmod(slope, slope, ALT_BN128_GROUP_ORDER()),
-                                    // (x + x2)
-                                    addmod(x, x2, ALT_BN128_GROUP_ORDER()),
-                                    ALT_BN128_GROUP_ORDER()
-                              )
-                              // y2 = slope * (x - x2) - y
-                              y2 := submod(
-                                    // slope * (x - x2)
-                                    mulmod(slope, submod(x, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()),
-                                    y,
-                                    ALT_BN128_GROUP_ORDER()
-                              )
-                        }
+
+                        x2, y2 := double(x2, y2)
+                        // Check next bit
+                        scalar := shr(1, scalar)
                   }
 
-                  mstore(0, x2)
-                  mstore(32, y2)
+                  mstore(0, x_res)
+                  mstore(32, y_res)
                   return(0, 64)
 		}
 	}
