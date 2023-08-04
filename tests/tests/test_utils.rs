@@ -80,3 +80,29 @@ pub async fn call(
         panic!("inputs or data must be provided")
     }
 }
+
+pub async fn eth_raw_call(
+    precompile_address: Address,
+    data: Bytes,
+) -> Result<Bytes, ProviderError> {
+    raw_call(precompile_address, data, &eth_provider()).await
+}
+
+pub async fn era_raw_call(
+    precompile_address: Address,
+    data: Bytes,
+) -> Result<Bytes, ProviderError> {
+    raw_call(precompile_address, data, &era_provider()).await
+}
+
+pub async fn raw_call(
+    precompile_address: Address,
+    data: Bytes,
+    provider: &Provider<Http>,
+) -> Result<Bytes, ProviderError> {
+    let request = Eip1559TransactionRequest::new()
+        .to(precompile_address)
+        .data(data);
+    let transaction: TypedTransaction = request.into();
+    Middleware::call(&provider, &transaction, None).await
+}
