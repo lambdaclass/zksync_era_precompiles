@@ -23,15 +23,6 @@ object "Montgomery" {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
-            function R() -> r_low, r_high {
-                r_low := 0x0
-                r_high := 0x1
-            }
-
-            // function R2() -> r {
-            //       r := 13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084096
-            // }
-
             function R2_mod_ALT_BN128_GROUP_ORDER() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
@@ -56,6 +47,11 @@ object "Montgomery" {
                 }
             }
 
+            function overflowingSub(minuend, subtrahend) -> difference, overflowed {
+                difference := sub(minuend, subtrahend)
+                overflowed := or(gt(difference, minuend), gt(difference, subtrahend))
+            }
+
             function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
@@ -63,14 +59,14 @@ object "Montgomery" {
             // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
                 let q := mul(lowest_half_of_T, ALT_BN128_GROUP_ORDER_INVERSE())
-                let a := add(higher_half_of_T, getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()))
-
-                switch or(gt(a, ALT_BN128_GROUP_ORDER()), eq(a, ALT_BN128_GROUP_ORDER()))
-                case 0 {
-                    S := sub(ALT_BN128_GROUP_ORDER(), a)
+                let a_high := sub(getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()), higher_half_of_T)
+                let a_low, overflowed := overflowingSub(lowest_half_of_T, mul(q, ALT_BN128_GROUP_ORDER()))
+                if overflowed {
+                    a_high := sub(a_high, ONE())
                 }
-                case 1 {
-                    S := sub(a, ALT_BN128_GROUP_ORDER())
+                S := a_high
+                if or(gt(a_high, ALT_BN128_GROUP_ORDER()), eq(a_high, ALT_BN128_GROUP_ORDER())) {
+                    S := sub(a_high, ALT_BN128_GROUP_ORDER())
                 }
             }
 

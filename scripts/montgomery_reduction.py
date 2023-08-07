@@ -29,10 +29,12 @@ def REDC(n):
     assert(math.gcd(R, N) == 1)
     assert(N * N_PRIME % R == 1)
     q = (n % R) * N_PRIME % R
-    a = (n + q * N) // R
+    a = ((q * N) - n) // R
+    print("a1: ", a)
     if a >= N:
         a -= N
-    return N - a
+        print("a2: ", a)
+    return a
 
 # REDC((a mod N)(R2 mod N))
 def into_montgomery_form(a):
@@ -41,6 +43,10 @@ def into_montgomery_form(a):
 # REDC(aR mod N)
 def from_montgomery_form(a_mont):
     return REDC(a_mont)
+
+# REDC((aR mod N)(bR mod N))
+def montgomery_multiplication(a_mont, b_mont):
+    return REDC(a_mont * b_mont)
 
 # REDC((a mod N)(R2 mod N))
 def into_montgomery_form_naive(a):
@@ -56,17 +62,16 @@ def into_montgomery_form_naive(a):
 
 def main():
     a = 3
-    print(a)
-    mont_felt = into_montgomery_form(a)
-    print(mont_felt)
-    print(from_montgomery_form(mont_felt))
+    #print(a)
+    a_mont = into_montgomery_form(a)
+    #print(hex(a_mont))
+    #print(from_montgomery_form(a_mont))
 
-    print()
-
-    print(a)
-    mont_felt = into_montgomery_form_naive(a)
-    print(mont_felt)
-    print(from_montgomery_form(mont_felt))
+    a_prod = a * a
+    print(a_prod)
+    a_prod_mont = montgomery_multiplication(a_mont, a_mont)
+    print(hex(a_prod_mont))
+    print(from_montgomery_form(a_prod_mont))
 
 if __name__ == '__main__':
     main()
