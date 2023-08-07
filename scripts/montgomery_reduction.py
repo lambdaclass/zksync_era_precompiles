@@ -5,6 +5,10 @@ R = 1157920892373161954235709850086879078532699846656405640394575840079131296399
 R_PRIME = 20988524275117001072002809824448087578619730785600314334253784976379291040311
 # R^2 = (2^256)^2 = 2^512
 R2 = 13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084096
+# R^3 = (2^256)^3 = 2^768
+R3 = 1552518092300708935148979488462502555256886017116696611139052038026050952686376886330878408828646477950487730697131073206171580044114814391444287275041181139204454976020849905550265285631598444825262999193716468750892846853816057856
+# R3 % N
+R3_MOD_N = 14921786541159648185948152738563080959093619838510245177710943249661917737183
 # Fp
 N = 21888242871839275222246405745257275088696311157297823662689037894645226208583
 # R2 % N
@@ -30,10 +34,8 @@ def REDC(n):
     assert(N * N_PRIME % R == 1)
     q = (n % R) * N_PRIME % R
     a = ((q * N) - n) // R
-    print("a1: ", a)
     if a >= N:
         a -= N
-        print("a2: ", a)
     return a
 
 # REDC((a mod N)(R2 mod N))
@@ -51,6 +53,18 @@ def montgomery_multiplication(a_mont, b_mont):
 # REDC((a mod N)(R2 mod N))
 def into_montgomery_form_naive(a):
     return a * R % N
+
+def montgomery_modular_exponentiation(base, exponent):
+    pow = into_montgomery_form(1)
+    while exponent > 0:
+        if exponent % 2 == 1:
+            pow = montgomery_multiplication(pow, base)
+        exponent = exponent >> 1 
+        base = montgomery_multiplication(base, base)
+    return pow
+
+def montgomery_modular_inverse(a):
+    return REDC(montgomery_modular_exponentiation(a, N-2) * R3_MOD_N)
 
 # Suma en forma de Montgomery
 # a + b -> a % N + b % N -> (a + b) % N
@@ -72,6 +86,19 @@ def main():
     a_prod_mont = montgomery_multiplication(a_mont, a_mont)
     print(hex(a_prod_mont))
     print(from_montgomery_form(a_prod_mont))
+
+    print(a**3 % N)
+    a_pow_3 = montgomery_modular_exponentiation(a_mont, 3)
+    print(hex(a_pow_3))
+    print(from_montgomery_form(a_pow_3))
+
+    print(a // a)
+    a_inv_mont = montgomery_modular_exponentiation(a_mont, N-2)
+    print(hex(a_inv_mont))
+    a_times_a_inv = montgomery_multiplication(a_mont, a_inv_mont)
+    # a_times_a_inv = montgomery_multiplication(a_mont, montgomery_modular_inverse(a_mont))
+    print(hex(a_times_a_inv))
+    print(from_montgomery_form(a_times_a_inv))
 
 if __name__ == '__main__':
     main()
