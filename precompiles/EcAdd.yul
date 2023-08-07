@@ -19,6 +19,14 @@ object "EcAdd" {
                         ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
                   }
 
+                  function R2_mod_ALT_BN128_GROUP_ORDER() -> ret {
+                        ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
+                  }
+      
+                  function ALT_BN128_GROUP_ORDER_INVERSE() -> ret {
+                        ret := 4759646384140481320982610724935209484903937857060724391493050186936685796471
+                  }
+
                   // ////////////////////////////////////////////////////////////////
                   //                      HELPER FUNCTIONS
                   // ////////////////////////////////////////////////////////////////
@@ -118,6 +126,50 @@ object "EcAdd" {
                         precompileCall(precompileParams, gasToPay)
                   }
 
+                  function overflowingSub(minuend, subtrahend) -> difference, overflowed {
+                        difference := sub(minuend, subtrahend)
+                        overflowed := or(gt(difference, minuend), gt(difference, subtrahend))
+                    }
+        
+                    function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
+                        ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
+                    }
+        
+                    // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+                    function REDC(lowest_half_of_T, higher_half_of_T) -> S {
+                        let q := mul(lowest_half_of_T, ALT_BN128_GROUP_ORDER_INVERSE())
+                        let a_high := sub(getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()), higher_half_of_T)
+                        let a_low, overflowed := overflowingSub(lowest_half_of_T, mul(q, ALT_BN128_GROUP_ORDER()))
+                        if overflowed {
+                            a_high := sub(a_high, ONE())
+                        }
+                        S := a_high
+                        if or(gt(a_high, ALT_BN128_GROUP_ORDER()), eq(a_high, ALT_BN128_GROUP_ORDER())) {
+                            S := sub(a_high, ALT_BN128_GROUP_ORDER())
+                        }
+                    }
+        
+                    // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
+                    function intoMontgomeryForm(a) -> ret {
+                            let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, ALT_BN128_GROUP_ORDER()), R2_mod_ALT_BN128_GROUP_ORDER())
+                            let lowest_half_of_a := mul(mod(a, ALT_BN128_GROUP_ORDER()), R2_mod_ALT_BN128_GROUP_ORDER())
+                            ret := REDC(lowest_half_of_a, higher_half_of_a)
+                    }
+        
+                    // Transforming out of the Montgomery form -> REDC(a * R mod N)
+                    function outOfMontgomeryForm(m) -> ret {
+                            let higher_half_of_m := ZERO()
+                            let lowest_half_of_m := m 
+                            ret := REDC(lowest_half_of_m, higher_half_of_m)
+                    }
+        
+                    // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
+                    function montgomeryMul(multiplicand, multiplier) -> ret {
+                        let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                        let lowest_half_of_product := mul(multiplicand, multiplier)
+                        ret := REDC(lowest_half_of_product, higher_half_of_product)
+                    }
+
                   ////////////////////////////////////////////////////////////////
                   //                      FALLBACK
                   ////////////////////////////////////////////////////////////////
@@ -173,20 +225,21 @@ object "EcAdd" {
                         mstore(32, y1)
                         return(0, 64)
                   }
+
+                  // Ensure that the coordinates are between 0 and the group order.
+                  if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1)), iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
+                        burnGas()
+                        revert(0, 0)
+                  }
+
+                  // Ensure that the points are in the curve (Y^2 = X^3 + 3).
+                  if or(iszero(pointIsInCurve(x1, y1)), iszero(pointIsInCurve(x2, y2))) {
+                        burnGas()
+                        revert(0, 0)
+                  }
+
                   if and(eq(x1, x2), eq(submod(0, y1, ALT_BN128_GROUP_ORDER()), y2)) {
                         // P + (-P) = Infinity
-
-                        // Ensure that the coordinates are between 0 and the group order.
-                        if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
-                              burnGas()
-                              revert(0, 0)
-                        }
-
-                        // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x1, y1)) {
-                              burnGas()
-                              revert(0, 0)
-                        }
 
                         mstore(0, ZERO())
                         mstore(32, ZERO())
@@ -194,18 +247,6 @@ object "EcAdd" {
                   }
                   if and(eq(x1, x2), eq(y1, y2)) {
                         // P + P = 2P
-
-                        // Ensure that the coordinates are between 0 and the group order.
-                        if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
-                              burnGas()
-                              revert(0, 0)
-                        }
-
-                        // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                        if iszero(pointIsInCurve(x1, y1)) {
-                              burnGas()
-                              revert(0, 0)
-                        }
 
                         // (3 * x1^2 + a) / (2 * y1)
                         let slope := divmod(mulmod(3, mulmod(x1, x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), addmod(y1, y1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
@@ -224,18 +265,6 @@ object "EcAdd" {
                   }
 
                   // P1 + P2 = P3
-
-                  // Ensure that the coordinates are between 0 and the group order.
-                  if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1)), iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
-                        burnGas()
-                        revert(0, 0)
-                  }
-
-                  // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                  if or(iszero(pointIsInCurve(x1, y1)), iszero(pointIsInCurve(x2, y2))) {
-                        burnGas()
-                        revert(0, 0)
-                  }
 
                   // (y2 - y1) / (x2 - x1)
                   let slope := divmod(submod(y2, y1, ALT_BN128_GROUP_ORDER()), submod(x2, x1, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
