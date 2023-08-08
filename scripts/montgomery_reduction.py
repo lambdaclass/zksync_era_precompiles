@@ -65,14 +65,6 @@ def montgomery_modular_inverse(a):
     a_inv = prime_field_inv(a, N)
     return REDC(a_inv * R3_MOD_N)
 
-# Suma en forma de Montgomery
-# a + b -> a % N + b % N -> (a + b) % N
-# a + b -> a * R % N + b * R % N -> (a + b) * R % N
-
-# Multiplicación en forma de Montgomery
-# a * b -> a % N * b % N -> (a * b) % N
-# a * b -> a * R % N * b * R % N -> (a + b) * R^2 % N -> (a + b) * R^2 % N * R^-1
-
 def main():
     a = 3
     #print(a)
