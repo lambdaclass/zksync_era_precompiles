@@ -67,10 +67,10 @@ def montgomery_modular_inverse(a):
 
 def main():
     a = 3
-    #print(a)
+    print(a)
     a_mont = into_montgomery_form(a)
-    #print(hex(a_mont))
-    #print(from_montgomery_form(a_mont))
+    print(hex(a_mont))
+    print(from_montgomery_form(a_mont))
 
     a_prod = a * a
     print(a_prod)
@@ -84,10 +84,8 @@ def main():
     print(from_montgomery_form(a_pow_3))
 
     print(a // a)
-    a_inv_mont = montgomery_modular_exponentiation(a_mont, N-2)
-    print(hex(a_inv_mont))
+    a_inv_mont = montgomery_modular_inverse(a_mont)
     a_times_a_inv = montgomery_multiplication(a_mont, a_inv_mont)
-    # a_times_a_inv = montgomery_multiplication(a_mont, montgomery_modular_inverse(a_mont))
     print(hex(a_times_a_inv))
     print(from_montgomery_form(a_times_a_inv))
 
