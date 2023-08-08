@@ -30,13 +30,11 @@ def prime_field_inv(a, modulus):
 
 # Montgomery reduction algorithm
 def REDC(n):
-    assert(math.gcd(R, N) == 1)
-    assert(N * N_PRIME % R == 1)
-    q = (n % R) * N_PRIME % R
-    a = ((q * N) - n) // R
-    if a >= N:
-        a -= N
-    return a
+    m = (n % R) * N_PRIME % R
+    t = ((m * N) + n) // R
+    if t >= N:
+        t -= N
+    return t
 
 # REDC((a mod N)(R2 mod N))
 def into_montgomery_form(a):
