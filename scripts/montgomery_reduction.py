@@ -62,7 +62,8 @@ def montgomery_modular_exponentiation(base, exponent):
     return pow
 
 def montgomery_modular_inverse(a):
-    return REDC(montgomery_modular_exponentiation(a, N-2) * R3_MOD_N)
+    a_inv = prime_field_inv(a, N)
+    return REDC(a_inv * R3_MOD_N)
 
 # Suma en forma de Montgomery
 # a + b -> a % N + b % N -> (a + b) % N
