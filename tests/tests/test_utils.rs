@@ -35,7 +35,16 @@ pub async fn era_call(
     inputs: Option<&[&str]>,
     data: Option<Bytes>,
 ) -> Result<Bytes, ProviderError> {
-    call(precompile_address, inputs, data, &era_provider()).await
+    let response = call(precompile_address, inputs, data, &era_provider()).await?;
+
+    // This check was necessary because the revert from yul returns `0x00` and is not being parsed as an error in the node side when it should be.
+    if (precompile_address == ECMUL_PRECOMPILE_ADDRESS
+        || precompile_address == ECADD_PRECOMPILE_ADDRESS)
+        && response.len() == 1
+    {
+        return Err(ProviderError::CustomError("Reverted".to_owned()));
+    };
+    Ok(response)
 }
 
 pub async fn call(
