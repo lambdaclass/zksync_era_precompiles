@@ -73,26 +73,26 @@ object "ModExp" {
 
             // 1^exponent % modulus = 1
             if eq(base, ONE()) {
-                mstore(196, ONE())
-                return(196, modulus_length)
+                mstore(192, ONE())
+                return(sub(add(192, 32), modulus_length), modulus_length)
             }
 
             // base^exponent % 0 = 0
             if iszero(modulus) {
-                mstore(196, ZERO())
-                return(196, modulus_length)
+                mstore(192, ZERO())
+                return(sub(add(192, 32), modulus_length), modulus_length)
             }
 
             // base^0 % modulus = 1
             if iszero(exponent) {
-                mstore(196, ONE())
-                return(196, modulus_length)
+                mstore(192, ONE())
+                return(sub(add(192, 32), modulus_length), modulus_length)
             }
 
-            // base^exponent % 0 = 0
-            if iszero(modulus) {
-                mstore(196, ZERO())
-                return(196, modulus_length)
+            // 0^exponent % modulus = 0
+            if eq(base, ZERO()) {
+                mstore(192, ZERO())
+                return(sub(add(192, 32), modulus_length), modulus_length)
             }
 
             let pow := 1
@@ -105,8 +105,8 @@ object "ModExp" {
                 base := mulmod(base, base, modulus)
             }
 
-            mstore(196, pow)
-            return(196, modulus_length)
+            mstore(192, pow)
+            return(sub(add(192, 32), modulus_length), modulus_length)
 		}
 	}
 }
