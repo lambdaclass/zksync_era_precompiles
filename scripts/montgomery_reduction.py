@@ -28,6 +28,55 @@ def prime_field_inv(a, modulus):
         lm, low, hm, high = nm, new, lm, low
     return lm % modulus
 
+def binary_extended_euclidean_algorithm(a, modulus):
+    modulus_has_spare_bits = modulus >> 255 == 0
+
+    u = a
+    v = modulus
+    b = R2_MOD_N
+    c = 0
+
+    a = 0
+    while u != 1 and v != 1:
+        while u & 1 == 0:
+            u >>= 1
+            if b & 1 == 0:
+                b >>= 1
+            else:
+                b += modulus
+                carry = b >> 256
+                b >>= 1
+                if not modulus_has_spare_bits and carry > 0:
+                    b |= 1 << 255
+
+        while v & 1 == 0:
+            v >>= 1
+            if c & 1 == 0:
+                c >>= 1
+            else:
+                c += modulus 
+                carry = c >> 256
+                c >>= 1
+                if not modulus_has_spare_bits and carry > 0:
+                    c |= 1 << 255
+        if v <= u:
+            u -= v
+            if b < c:
+                b += modulus
+            b -= c
+        else:
+            v -= u
+            if c < b:
+                c += modulus
+            c -= b
+    # print(hex(u))
+    # print(hex(v))
+    # print(hex(b))
+    # print(hex(c))
+    if u == 1:
+        return b
+
+    return c
 # Montgomery reduction algorithm
 def REDC(n):
     m = (n % R) * N_PRIME % R
@@ -65,10 +114,13 @@ def montgomery_modular_inverse(a):
     a_inv = prime_field_inv(a, N)
     return REDC(a_inv * R3_MOD_N)
 
+def optimized_montgomery_modular_inverse(a):
+    return binary_extended_euclidean_algorithm(a, N)
+
 def main():
     a = 3
-    print(a)
     a_mont = into_montgomery_form(a)
+    print(a)
     print(hex(a_mont))
     print(from_montgomery_form(a_mont))
 
