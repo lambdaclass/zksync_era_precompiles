@@ -36,7 +36,6 @@ def binary_extended_euclidean_algorithm(a, modulus):
     b = R2_MOD_N
     c = 0
 
-    a = 0
     while u != 1 and v != 1:
         while u & 1 == 0:
             u >>= 1
@@ -69,10 +68,7 @@ def binary_extended_euclidean_algorithm(a, modulus):
             if c < b:
                 c += modulus
             c -= b
-    # print(hex(u))
-    # print(hex(v))
-    # print(hex(b))
-    # print(hex(c))
+
     if u == 1:
         return b
 
