@@ -7,31 +7,23 @@ object "EcMul" {
             ////////////////////////////////////////////////////////////////
 
             function ZERO() -> zero {
-                zero := 0x0
+                zero := 0x00
             }
 
             function ONE() -> one {
-                one := 0x1
+                one := 0x01
             }
 
             function TWO() -> two {
-                two := 0x2
+                two := 0x02
             }
 
             function THREE() -> three {
-                three := 0x3
+                three := 0x03
             }
 
             function MONTGOMERY_ONE() -> m_one {
                 m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
-            }
-
-            function MONTGOMERY_TWO() -> m_two {
-                m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
-            }
-
-            function MONTGOMERY_THREE() -> m_three {
-                m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
             // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
@@ -39,12 +31,12 @@ object "EcMul" {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
-            function R2_MOD_ALT_BN128_GROUP_ORDER() -> ret {
-                ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
+            function ALT_BN128_GROUP_ORDER_MINUS_ONE() -> ret {
+                ret := 21888242871839275222246405745257275088696311157297823662689037894645226208582
             }
 
-            function R3_MOD_ALT_BN128_GROUP_ORDER() -> ret {
-                ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
+            function R2_MOD_ALT_BN128_GROUP_ORDER() -> ret {
+                ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
             function N_PRIME() -> ret {
@@ -55,78 +47,51 @@ object "EcMul" {
             //                      HELPER FUNCTIONS
             // ////////////////////////////////////////////////////////////////
 
-            // @dev Packs precompile parameters into one word.
-            // Note: functions expect to work with 32/64 bits unsigned integers.
-            // Caller should ensure the type matching before!
-            function unsafePackPrecompileParams(
-                uint32_inputOffsetInWords,
-                uint32_inputLengthInWords,
-                uint32_outputOffsetInWords,
-                uint32_outputLengthInWords,
-                uint64_perPrecompileInterpreted
-            ) -> rawParams {
-                rawParams := uint32_inputOffsetInWords
-                rawParams := or(rawParams, shl(32, uint32_inputLengthInWords))
-                rawParams := or(rawParams, shl(64, uint32_outputOffsetInWords))
-                rawParams := or(rawParams, shl(96, uint32_outputLengthInWords))
-                rawParams := or(rawParams, shl(192, uint64_perPrecompileInterpreted))
-            }
-
             /// @dev Executes the `precompileCall` opcode.
             function precompileCall(precompileParams, gasToBurn) -> ret {
                 // Compiler simulation for calling `precompileCall` opcode
                 ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
             }
 
+            function burnGas() {
+                // Precompiles that do not have a circuit counterpart
+                // will burn the provided gas by calling this function.
+                precompileCall(0, gas())
+            }
+
+            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
+                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
+            }
+
+            function submod(minuend, subtrahend, modulus) -> difference {
+                difference := addmod(minuend, sub(modulus, subtrahend), modulus)
+            }
+
+            function overflowingAdd(augend, addend) -> sum, overflowed {
+                sum := add(augend, addend)
+                overflowed := or(lt(sum, augend), lt(sum, addend))
+            }
+
             // Returns 1 if (x, y) is in the curve, 0 otherwise
-            function pointIsInCurve(
-                uint256_x,
-                uint256_y,
-            ) -> ret {
-                let y_squared := mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_ORDER())
-                let x_squared := mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_ORDER())
-                let x_qubed := mulmod(x_squared, uint256_x, ALT_BN128_GROUP_ORDER())
-                let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_ORDER())
+            function pointIsInCurve(x, y) -> ret {
+                let ySquared := mulmod(y, y, ALT_BN128_GROUP_ORDER())
+                let xSquared := mulmod(x, x, ALT_BN128_GROUP_ORDER())
+                let xQubed := mulmod(xSquared, x, ALT_BN128_GROUP_ORDER())
+                let xQubedPlusThree := addmod(xQubed, THREE(), ALT_BN128_GROUP_ORDER())
 
-                ret := eq(y_squared, x_qubed_plus_three)
+                ret := eq(ySquared, xQubedPlusThree)
             }
 
-            function submod(
-                uint256_minuend,
-                uint256_subtrahend,
-                uint256_modulus,
-            ) -> difference {
-                difference := addmod(uint256_minuend, sub(uint256_modulus, uint256_subtrahend), uint256_modulus)
-            }
-
-            function isInfinity(
-                uint256_x,
-                uint256_y,
-            ) -> ret {
-                ret := and(eq(uint256_x, ZERO()), eq(uint256_y, ZERO()))
+            function isInfinity(x, y) -> ret {
+                ret := and(iszero(x), iszero(y))
             }
 
             function isOnGroupOrder(num) -> ret {
-                ret := iszero(gt(num, sub(ALT_BN128_GROUP_ORDER(), ONE())))
+                ret := lt(num, ALT_BN128_GROUP_ORDER_MINUS_ONE())
             }
 
             function lsbIsOne(x) -> ret {
-                ret := eq(mod(x, 2), 1)
-            }
-
-            function burnGas() {
-                let precompileParams := unsafePackPrecompileParams(
-                        0, // input offset in words
-                        4, // input length in words (x1, y1, x2, y2)
-                        0, // output offset in words
-                        2, // output length in words (x3, y3)
-                        0  // No special meaning
-                )
-                let gasToPay := gas()
-
-                // Precompiles that do not have a circuit counterpart
-                // will burn the provided gas by calling this function.
-                precompileCall(precompileParams, gasToPay)
+                ret := and(x, ONE())
             }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
@@ -145,15 +110,15 @@ object "EcMul" {
                 for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
                     for {} iszero(and(u, ONE())) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, ONE())
-                        if iszero(current_b_is_odd) {
+                        let current := b
+                        switch and(current, ONE())
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
+                        case 1 {
+                            let newB := add(b, modulus)
+                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 b := or(b, mask)
@@ -163,15 +128,15 @@ object "EcMul" {
 
                     for {} iszero(and(v, ONE())) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, ONE())
-                        if iszero(current_c_is_odd) {
+                        let current := c
+                        switch and(current, ONE())
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
+                        case 1 {
+                            let newC := add(c, modulus)
+                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 c := or(c, mask)
@@ -205,58 +170,49 @@ object "EcMul" {
                 }
             }
 
-            function overflowingAdd(augend, addend) -> sum, overflowed {
-                sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
-            }
-
-            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
-                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
-            }
-
             // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
-            function REDC(lowest_half_of_T, higher_half_of_T) -> S {
-                let q := mul(lowest_half_of_T, N_PRIME())
-                let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()))
-                let a_low, overflowed := overflowingAdd(lowest_half_of_T, mul(q, ALT_BN128_GROUP_ORDER()))
+            function REDC(lowestHalfOfT, higherHalfOfT) -> S {
+                let m := mul(lowestHalfOfT, N_PRIME())
+                let hi := add(higherHalfOfT, getHighestHalfOfMultiplication(m, ALT_BN128_GROUP_ORDER()))
+                let lo, overflowed := overflowingAdd(lowestHalfOfT, mul(m, ALT_BN128_GROUP_ORDER()))
                 if overflowed {
-                        a_high := add(a_high, ONE())
+                    hi := add(hi, ONE())
                 }
-                S := a_high
-                if iszero(lt(a_high, ALT_BN128_GROUP_ORDER())) {
-                        S := sub(a_high, ALT_BN128_GROUP_ORDER())
+                S := hi
+                if iszero(lt(hi, ALT_BN128_GROUP_ORDER())) {
+                    S := sub(hi, ALT_BN128_GROUP_ORDER())
                 }
             }
 
             // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
             function intoMontgomeryForm(a) -> ret {
-                let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
-                let lowest_half_of_a := mul(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
-                ret := REDC(lowest_half_of_a, higher_half_of_a)
+                let hi := getHighestHalfOfMultiplication(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
+                let lo := mul(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
+                ret := REDC(lo, hi)
             }
 
             // Transforming out of the Montgomery form -> REDC(a * R mod N)
             function outOfMontgomeryForm(m) -> ret {
-                let higher_half_of_m := ZERO()
-                let lowest_half_of_m := m
-                ret := REDC(lowest_half_of_m, higher_half_of_m)
+                let hi := ZERO()
+                let lo := m
+                ret := REDC(lo, hi)
             }
 
             // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
             function montgomeryMul(multiplicand, multiplier) -> ret {
-                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
-                let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDC(lowest_half_of_product, higher_half_of_product)
+                let hi := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                let lo := mul(multiplicand, multiplier)
+                ret := REDC(lo, hi)
             }
 
             function montgomeryModExp(base, exponent) -> pow {
                 pow := MONTGOMERY_ONE()
-                let aux_exponent := exponent
-                for { } gt(aux_exponent, ZERO()) { } {
-                        if mod(aux_exponent, 2) {
+                let aux := exponent
+                for { } gt(aux, ZERO()) { } {
+                        if mod(aux, 2) {
                             pow := montgomeryMul(pow, base)
                         }
-                        aux_exponent := shr(1, aux_exponent)
+                        aux := shr(1, aux)
                         base := montgomeryMul(base, base)
                 }
             }
@@ -269,18 +225,20 @@ object "EcMul" {
                 quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
             }
 
-            function montgomeryDouble(sint256_x, sint256_y) -> x, y {
-                if isInfinity(sint256_x, sint256_y) {
-                        x := ZERO()
-                        y := ZERO()
+            function montgomeryDouble(x, y) -> newX, newY {
+                switch isInfinity(x, y)
+                case 0 {
+                    // (3 * x^2 + a) / (2 * y)
+                    let xSquared := montgomeryMul(x, x)
+                    let slope := montgomeryDiv(addmod(xSquared, addmod(xSquared, xSquared, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), addmod(y, y, ALT_BN128_GROUP_ORDER()))
+                    // x = slope^2 - 2 * x
+                    newX := submod(montgomeryMul(slope, slope), addmod(x, x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                    // y = slope * (x - x) - y
+                    newY := submod(montgomeryMul(slope, submod(x, newX, ALT_BN128_GROUP_ORDER())), y, ALT_BN128_GROUP_ORDER())
                 }
-                if iszero(isInfinity(sint256_x, sint256_y)) {
-                        // (3 * sint256_x^2 + a) / (2 * sint256_y)
-                        let slope := montgomeryDiv(montgomeryMul(MONTGOMERY_THREE(), montgomeryMul(sint256_x, sint256_x)), addmod(sint256_y, sint256_y, ALT_BN128_GROUP_ORDER()))
-                        // x = slope^2 - 2 * x
-                        x := submod(montgomeryMul(slope, slope), addmod(sint256_x, sint256_x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // y = slope * (sint256_x - x) - sint256_y
-                        y := submod(montgomeryMul(slope, submod(sint256_x, x, ALT_BN128_GROUP_ORDER())), sint256_y, ALT_BN128_GROUP_ORDER())
+                case 1 {
+                    newX := ZERO()
+                    newY := ZERO()
                 }
             }
 
@@ -341,68 +299,66 @@ object "EcMul" {
 
             let x2 := x
             let y2 := y
-            let x_res := ZERO()
-            let y_res := ZERO()
-            for {} iszero(eq(scalar, ZERO())) {} {
+            let xRes := ZERO()
+            let yRes := ZERO()
+            for {} scalar {} {
                 if lsbIsOne(scalar) {
-                        if and(isInfinity(x_res, y_res), isInfinity(x2, y2)) {
-                            // Infinity + Infinity = Infinity
-                            x_res := ZERO()
-                            y_res := ZERO()
+                    if and(isInfinity(xRes, yRes), isInfinity(x2, y2)) {
+                        // Infinity + Infinity = Infinity
+                        xRes := ZERO()
+                        yRes := ZERO()
 
-                            x2, y2 := montgomeryDouble(x2, y2)
-                            // Check next bit
-                            scalar := shr(1, scalar)
-                            continue
-                        }
-                        if and(isInfinity(x_res, y_res), iszero(isInfinity(x2, y2))) {
-                            // Infinity + P = P
-                            x_res := x2
-                            y_res := y2
+                        x2, y2 := montgomeryDouble(x2, y2)
+                        // Check next bit
+                        scalar := shr(1, scalar)
+                        break
+                    }
+                    if and(isInfinity(xRes, yRes), iszero(isInfinity(x2, y2))) {
+                        // Infinity + P = P
+                        xRes := x2
+                        yRes := y2
 
-                            x2, y2 := montgomeryDouble(x2, y2)
-                            // Check next bit
-                            scalar := shr(1, scalar)
-                            continue
-                        }
-                        if and(iszero(isInfinity(x_res, y_res)), isInfinity(x2, y2)) {
-                            // P + Infinity = P
+                        x2, y2 := montgomeryDouble(x2, y2)
+                        // Check next bit
+                        scalar := shr(1, scalar)
+                        continue
+                    }
+                    if and(iszero(isInfinity(xRes, yRes)), isInfinity(x2, y2)) {
+                        // P + Infinity = P
+                        break
+                    }
+                    if and(eq(xRes, x2), eq(submod(ZERO(), yRes, ALT_BN128_GROUP_ORDER()), y2)) {
+                        // P + (-P) = Infinity
+                        xRes := ZERO()
+                        yRes := ZERO()
 
-                            // Check next bit
-                            scalar := shr(1, scalar)
-                            continue
-                        }
-                        if and(eq(x_res, x2), eq(submod(0, y_res, ALT_BN128_GROUP_ORDER()), y2)) {
-                            // P + (-P) = Infinity
-                            x_res := ZERO()
-                            y_res := ZERO()
+                        x2, y2 := montgomeryDouble(x2, y2)
+                        // Check next bit
+                        scalar := shr(1, scalar)
+                        continue
+                    }
+                    if and(eq(xRes, x2), eq(yRes, y2)) {
+                        // P + P = 2P
+                        xRes, yRes := montgomeryDouble(xRes, yRes)
 
-                            x2, y2 := montgomeryDouble(x2, y2)
-                            // Check next bit
-                            scalar := shr(1, scalar)
-                            continue
-                        }
-                        if and(eq(x_res, x2), eq(y_res, y2)) {
-                            // P + P = 2P
-                            x_res, y_res := montgomeryDouble(x_res, y_res)
+                        x2 := xRes
+                        y2 := yRes
+                        // Check next bit
+                        scalar := shr(1, scalar)
+                        continue
+                    }
 
-                            x2, y2 := montgomeryDouble(x2, y2)
-                            // Check next bit
-                            scalar := shr(1, scalar)
-                            continue
-                        }
+                    // P1 + P2 = P3
 
-                        // P1 + P2 = P3
+                    // (y2 - y1) / (x2 - x1)
+                    let slope := montgomeryDiv(submod(y2, yRes, ALT_BN128_GROUP_ORDER()), submod(x2, xRes, ALT_BN128_GROUP_ORDER()))
+                    // x3 = slope^2 - x1 - x2
+                    let x3 := submod(montgomeryMul(slope, slope), addmod(xRes, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
+                    // y3 = slope * (x1 - x3) - y1
+                    let y3 := submod(montgomeryMul(slope, submod(xRes, x3, ALT_BN128_GROUP_ORDER())), yRes, ALT_BN128_GROUP_ORDER())
 
-                        // (y2 - y1) / (x2 - x1)
-                        let slope := montgomeryDiv(submod(y2, y_res, ALT_BN128_GROUP_ORDER()), submod(x2, x_res, ALT_BN128_GROUP_ORDER()))
-                        // x3 = slope^2 - x1 - x2
-                        let x3 := submod(montgomeryMul(slope, slope), addmod(x_res, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                        // y3 = slope * (x1 - x3) - y1
-                        let y3 := submod(montgomeryMul(slope, submod(x_res, x3, ALT_BN128_GROUP_ORDER())), y_res, ALT_BN128_GROUP_ORDER())
-
-                        x_res := x3
-                        y_res := y3
+                    xRes := x3
+                    yRes := y3
                 }
 
                 x2, y2 := montgomeryDouble(x2, y2)
@@ -410,13 +366,12 @@ object "EcMul" {
                 scalar := shr(1, scalar)
             }
 
-            x_res := outOfMontgomeryForm(x_res)
-            y_res := outOfMontgomeryForm(y_res)
+            xRes := outOfMontgomeryForm(xRes)
+            yRes := outOfMontgomeryForm(yRes)
 
-            mstore(0, x_res)
-            mstore(32, y_res)
+            mstore(0, xRes)
+            mstore(32, yRes)
             return(0, 64)
 		}
 	}
 }
-

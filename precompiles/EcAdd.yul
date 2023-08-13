@@ -14,26 +14,6 @@ object "EcAdd" {
                 one := 0x1
             }
 
-            function TWO() -> two {
-                two := 0x2
-            }
-
-            function THREE() -> three {
-                three := 0x3
-            }
-
-            function MONTGOMERY_ONE() -> m_one {
-                m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
-            }
-
-            function MONTGOMERY_TWO() -> m_two {
-                m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
-            }
-
-            function MONTGOMERY_THREE() -> m_three {
-                m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
-            }
-
             // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
             function ALT_BN128_GROUP_ORDER() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
@@ -41,10 +21,6 @@ object "EcAdd" {
 
             function R2_MOD_ALT_BN128_GROUP_ORDER() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
-            }
-
-            function R3_MOD_ALT_BN128_GROUP_ORDER() -> ret {
-                ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
             }
 
             function N_PRIME() -> ret {
@@ -55,74 +31,47 @@ object "EcAdd" {
             //                      HELPER FUNCTIONS
             // ////////////////////////////////////////////////////////////////
 
-            // @dev Packs precompile parameters into one word.
-            // Note: functions expect to work with 32/64 bits unsigned integers.
-            // Caller should ensure the type matching before!
-            function unsafePackPrecompileParams(
-                uint32_inputOffsetInWords,
-                uint32_inputLengthInWords,
-                uint32_outputOffsetInWords,
-                uint32_outputLengthInWords,
-                uint64_perPrecompileInterpreted
-            ) -> rawParams {
-                rawParams := uint32_inputOffsetInWords
-                rawParams := or(rawParams, shl(32, uint32_inputLengthInWords))
-                rawParams := or(rawParams, shl(64, uint32_outputOffsetInWords))
-                rawParams := or(rawParams, shl(96, uint32_outputLengthInWords))
-                rawParams := or(rawParams, shl(192, uint64_perPrecompileInterpreted))
-            }
-
             /// @dev Executes the `precompileCall` opcode.
             function precompileCall(precompileParams, gasToBurn) -> ret {
                 // Compiler simulation for calling `precompileCall` opcode
                 ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
             }
 
+            function burnGas() {
+                // Precompiles that do not have a circuit counterpart
+                // will burn the provided gas by calling this function.
+                precompileCall(0, gas())
+            }
+
+            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
+                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
+            }
+
+            function submod(minuend, subtrahend, modulus) -> difference {
+                difference := addmod(minuend, sub(modulus, subtrahend), modulus)
+            }
+
+            function overflowingAdd(augend, addend) -> sum, overflowed {
+                sum := add(augend, addend)
+                overflowed := or(lt(sum, augend), lt(sum, addend))
+            }
+
             // Returns 1 if (x, y) is in the curve, 0 otherwise
-            function pointIsInCurve(
-                uint256_x,
-                uint256_y,
-            ) -> ret {
-                let y_squared := mulmod(uint256_y, uint256_y, ALT_BN128_GROUP_ORDER())
-                let x_squared := mulmod(uint256_x, uint256_x, ALT_BN128_GROUP_ORDER())
-                let x_qubed := mulmod(x_squared, uint256_x, ALT_BN128_GROUP_ORDER())
+            function pointIsInCurve(x, y) -> ret {
+                let y_squared := mulmod(y, y, ALT_BN128_GROUP_ORDER())
+                let x_squared := mulmod(x, x, ALT_BN128_GROUP_ORDER())
+                let x_qubed := mulmod(x_squared, x, ALT_BN128_GROUP_ORDER())
                 let x_qubed_plus_three := addmod(x_qubed, 3, ALT_BN128_GROUP_ORDER())
 
                 ret := eq(y_squared, x_qubed_plus_three)
             }
 
-            function submod(
-                uint256_minuend,
-                uint256_subtrahend,
-                uint256_modulus,
-            ) -> difference {
-                difference := addmod(uint256_minuend, sub(uint256_modulus, uint256_subtrahend), uint256_modulus)
-            }
-
-            function isInfinity(
-                uint256_x,
-                uint256_y,
-            ) -> ret {
-                ret := and(eq(uint256_x, ZERO()), eq(uint256_y, ZERO()))
+            function isInfinity(x, y) -> ret {
+                ret := and(eq(x, ZERO()), eq(y, ZERO()))
             }
 
             function isOnGroupOrder(num) -> ret {
-                ret := iszero(gt(num, sub(ALT_BN128_GROUP_ORDER(), ONE())))
-            }
-
-            function burnGas() {
-                let precompileParams := unsafePackPrecompileParams(
-                        0, // input offset in words
-                        4, // input length in words (x1, y1, x2, y2)
-                        0, // output offset in words
-                        2, // output length in words (x3, y3)
-                        0  // No special meaning
-                )
-                let gasToPay := gas()
-
-                // Precompiles that do not have a circuit counterpart
-                // will burn the provided gas by calling this function.
-                precompileCall(precompileParams, gasToPay)
+                ret := lt(num, sub(ALT_BN128_GROUP_ORDER(), ONE()))
             }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
@@ -141,15 +90,15 @@ object "EcAdd" {
                 for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
                     for {} iszero(and(u, ONE())) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, ONE())
-                        if iszero(current_b_is_odd) {
+                        let currentB := b
+                        switch and(currentB, ONE())
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
+                        case 1 {
+                            let newB := add(b, modulus)
+                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 b := or(b, mask)
@@ -159,15 +108,15 @@ object "EcAdd" {
 
                     for {} iszero(and(v, ONE())) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, ONE())
-                        if iszero(current_c_is_odd) {
+                        let currentC := c
+                        switch and(currentC, ONE())
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
+                        case 1 {
+                            let newC := add(c, modulus)
+                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 c := or(c, mask)
@@ -201,60 +150,39 @@ object "EcAdd" {
                 }
             }
 
-            function overflowingAdd(augend, addend) -> sum, overflowed {
-                sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
-            }
-
-            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
-                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
-            }
-
             // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
-            function REDC(lowest_half_of_T, higher_half_of_T) -> S {
-                let q := mul(lowest_half_of_T, N_PRIME())
-                let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()))
-                let a_low, overflowed := overflowingAdd(lowest_half_of_T, mul(q, ALT_BN128_GROUP_ORDER()))
+            function REDC(lowestHalfOfT, higherHalfOfT) -> S {
+                let q := mul(lowestHalfOfT, N_PRIME())
+                let aHigh := add(higherHalfOfT, getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()))
+                let aLow, overflowed := overflowingAdd(lowestHalfOfT, mul(q, ALT_BN128_GROUP_ORDER()))
                 if overflowed {
-                        a_high := add(a_high, ONE())
+                    aHigh := add(aHigh, ONE())
                 }
-                S := a_high
-                if iszero(lt(a_high, ALT_BN128_GROUP_ORDER())) {
-                        S := sub(a_high, ALT_BN128_GROUP_ORDER())
+                S := aHigh
+                if iszero(lt(aHigh, ALT_BN128_GROUP_ORDER())) {
+                    S := sub(aHigh, ALT_BN128_GROUP_ORDER())
                 }
             }
 
             // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
             function intoMontgomeryForm(a) -> ret {
-                let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
-                let lowest_half_of_a := mul(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
-                ret := REDC(lowest_half_of_a, higher_half_of_a)
+                let higherHalf := getHighestHalfOfMultiplication(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
+                let lowestHalf := mul(mod(a, ALT_BN128_GROUP_ORDER()), R2_MOD_ALT_BN128_GROUP_ORDER())
+                ret := REDC(lowestHalf, higherHalf)
             }
 
             // Transforming out of the Montgomery form -> REDC(a * R mod N)
             function outOfMontgomeryForm(m) -> ret {
-                let higher_half_of_m := ZERO()
-                let lowest_half_of_m := m
-                ret := REDC(lowest_half_of_m, higher_half_of_m)
+                let higherHalfOf := ZERO()
+                let lowestHalf := m
+                ret := REDC(lowestHalf, higherHalfOf)
             }
 
             // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
             function montgomeryMul(multiplicand, multiplier) -> ret {
-                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
-                let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDC(lowest_half_of_product, higher_half_of_product)
-            }
-
-            function montgomeryModExp(base, exponent) -> pow {
-                pow := MONTGOMERY_ONE()
-                let aux_exponent := exponent
-                for { } gt(aux_exponent, ZERO()) { } {
-                        if mod(aux_exponent, 2) {
-                            pow := montgomeryMul(pow, base)
-                        }
-                        aux_exponent := shr(1, aux_exponent)
-                        base := montgomeryMul(base, base)
-                }
+                let higherHalfOfProduct := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                let lowestHalfOfProduct := mul(multiplicand, multiplier)
+                ret := REDC(lowestHalfOfProduct, higherHalfOfProduct)
             }
 
             function montgomeryModularInverse(a) -> invmod {
@@ -275,45 +203,47 @@ object "EcAdd" {
             let x2 := calldataload(64)
             let y2 := calldataload(96)
 
+            let p1IsInfinity := isInfinity(x1, y1)
+            let p2IsInfinity := isInfinity(x2, y2)
 
-            if and(isInfinity(x1, y1), isInfinity(x2, y2)) {
+            if and(p1IsInfinity, p2IsInfinity) {
                 // Infinity + Infinity = Infinity
                 mstore(0, ZERO())
                 mstore(32, ZERO())
                 return(0, 64)
             }
-            if and(isInfinity(x1, y1), iszero(isInfinity(x2, y2))) {
+            if and(p1IsInfinity, iszero(p2IsInfinity)) {
                 // Infinity + P = P
 
                 // Ensure that the coordinates are between 0 and the group order.
                 if or(iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
-                        burnGas()
-                        revert(0, 0)
+                    burnGas()
+                    revert(0, 0)
                 }
 
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(x2, y2)) {
-                        burnGas()
-                        revert(0, 0)
+                    burnGas()
+                    revert(0, 0)
                 }
 
                 mstore(0, x2)
                 mstore(32, y2)
                 return(0, 64)
             }
-            if and(iszero(isInfinity(x1, y1)), isInfinity(x2, y2)) {
+            if and(iszero(p1IsInfinity), p2IsInfinity) {
                 // P + Infinity = P
 
                 // Ensure that the coordinates are between 0 and the group order.
                 if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
-                        burnGas()
-                        revert(0, 0)
+                    burnGas()
+                    revert(0, 0)
                 }
 
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(x1, y1)) {
-                        burnGas()
-                        revert(0, 0)
+                    burnGas()
+                    revert(0, 0)
                 }
 
                 mstore(0, x1)
@@ -322,7 +252,13 @@ object "EcAdd" {
             }
 
             // Ensure that the coordinates are between 0 and the group order.
-            if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1)), iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
+            if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
+                burnGas()
+                revert(0, 0)
+            }
+
+            // Ensure that the coordinates are between 0 and the group order.
+            if or(iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
                 burnGas()
                 revert(0, 0)
             }
@@ -356,7 +292,8 @@ object "EcAdd" {
                 let y := intoMontgomeryForm(y1)
 
                 // (3 * x1^2 + a) / (2 * y1)
-                let slope := montgomeryDiv(montgomeryMul(MONTGOMERY_THREE(), montgomeryMul(x, x)), addmod(y, y, ALT_BN128_GROUP_ORDER()))
+                let x1_squared := montgomeryMul(x, x)
+                let slope := montgomeryDiv(addmod(x1_squared, addmod(x1_squared, x1_squared, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), addmod(y, y, ALT_BN128_GROUP_ORDER()))
                 // x3 = slope^2 - 2 * x1
                 let x3 := submod(montgomeryMul(slope, slope), addmod(x, x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
                 // y3 = slope * (x1 - x3) - y1
