@@ -97,12 +97,12 @@ def mul(a_mont, b_mont):
     return REDC(a_mont * b_mont)
 
 def exp(base, exponent):
-    pow = into_montgomery_form(1)
+    pow = into(1)
     while exponent > 0:
         if exponent % 2 == 1:
-            pow = montgomery_multiplication(pow, base)
+            pow = mul(pow, base)
         exponent = exponent >> 1 
-        base = montgomery_multiplication(base, base)
+        base = mul(base, base)
     return pow
 
 # def montgomery_modular_inverse(a):
