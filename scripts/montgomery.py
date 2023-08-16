@@ -16,6 +16,9 @@ R2_MOD_N = 309661650298370392384356793683737445173554096841907652877117019743145
 # N' -> NN' ≡ −1 mod R
 N_PRIME = 111032442853175714102588374283752698368366046808579839647964533820976443843465
 
+ONE = 6350874878119819312338956282401532409788428879151445726012394534686998597021
+TWO = 12701749756239638624677912564803064819576857758302891452024789069373997194042
+
 # Extended euclidean algorithm to find modular inverses for integers.
 def prime_field_inv(a, modulus):
     if a == 0:
@@ -82,22 +85,18 @@ def REDC(n):
     return t
 
 # REDC((a mod N)(R2 mod N))
-def into_montgomery_form(a):
+def into(a):
     return REDC((a % N) * R2_MOD_N)
 
 # REDC(aR mod N)
-def from_montgomery_form(a_mont):
+def out_of(a_mont):
     return REDC(a_mont)
 
 # REDC((aR mod N)(bR mod N))
-def montgomery_multiplication(a_mont, b_mont):
+def mul(a_mont, b_mont):
     return REDC(a_mont * b_mont)
 
-# REDC((a mod N)(R2 mod N))
-def into_montgomery_form_naive(a):
-    return a * R % N
-
-def montgomery_modular_exponentiation(base, exponent):
+def exp(base, exponent):
     pow = into_montgomery_form(1)
     while exponent > 0:
         if exponent % 2 == 1:
@@ -106,36 +105,19 @@ def montgomery_modular_exponentiation(base, exponent):
         base = montgomery_multiplication(base, base)
     return pow
 
-def montgomery_modular_inverse(a):
-    a_inv = prime_field_inv(a, N)
-    return REDC(a_inv * R3_MOD_N)
+# def montgomery_modular_inverse(a):
+#     a_inv = prime_field_inv(a, N)
+#     return REDC(a_inv * R3_MOD_N)
 
-def optimized_montgomery_modular_inverse(a):
+def inv(a):
     return binary_extended_euclidean_algorithm(a, N)
 
-def main():
-    a = 3
-    a_mont = into_montgomery_form(a)
-    print(a)
-    print(hex(a_mont))
-    print(from_montgomery_form(a_mont))
+def div(dividend, divisor):
+    divisor_inv = inv(divisor)
+    return mul(dividend, divisor_inv)
 
-    a_prod = a * a
-    print(a_prod)
-    a_prod_mont = montgomery_multiplication(a_mont, a_mont)
-    print(hex(a_prod_mont))
-    print(from_montgomery_form(a_prod_mont))
+def add(augend, addend):
+    return (augend + addend) % N
 
-    print(a**3 % N)
-    a_pow_3 = montgomery_modular_exponentiation(a_mont, 3)
-    print(hex(a_pow_3))
-    print(from_montgomery_form(a_pow_3))
-
-    print(a // a)
-    a_inv_mont = montgomery_modular_inverse(a_mont)
-    a_times_a_inv = montgomery_multiplication(a_mont, a_inv_mont)
-    print(hex(a_times_a_inv))
-    print(from_montgomery_form(a_times_a_inv))
-
-if __name__ == '__main__':
-    main()
+def sub(minuend, subtrahend):
+    return add(minuend, N - subtrahend)
