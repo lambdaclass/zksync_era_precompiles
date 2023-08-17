@@ -1005,7 +1005,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "84ebb401ba97c6f5af278c2c9936c4546cad75dec464b439ae6df249906f4caa"
 dependencies = [
  "ethers-core",
- "ethers-solc",
  "reqwest",
  "semver",
  "serde",
@@ -3587,14 +3586,13 @@ dependencies = [
 [[package]]
 name = "zksync-web3-rs"
 version = "0.1.0"
-source = "git+https://www.github.com/LambdaClass/zksync-web3-rs?branch=support_precompile_calls#8516c9d6d5eccf8de9b210df8fc4f2b1f519ea6f"
+source = "git+https://www.github.com/LambdaClass/zksync-web3-rs#54c2145cee69bbc5e2f55c6bdfc5662ef250cd0c"
 dependencies = [
  "async-trait",
  "clap",
  "env_logger",
  "ethers",
  "ethers-contract",
- "eyre",
  "hex",
  "log",
  "serde",
@@ -3608,6 +3606,7 @@ dependencies = [
 name = "zksync_era_precompiles"
 version = "0.1.0"
 dependencies = [
+ "hex",
  "tokio",
  "zksync-web3-rs",
 ]

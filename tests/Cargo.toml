@@ -6,8 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-zksync-web3-rs = { git = "https://www.github.com/LambdaClass/zksync-web3-rs", branch = "support_precompile_calls" }
+zksync-web3-rs = { git = "https://www.github.com/LambdaClass/zksync-web3-rs" }
 tokio = { version = "1.11.0", features = ["full"] }
+hex = "0.4"
 
 [profile.test]
 opt-level = 3
