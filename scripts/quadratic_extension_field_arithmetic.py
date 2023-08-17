@@ -1,22 +1,37 @@
-import montgomery
+import montgomery as monty
 
 # Base field order
 N = 21888242871839275222246405745257275088696311157297823662689037894645226208583
+BETA = monty.ONE
 
-def add(augend0, augend1, addend0, addend1):
-    return montgomery.add(augend0, addend0), montgomery.add(augend1, addend1)
+# Algorithm 5 from https://eprint.iacr.org/2010/354.pdf
+def add(a0, a1, b0, b1):
+    return monty.add(a0, b0), monty.add(a1, b1)
 
-def sub(minuend0, minuend1, subtrahend0, subtrahend1):
-    return montgomery.sub(minuend0, subtrahend0), montgomery.sub(minuend1, subtrahend1)
+# Algorithm 6 from https://eprint.iacr.org/2010/354.pdf
+def sub(a0, a1, b0, b1):
+    return monty.sub(a0, b0), monty.sub(a1, b1)
 
-# [a, ib] * [c, id] = [ac - bd, (ad + bc)i] -> e = ac - bd, f = ad + bc
-def mul(a, b, c, d):
-    e = montgomery.sub(montgomery.mul(a, c), montgomery.mul(b, d))
-    f = montgomery.add(montgomery.mul(a, d), montgomery.mul(b, c))
+# Algorithm 7 from https://eprint.iacr.org/2010/354.pdf
+def scalar_mul(a0, a1, scalar):
+    return monty.mul(a0, scalar), monty.mul(a1, scalar)
+
+def mul(a0, a1, b0, b1):
+    e = monty.sub(monty.mul(a0, b0), monty.mul(a1, b1))
+    f = monty.add(monty.mul(a0, b1), monty.mul(a1, b0))
     return e, f
 
+# Algorithm 8 from https://eprint.iacr.org/2010/354.pdf
+# β = 1
+def inv(a0, a1):
+    t0 = monty.mul(a0, a0)
+    t1 = monty.mul(a1, a1)
+    t0 = monty.sub(t0, monty.mul(BETA, t1))
+    t1 = monty.inv(t0)
+    return monty.mul(a0, t1), monty.sub(0, monty.mul(a1, t1))
+
 def exp(base0, base1, exponent):
-    pow0 = montgomery.ONE
+    pow0 = monty.ONE
     pow1 = 0
     while exponent > 0:
         if exponent % 2 == 1:
@@ -27,27 +42,43 @@ def exp(base0, base1, exponent):
 
 def main():
     # (1 + 2i) * (2 + 2i) = [ac - bd, (ad + bc)i] = -2 + 6i
-    fp2_a = montgomery.ONE, montgomery.TWO
-    fp2_b = montgomery.TWO, montgomery.TWO
+    fp2_a = monty.ONE, monty.TWO
+    fp2_b = monty.TWO, monty.TWO
     fp2_ab = mul(*fp2_a, *fp2_b)
 
-    assert(montgomery.out_of(fp2_ab[0]) == N - 2)
-    assert(montgomery.out_of(fp2_ab[1]) == 6)
+    assert(monty.out_of(fp2_ab[0]) == N - 2)
+    assert(monty.out_of(fp2_ab[1]) == 6)
 
     # (1 + 2i) ^ 0 = 1
     fp2_one = exp(*fp2_a, 0)
-    assert(montgomery.out_of(fp2_one[0]) == 1)
-    assert(montgomery.out_of(fp2_one[1]) == 0)
+    assert(monty.out_of(fp2_one[0]) == 1)
+    assert(monty.out_of(fp2_one[1]) == 0)
 
     # (1 + 2i) ^ 2 = -3 + 4i
     fp2_a_squared = exp(*fp2_a, 2)
-    assert(montgomery.out_of(fp2_a_squared[0]) == N - 3)
-    assert(montgomery.out_of(fp2_a_squared[1]) == 4)
+    assert(monty.out_of(fp2_a_squared[0]) == N - 3)
+    assert(monty.out_of(fp2_a_squared[1]) == 4)
 
     # (1 + 2i) ^ 3 = (1 + 2i) * (-3 + 4i) = [ac - bd, (ad + bc)i] = -11 - 2i
     fp2_a_cubed = exp(*fp2_a, 3)
-    assert(montgomery.out_of(fp2_a_cubed[0]) == N - 11)
-    assert(montgomery.out_of(fp2_a_cubed[1]) == N - 2)
+    assert(monty.out_of(fp2_a_cubed[0]) == N - 11)
+    assert(monty.out_of(fp2_a_cubed[1]) == N - 2)
 
+    # (1 + 2i) * 0 = 0
+    fp2_zero = scalar_mul(*fp2_a, 0)
+    assert(fp2_zero == (0, 0))
+
+    # (1 + 2i) * 1 = 1 + 2i
+    fp2_one = scalar_mul(*fp2_a, monty.ONE)
+    assert(fp2_one == fp2_a)
+
+    # (1 + 2i) * 2 = 2 + 4i
+    fp2_two = scalar_mul(*fp2_a, monty.TWO)
+    assert(fp2_two == (monty.TWO, monty.FOUR))
+
+    # (1 + 2i) * 3 = 3 + 6i
+    fp2_three = scalar_mul(*fp2_a, monty.THREE)
+    assert(fp2_three == (monty.THREE, monty.SIX))
+ 
 if __name__ == '__main__':
     main()
