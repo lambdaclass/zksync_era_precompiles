@@ -1,4 +1,4 @@
-build:
+setup:
 	git submodule update --init && \
 	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
 	cd submodules/era-test-node && \
