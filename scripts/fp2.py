@@ -2,7 +2,6 @@ import montgomery as monty
 
 # Base field order
 N = 21888242871839275222246405745257275088696311157297823662689037894645226208583
-BETA = monty.ONE
 
 # Algorithm 5 from https://eprint.iacr.org/2010/354.pdf
 def add(a0, a1, b0, b1):
@@ -22,11 +21,12 @@ def mul(a0, a1, b0, b1):
     return e, f
 
 # Algorithm 8 from https://eprint.iacr.org/2010/354.pdf
-# β = 1
+# β = -1
 def inv(a0, a1):
     t0 = monty.mul(a0, a0)
     t1 = monty.mul(a1, a1)
-    t0 = monty.sub(t0, monty.mul(BETA, t1))
+    # This step is actually to - β * t1 but β = -1 so we can just add t1 to t0.
+    t0 = monty.add(t0, t1)
     t1 = monty.inv(t0)
     return monty.mul(a0, t1), monty.sub(0, monty.mul(a1, t1))
 
@@ -82,3 +82,4 @@ def main():
  
 if __name__ == '__main__':
     main()
+    

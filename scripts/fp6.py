@@ -1,5 +1,5 @@
 import montgomery as monty
-import quadratic_extension_field_arithmetic as fp2
+import fp2
 
 XI = monty.NINE, monty.ONE
 
