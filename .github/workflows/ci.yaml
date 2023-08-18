@@ -60,7 +60,7 @@ jobs:
       - name: Setupthe development node
         run: make setup
       - name: Run the development node
-        run: make run
+        run: make run &
       - name: Run ecAdd tests
         run: make test PRECOMPILE=ecadd
       - name: Run ecMul tests
