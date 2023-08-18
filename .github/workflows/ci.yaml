@@ -25,7 +25,9 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Run cargo check
-        run: cargo check
+        run: |
+        cd tests
+        cargo check
 
   lint:
     name: Lint
@@ -41,10 +43,14 @@ jobs:
           components: rustfmt, clippy
 
       - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+        run: |
+        cd tests
+        cargo fmt --all -- --check
 
       - name: Run clippy
-        run: make clippy
+        run: |
+        cd tests
+        make clippy
 
   test:
     name: Test (Ubuntu)
@@ -60,7 +66,7 @@ jobs:
       - name: Setupthe development node
         run: make setup
       - name: Run the development node
-        run: make run &
+        run: make run
       - name: Run ecAdd tests
         run: make test PRECOMPILE=ecadd
       - name: Run ecMul tests
