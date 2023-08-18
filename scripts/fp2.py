@@ -42,7 +42,7 @@ def exp(base0, base1, exponent):
 
 # Multiply an element by xi = 9 + u
 def mul_by_xi(a0, a1):
-    t0 = scalar_mul(a0, a1, 8)
+    t0 = scalar_mul(a0, a1, monty.EIGHT)
     c0 = monty.add(t0[0], a0)
     c0 = monty.sub(c0, a1)
     c1 = monty.add(t0[1], a1)

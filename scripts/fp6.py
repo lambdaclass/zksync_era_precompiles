@@ -61,6 +61,48 @@ def inv(a_00, a_01, a_10, a_11, a_20, a_21):
 
     return c0, c1, c2
 
+def inv_aux(a_00, a_01, a_10, a_11, a_20, a_21):
+        c0 = a_20, a_21;
+        c0 = fp2.mul_by_xi(*c0)
+        c0 = fp2.mul(*c0, a_10, a_11)
+        c0 = fp2.sub(0, 0, *c0)
+
+        c0s = a_00, a_01
+        c0s = fp2.exp(*c0s, monty.TWO)
+        c0 = fp2.add(*c0, *c0s)
+
+        c1 = a_20, a_21
+        c1 = fp2.exp(*c1, monty.TWO)
+        c1 = fp2.mul_by_xi(*c1);
+
+        c01 = a_00, a_01
+        c01 = fp2.mul(*c01, *c1)
+        c1 = fp2.sub(*c1, *c01)
+
+        c2 = a_10, a_11
+        c2 = fp2.exp(*c2, monty.TWO)
+        c02 = a_00, a_01
+        c02 = fp2.mul(*c02, *c2)
+        c2 = fp2.sub(*c2, *c02)
+
+        tmp1 = a_20, a_21
+        tmp1 = fp2.mul(*tmp1, *c1)
+        tmp2 = a_10, a_11;
+        tmp2 = fp2.mul(*tmp2, *c2)
+        tmp1 = fp2.add(*tmp1, *tmp2)
+        tmp1 = fp2.mul_by_xi(*tmp1)
+        tmp2 = a_00, a_01
+        tmp2 = fp2.mul(*tmp2, *c0)
+        tmp1 = fp2.add(*tmp1, *tmp2)
+
+        tmp = fp2.inv(*tmp1)
+        
+        c0 = fp2.mul(*tmp, *c0)
+        c1 = fp2.mul(*tmp, *c1)
+        c2 = fp2.mul(*tmp, *c2)
+
+        return c0, c1, c2
+
 def mul_by_xi(a_00, a_01, a_10, a_11, a_20, a_21):
     c0 = fp2.mul_by_xi(a_20, a_21)
     c1 = a_00, a_01
@@ -118,15 +160,25 @@ def main():
     assert(fp6_squared[2][1] == fp6_mul_squared[2][1])
 
     # INVERSE
-    # fp6_inversed = inv(*fp2_a_0, *fp2_a_1, *fp2_a_2)
-    # fp6_zero = mul(*fp2_a_0, *fp2_a_1, *fp2_a_2, *fp6_inversed[0], *fp6_inversed[1], *fp6_inversed[2])
+    fp6_inversed = inv_aux(*fp2_a_0, *fp2_a_1, *fp2_a_2)
+    fp6_zero = mul(*fp2_a_0, *fp2_a_1, *fp2_a_2, *fp6_inversed[0], *fp6_inversed[1], *fp6_inversed[2])
     
-    # assert(fp6_zero[0][0] == monty.ONE)
-    # assert(fp6_zero[0][1] == 0)
-    # assert(fp6_zero[1][0] == 0)
-    # assert(fp6_zero[1][1] == 0)
-    # assert(fp6_zero[2][0] == 0)
-    # assert(fp6_zero[2][1] == 0)
+    print(monty.out_of(fp6_zero[0][0]))
+    print(monty.out_of(fp6_zero[0][1]))
+
+    print(monty.out_of(fp6_zero[1][0]))
+    print(monty.out_of(fp6_zero[1][1]))
+    print(monty.out_of(fp6_zero[2][0]))
+    print(monty.out_of(fp6_zero[2][1]))
+
+
+    assert(fp6_zero[0][0] == monty.ONE)
+    assert(fp6_zero[0][1] == 0)
+
+    assert(fp6_zero[1][0] == 0)
+    assert(fp6_zero[1][1] == 0)
+    assert(fp6_zero[2][0] == 0)
+    assert(fp6_zero[2][1] == 0)
 
 if __name__ == '__main__':
     main()
