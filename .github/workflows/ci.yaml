@@ -60,7 +60,7 @@ jobs:
       - name: Setup the development node
         run: make setup
       - name: Run the development node
-        run: make run
+        run: make run &
 
   test:
     needs: run-node
