@@ -26,8 +26,8 @@ jobs:
 
       - name: Run cargo check
         run: |
-        cd tests
-        cargo check
+          cd tests
+          cargo check
 
   lint:
     name: Lint
@@ -44,13 +44,13 @@ jobs:
 
       - name: Run cargo fmt
         run: |
-        cd tests
-        cargo fmt --all -- --check
+          cd tests
+          cargo fmt --all -- --check
 
       - name: Run clippy
         run: |
-        cd tests
-        make clippy
+          cd tests
+          make clippy
 
   test:
     name: Test (Ubuntu)
@@ -63,7 +63,7 @@ jobs:
         with:
           toolchain: stable
           components: clippy
-      - name: Setupthe development node
+      - name: Setup the development node
         run: make setup
       - name: Run the development node
         run: make run
