@@ -1,5 +1,27 @@
 # zkSync Era Precompiles
 
+## Development
+
+Follow the instructions below to setup the repo and run a development L2 node.
+
+### Setup the repo
+
+```
+make setup
+```
+
+### Update the submodules (if needed)
+
+```
+make update
+```
+
+### Run a development L2 node
+
+```
+make run
+```
+
 ## Precompiles
 
 | Name | Supported | optimized | audited |
