@@ -1,7 +1,7 @@
 import montgomery as monty
 import quadratic_extension_field_arithmetic as fp2
 
-EPSILON = monty.NINE, monty.ONE
+XI = monty.NINE, monty.ONE
 
 # Algorithm 10 from https://eprint.iacr.org/2010/354.pdf
 def add(a_00, a_01, a_10, a_11, a_20, a_21, b_00, b_01, b_10, b_11, b_20, b_21):
