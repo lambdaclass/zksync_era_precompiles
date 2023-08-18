@@ -25,9 +25,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Run cargo check
-        run: |
-          cd tests
-          cargo check
+        run: cd tests && cargo check
 
   lint:
     name: Lint
@@ -43,17 +41,13 @@ jobs:
           components: rustfmt, clippy
 
       - name: Run cargo fmt
-        run: |
-          cd tests
-          cargo fmt --all -- --check
+        run: cd tests && cargo fmt --all -- --check
 
       - name: Run clippy
-        run: |
-          cd tests
-          make clippy
+        run: cd tests && cargo clippy --all-targets --all-features -- -D warnings
 
-  test:
-    name: Test (Ubuntu)
+  run-node:
+    name: Development node
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
@@ -67,6 +61,19 @@ jobs:
         run: make setup
       - name: Run the development node
         run: make run
+
+  test:
+    needs: run-node
+    name: Test (Ubuntu)
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy
       - name: Run ecAdd tests
         run: make test PRECOMPILE=ecadd
       - name: Run ecMul tests
