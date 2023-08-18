@@ -47,13 +47,13 @@ object "EcMul" {
             /// @notice Constant function for the alt_bn128 group order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @return ret The alt_bn128 group order.
-            function ALT_BN128_GROUP_ORDER() -> ret {
+            function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
             /// @notice Constant function for the alt_bn128 group order minus one.
             /// @return ret The alt_bn128 group order minus one.
-            function ALT_BN128_GROUP_ORDER_MINUS_ONE() -> ret {
+            function P_MINUS_ONE() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208582
             }
 
@@ -62,7 +62,7 @@ object "EcMul" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value R^2 modulus the curve group order.
-            function R2_MOD_ALT_BN128_GROUP_ORDER() -> ret {
+            function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
@@ -130,7 +130,7 @@ object "EcMul" {
                 let ySquared := montgomeryMul(y, y)
                 let xSquared := montgomeryMul(x, x)
                 let xQubed := montgomeryMul(xSquared, x)
-                let xQubedPlusThree := addmod(xQubed, MONTGOMERY_THREE(), ALT_BN128_GROUP_ORDER())
+                let xQubedPlusThree := addmod(xQubed, MONTGOMERY_THREE(), P())
 
                 ret := eq(ySquared, xQubedPlusThree)
             }
@@ -151,7 +151,7 @@ object "EcMul" {
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
             function isOnGroupOrder(coordinate) -> ret {
-                ret := lt(coordinate, ALT_BN128_GROUP_ORDER())
+                ret := lt(coordinate, P())
             }
 
             /// @notice Checks if the LSB of a number is 1.
@@ -164,14 +164,14 @@ object "EcMul" {
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
                 // Precomputation of 1 << 255
                 let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
-                let modulus := ALT_BN128_GROUP_ORDER()
+                let modulus := P()
                 // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
                 let modulusHasSpareBits := iszero(and(modulus, mask))
 
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
-                let b := R2_MOD_ALT_BN128_GROUP_ORDER()
+                let b := R2_MOD_P()
                 let c := ZERO()
 
                 for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
@@ -244,14 +244,14 @@ object "EcMul" {
             /// @return S The result of the Montgomery reduction.
             function REDC(lowestHalfOfT, higherHalfOfT) -> S {
                 let m := mul(lowestHalfOfT, N_PRIME())
-                let hi := add(higherHalfOfT, getHighestHalfOfMultiplication(m, ALT_BN128_GROUP_ORDER()))
-                let lo, overflowed := overflowingAdd(lowestHalfOfT, mul(m, ALT_BN128_GROUP_ORDER()))
+                let hi := add(higherHalfOfT, getHighestHalfOfMultiplication(m, P()))
+                let lo, overflowed := overflowingAdd(lowestHalfOfT, mul(m, P()))
                 if overflowed {
                     hi := add(hi, ONE())
                 }
                 S := hi
-                if iszero(lt(hi, ALT_BN128_GROUP_ORDER())) {
-                    S := sub(hi, ALT_BN128_GROUP_ORDER())
+                if iszero(lt(hi, P())) {
+                    S := sub(hi, P())
                 }
             }
 
@@ -260,9 +260,9 @@ object "EcMul" {
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
-                let temp := mod(a, ALT_BN128_GROUP_ORDER())
-                let hi := getHighestHalfOfMultiplication(temp, R2_MOD_ALT_BN128_GROUP_ORDER())
-                let lo := mul(temp, R2_MOD_ALT_BN128_GROUP_ORDER())
+                let temp := mod(a, P())
+                let hi := getHighestHalfOfMultiplication(temp, R2_MOD_P())
+                let lo := mul(temp, R2_MOD_P())
                 ret := REDC(lo, hi)
             }
 
@@ -274,6 +274,14 @@ object "EcMul" {
                 let hi := ZERO()
                 let lo := m
                 ret := REDC(lo, hi)
+            }
+
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := addmod(augend, addend, P())
+            }
+
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
@@ -322,28 +330,147 @@ object "EcMul" {
                 quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
             }
 
-            /// @notice Computes the addition of two points on the elliptic curve.
-            /// @dev The point doubling equation is being used.
-            /// @dev See https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Point_doubling for further details.
-            /// @param x The x coordinate of the point to double.
-            /// @param y The y coordinate of the point to double.
-            /// @return newX The x coordinate of the result of the point doubling.
-            /// @return newY The y coordinate of the result of the point doubling.
-            function montgomeryDouble(x, y) -> newX, newY {
-                switch isInfinity(x, y)
+            /// @notice Checks if a coordinate is on the curve group order.
+            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @param coordinate The coordinate to check.
+            /// @return ret True if the coordinate is in the range, false otherwise.
+            function coordinateIsOnGroupOrder(coordinate) -> ret {
+                ret := lt(coordinate, P())
+            }
+
+            /// @notice Checks if affine coordinates are on the curve group order.
+            /// @dev Affine coordinates are on the curve group order if both coordinates are on the range [0, curveGroupOrder).
+            /// @param x The x coordinate to check.
+            /// @param y The y coordinate to check.
+            /// @return ret True if the coordinates are in the range, false otherwise.
+            function affinePointCoordinatesAreOnGroupOrder(x, y) -> ret {
+                ret := and(coordinateIsOnGroupOrder(x), coordinateIsOnGroupOrder(y))
+            }
+
+            /// @notice Checks if projective coordinates are on the curve group order.
+            /// @dev Projective coordinates are on the curve group order if the coordinates are on the range [0, curveGroupOrder) and the z coordinate is not zero.
+            /// @param x The x coordinate to check.
+            /// @param y The y coordinate to check.
+            /// @param z The z coordinate to check.
+            /// @return ret True if the coordinates are in the range, false otherwise.
+            function projectivePointCoordinatesAreOnGroupOrder(x, y, z) -> ret {
+                let _x, _y := projectiveIntoAffine(x, y, z)
+                ret := and(z, affinePointCoordinatesAreOnGroupOrder(_x, _y))
+            }
+
+            // @notice Checks if a point in affine coordinates in Montgomery form is on the curve.
+            // @dev The curve in question is the alt_bn128 curve.
+            // @dev The Short Weierstrass equation of the curve is y^2 = x^3 + 3.
+            // @param x The x coordinate of the point in Montgomery form.
+            // @param y The y coordinate of the point in Montgomery form.
+            // @return ret True if the point is on the curve, false otherwise.
+			function affinePointIsOnCurve(x, y) -> ret {
+                let ySquared := montgomeryMul(y, y)
+                let xSquared := montgomeryMul(x, x)
+                let xQubed := montgomeryMul(xSquared, x)
+                let xQubedPlusThree := montgomeryAdd(xQubed, MONTGOMERY_THREE())
+
+                ret := eq(ySquared, xQubedPlusThree)
+			}
+
+            // @notice Checks if a point in projective coordinates in Montgomery form is on the curve.
+            // @dev The curve in question is the alt_bn128 curve.
+            // @dev The Short Weierstrass equation of the curve is y^2 = x^3 + 3.
+            // @param x The x coordinate of the point in Montgomery form.
+            // @param y The y coordinate of the point in Montgomery form.
+            // @param z The z coordinate of the point in Montgomery form.
+            // @return ret True if the point is on the curve, false otherwise.
+            function projectivePointIsOnCurve(x, y, z) -> ret {
+                let _x, _y := projectiveIntoAffine(x, y, z)
+                ret := affinePointIsOnCurve(_x, _y)
+			}
+
+            /// @notice Checks if a point in affine coordinates is the point at infinity.
+            /// @dev The point at infinity is defined as the point (0, 0).
+            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
+            /// @param x The x coordinate of the point in Montgomery form.
+            /// @param y The y coordinate of the point in Montgomery form.
+            /// @return ret True if the point is the point at infinity, false otherwise.
+            function affinePointIsInfinity(x, y) -> ret {
+                ret := and(iszero(x), iszero(y))
+            }
+
+            /// @notice Checks if a point in projective coordinates in Montgomery form is the point at infinity.
+            /// @dev The point at infinity is defined as the point (0, 0, 0).
+            /// @param x The x coordinate of the point in Montgomery form.
+            /// @param y The y coordinate of the point in Montgomery form.
+            /// @param z The z coordinate of the point in Montgomery form.
+            /// @return ret True if the point is the point at infinity, false otherwise.
+            function projectivePointIsInfinity(x, y, z) -> ret {
+                ret := ZERO()
+                if iszero(z) {
+                    ret := affinePointIsInfinity(x, y)
+                }
+            }
+
+            /// @notice Converts a point in affine coordinates to projective coordinates in Montgomery form.
+            /// @dev The point at infinity is defined as the point (0, 0, 0).
+            /// @dev For performance reasons, the point is assumed to be previously checked to be on the 
+            /// @dev curve and not the point at infinity.
+            /// @param xp The x coordinate of the point P in affine coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in affine coordinates in Montgomery form.
+            /// @return xr The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return yr The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return zr The z coordinate of the point P in projective coordinates in Montgomery form.
+            function projectiveFromAffine(xp, yp) -> xr, yr, zr {
+                xr := xp
+                yr := yp
+                zr := MONTGOMERY_ONE()
+            }
+
+            /// @notice Converts a point in projective coordinates to affine coordinates in Montgomery form.
+            /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
+            /// @dev Reverts if the point is not on the curve.
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return xr The x coordinate of the point P in affine coordinates in Montgomery form.
+            /// @return yr The y coordinate of the point P in affine coordinates in Montgomery form.
+            function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
+                switch zp
                 case 0 {
-                    // (3 * x^2 + a) / (2 * y)
-                    let xSquared := montgomeryMul(x, x)
-                    let slope := montgomeryDiv(addmod(xSquared, addmod(xSquared, xSquared, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER()), addmod(y, y, ALT_BN128_GROUP_ORDER()))
-                    // x = slope^2 - 2 * x
-                    newX := submod(montgomeryMul(slope, slope), addmod(x, x, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                    // y = slope * (x - x) - y
-                    newY := submod(montgomeryMul(slope, submod(x, newX, ALT_BN128_GROUP_ORDER())), y, ALT_BN128_GROUP_ORDER())
+                    // Invalid point
+                    if or(xp, yp) {
+                        burnGas()
+                    }
+                    xr := ZERO()
+                    yr := ZERO()
                 }
-                case 1 {
-                    newX := ZERO()
-                    newY := ZERO()
+                default {
+                    xr := montgomeryDiv(xp, zp)
+                    yr := montgomeryDiv(yp, zp)
                 }
+            }
+
+            /// @notice Doubles a point in projective coordinates in Montgomery form.
+            /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
+            /// @dev For performance reasons, the point is assumed to be previously checked to be on the
+            /// @dev curve and not the point at infinity.
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return xr The x coordinate of the point 2P in projective coordinates in Montgomery form.
+            /// @return yr The y coordinate of the point 2P in projective coordinates in Montgomery form.
+            /// @return zr The z coordinate of the point 2P in projective coordinates in Montgomery form.
+            function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
+                let x_squared := montgomeryMul(xp, xp)
+                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
+                let yz := montgomeryMul(yp, zp)
+                let u := montgomeryAdd(yz, yz)
+                let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
+                let v := montgomeryAdd(uxy, uxy)
+                let w := montgomerySub(montgomeryMul(t, t), montgomeryAdd(v, v))
+
+                xr := montgomeryMul(u, w)
+                let uy := montgomeryMul(u, yp)
+                let uy_squared := montgomeryMul(uy, uy)
+                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w)), montgomeryAdd(uy_squared, uy_squared))
+                zr := montgomeryMul(u, montgomeryMul(u, u))
             }
 
             ////////////////////////////////////////////////////////////////
@@ -353,98 +480,96 @@ object "EcMul" {
             // Retrieve the coordinates from the calldata
             let x := calldataload(0)
             let y := calldataload(32)
+            if iszero(affinePointCoordinatesAreOnGroupOrder(x, y)) {
+                burnGas()
+            }
             let scalar := calldataload(64)
 
-            if isInfinity(x, y) {
+            if affinePointIsInfinity(x, y) {
                 // Infinity * scalar = Infinity
-                mstore(0, ZERO())
-                mstore(32, ZERO())
-                return(0, 64)
-            }
-
-            // Ensure that the coordinates are between 0 and the group order.
-            if or(iszero(isOnGroupOrder(x)), iszero(isOnGroupOrder(y))) {
-                burnGas()
+                return(0x00, 0x40)
             }
 
             let m_x := intoMontgomeryForm(x)
             let m_y := intoMontgomeryForm(y)
 
             // Ensure that the point is in the curve (Y^2 = X^3 + 3).
-            if iszero(pointIsInCurve(m_x, m_y)) {
+            if iszero(affinePointIsOnCurve(m_x, m_y)) {
                 burnGas()
             }
 
             if eq(scalar, ZERO()) {
                 // P * 0 = Infinity
-                mstore(0, ZERO())
-                mstore(32, ZERO())
-                return(0, 64)
+                return(0x00, 0x40)
             }
             if eq(scalar, ONE()) {
                 // P * 1 = P
-                mstore(0, x)
-                mstore(32, y)
-                return(0, 64)
+                mstore(0x00, x)
+                mstore(0x20, y)
+                return(0x00, 0x40)
             }
+
+            let xp, yp, zp := projectiveFromAffine(m_x, m_y)
 
             if eq(scalar, TWO()) {
-                let x2, y2 := montgomeryDouble(m_x, m_y)
+                let xr, yr, zr := projectiveDouble(xp, yp, zp)
+                
+                xr, yr := projectiveIntoAffine(xr, yr, zr)
+                xr := outOfMontgomeryForm(xr)
+                yr := outOfMontgomeryForm(yr)
 
-                x2 := outOfMontgomeryForm(x2)
-                y2 := outOfMontgomeryForm(y2)
-
-                mstore(0, x2)
-                mstore(32, y2)
-                return(0, 64)
+                mstore(0x00, xr)
+                mstore(0x20, yr)
+                return(0x00, 0x40)
             }
 
-            let x2 := m_x
-            let y2 := m_y
-            let xRes := ZERO()
-            let yRes := ZERO()
+            let xq := xp
+            let yq := yp
+            let zq := zp
+            let xr := ZERO()
+            let yr := ZERO()
+            let zr := ZERO()
             for {} scalar {} {
                 if lsbIsOne(scalar) {
-                    if and(isInfinity(xRes, yRes), isInfinity(x2, y2)) {
+                    let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
+                    let rIsInfinity := projectivePointIsInfinity(xr, yr, zr)
+                    if and(rIsInfinity, qIsInfinity) {
                         // Infinity + Infinity = Infinity
-                        xRes := ZERO()
-                        yRes := ZERO()
-
-                        x2, y2 := montgomeryDouble(x2, y2)
-                        // Check next bit
-                        scalar := shr(1, scalar)
                         break
                     }
-                    if and(isInfinity(xRes, yRes), iszero(isInfinity(x2, y2))) {
+                    if and(rIsInfinity, iszero(qIsInfinity)) {
                         // Infinity + P = P
-                        xRes := x2
-                        yRes := y2
+                        xr := xq
+                        yr := yq
+                        zr := zq
 
-                        x2, y2 := montgomeryDouble(x2, y2)
+                        xr, yr, zr := projectiveDouble(xr, yr, zr)
                         // Check next bit
                         scalar := shr(1, scalar)
                         continue
                     }
-                    if and(iszero(isInfinity(xRes, yRes)), isInfinity(x2, y2)) {
+                    if and(iszero(rIsInfinity), qIsInfinity) {
                         // P + Infinity = P
                         break
                     }
-                    if and(eq(xRes, x2), eq(submod(ZERO(), yRes, ALT_BN128_GROUP_ORDER()), y2)) {
+                    if and(eq(xr, xq), eq(montgomerySub(ZERO(), yr), yq)) {
                         // P + (-P) = Infinity
-                        xRes := ZERO()
-                        yRes := ZERO()
+                        xr := ZERO()
+                        yr := ZERO()
+                        zr := ZERO()
 
-                        x2, y2 := montgomeryDouble(x2, y2)
+                        xq, yq, zq := projectiveDouble(xq, yq, zq)
                         // Check next bit
                         scalar := shr(1, scalar)
                         continue
                     }
-                    if and(eq(xRes, x2), eq(yRes, y2)) {
+                    if and(eq(xr, xq), eq(yr, yq)) {
                         // P + P = 2P
-                        xRes, yRes := montgomeryDouble(xRes, yRes)
+                        xr, yr, zr := projectiveDouble(xr, yr, zr)
 
-                        x2 := xRes
-                        y2 := yRes
+                        xq := xr
+                        yq := yr
+                        zq := zr
                         // Check next bit
                         scalar := shr(1, scalar)
                         continue
@@ -452,27 +577,33 @@ object "EcMul" {
 
                     // P1 + P2 = P3
 
-                    // (y2 - y1) / (x2 - x1)
-                    let slope := montgomeryDiv(submod(y2, yRes, ALT_BN128_GROUP_ORDER()), submod(x2, xRes, ALT_BN128_GROUP_ORDER()))
-                    // x3 = slope^2 - x1 - x2
-                    let x3 := submod(montgomeryMul(slope, slope), addmod(xRes, x2, ALT_BN128_GROUP_ORDER()), ALT_BN128_GROUP_ORDER())
-                    // y3 = slope * (x1 - x3) - y1
-                    let y3 := submod(montgomeryMul(slope, submod(xRes, x3, ALT_BN128_GROUP_ORDER())), yRes, ALT_BN128_GROUP_ORDER())
-
-                    xRes := x3
-                    yRes := y3
+                    let t0 := montgomeryMul(yp, zq)
+                    let t1 := montgomeryMul(yq, zp)
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xp, zq)
+                    let u1 := montgomeryMul(xq, zp)
+                    let u := montgomerySub(u0, u1)
+                    let u2 := montgomeryMul(u, u)
+                    let u3 := montgomeryMul(u2, u)
+                    let v := montgomeryMul(zp, zq)
+                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+    
+                    xr := montgomeryMul(u, w)
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
+                    zr := montgomeryMul(u3, v)
                 }
 
-                x2, y2 := montgomeryDouble(x2, y2)
+                xq, yq, zq := projectiveDouble(xq, yq, zq)
                 // Check next bit
                 scalar := shr(1, scalar)
             }
 
-            xRes := outOfMontgomeryForm(xRes)
-            yRes := outOfMontgomeryForm(yRes)
+            xr, yr := projectiveIntoAffine(xr, yr, zr)
+            xr := outOfMontgomeryForm(xr)
+            yr := outOfMontgomeryForm(yr)
 
-            mstore(0, xRes)
-            mstore(32, yRes)
+            mstore(0, xr)
+            mstore(32, yr)
             return(0, 64)
         }
     }
