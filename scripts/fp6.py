@@ -1,8 +1,6 @@
 import montgomery as monty
 import fp2
 
-XI = monty.NINE, monty.ONE
-
 # Algorithm 10 from https://eprint.iacr.org/2010/354.pdf
 def add(a_00, a_01, a_10, a_11, a_20, a_21, b_00, b_01, b_10, b_11, b_20, b_21):
     c0 = fp2.add(a_00, a_01, b_00, b_01)
@@ -22,8 +20,8 @@ def mul(a_00, a_01, a_10, a_11, a_20, a_21, b_00, b_01, b_10, b_11, b_20, b_21):
     t0 = fp2.mul(a_00, a_01, b_00, b_01)
     t1 = fp2.mul(a_10, a_11, b_10, b_11)
     t2 = fp2.mul(a_20, a_21, b_20, b_21)
-    c0 = fp2.add(*fp2.mul(*fp2.sub(*fp2.sub(*fp2.mul(*fp2.add(a_10, a_11, a_20, a_21), *fp2.add(b_10, b_11, b_20, b_21)), *t1), *t2), *XI), *t0)
-    c1 = fp2.add(*fp2.sub(*fp2.sub(*fp2.mul(*fp2.add(a_00, a_01, a_10, a_11), *fp2.add(b_00, b_01, b_10, b_11)), *t0), *t1), *fp2.mul(*XI, *t2))
+    c0 = fp2.add(*fp2.mul_by_xi(*fp2.sub(*fp2.sub(*fp2.mul(*fp2.add(a_10, a_11, a_20, a_21), *fp2.add(b_10, b_11, b_20, b_21)), *t1), *t2)), *t0)
+    c1 = fp2.add(*fp2.sub(*fp2.sub(*fp2.mul(*fp2.add(a_00, a_01, a_10, a_11), *fp2.add(b_00, b_01, b_10, b_11)), *t0), *t1), *fp2.mul_by_xi(*t2))
     c2 = fp2.add(*fp2.sub(*fp2.sub(*fp2.mul(*fp2.add(a_00, a_01, a_20, a_21), *fp2.add(b_00, b_01, b_20, b_21)), *t0), *t2), *t1)
     return c0, c1, c2
 
@@ -31,13 +29,13 @@ def mul(a_00, a_01, a_10, a_11, a_20, a_21, b_00, b_01, b_10, b_11, b_20, b_21):
 def square(a_00, a_01, a_10, a_11, a_20, a_21):
     c4 = fp2.scalar_mul(*fp2.mul(a_00, a_01, a_10, a_11), monty.TWO)
     c5 = fp2.exp(a_20, a_21, 2)
-    c1 = fp2.add(*fp2.mul(*c5, *XI), *c4)
+    c1 = fp2.add(*fp2.mul_by_xi(*c5), *c4)
     c2 = fp2.sub(*c4, *c5)
     c3 = fp2.exp(a_00, a_01, 2)
     c4 = fp2.add(*fp2.sub(a_00, a_01, a_10, a_11), a_20, a_21)
     c5 = fp2.scalar_mul(*fp2.mul(a_00, a_01, a_20, a_21), monty.TWO)
     c4 = fp2.exp(*c4, 2)
-    c0 = fp2.add(*fp2.mul(*c5, *XI), *c3)
+    c0 = fp2.add(*fp2.mul_by_xi(*c5), *c3)
     c2 = fp2.sub(*fp2.add(*fp2.add(*c2, *c4), *c5), *c3)
     return c0, c1, c2
 
@@ -50,12 +48,12 @@ def inv(a_00, a_01, a_10, a_11, a_20, a_21):
     t3 = fp2.mul(a_00, a_01, a_10, a_11);
     t4 = fp2.mul(a_00, a_01, a_20, a_21);
     t5 = fp2.mul(a_20, a_21, a_10, a_11);
-    c0 = fp2.sub(*t0, *fp2.mul(*XI, *t5))
-    c1 = fp2.sub(*fp2.mul(*XI, *t2), *t3)
+    c0 = fp2.sub(*t0, *fp2.mul_by_xi(*t5))
+    c1 = fp2.sub(*fp2.mul_by_xi(*t2), *t3)
     c2 = fp2.mul(*t1, *t4)
     t6 = fp2.mul(a_00, a_01, *c0)
-    t6 = fp2.add(*t6, *fp2.mul(*fp2.mul(*XI, a_20, a_21), *c1))
-    t6 = fp2.add(*t6, *fp2.mul(*fp2.mul(*XI, a_10, a_11), *c2))
+    t6 = fp2.add(*t6, *fp2.mul(*fp2.mul_by_xi(a_20, a_21), *c1))
+    t6 = fp2.add(*t6, *fp2.mul(*fp2.mul_by_xi(a_10, a_11), *c2))
     t6 = fp2.inv(*t6)
     c0 = fp2.mul(*c0, *t6)
     c1 = fp2.mul(*c1, *t6)
@@ -63,6 +61,12 @@ def inv(a_00, a_01, a_10, a_11, a_20, a_21):
 
     return c0, c1, c2
 
+def mul_by_xi(a_00, a_01, a_10, a_11, a_20, a_21):
+    c0 = fp2.mul_by_xi(a_20, a_21)
+    c1 = a_00, a_01
+    c2 = a_10, a_11
+
+    return c0, c1, c2
 
 def main():
     # ADDITION
@@ -113,7 +117,7 @@ def main():
     assert(fp6_squared[2][0] == fp6_mul_squared[2][0])
     assert(fp6_squared[2][1] == fp6_mul_squared[2][1])
 
-    # # INVERSE
+    # INVERSE
     # fp6_inversed = inv(*fp2_a_0, *fp2_a_1, *fp2_a_2)
     # fp6_zero = mul(*fp2_a_0, *fp2_a_1, *fp2_a_2, *fp6_inversed[0], *fp6_inversed[1], *fp6_inversed[2])
     
