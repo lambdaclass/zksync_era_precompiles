@@ -22,6 +22,20 @@ make update
 make run
 ```
 
+### Run the tests
+
+If you want to run all the tests:
+
+```
+make test
+```
+
+If you want to run a specific test:
+
+```
+make test PRECOMPILE=<precompile_name>
+```
+
 ## Precompiles
 
 | Name | Supported | optimized | audited |
