@@ -53,11 +53,17 @@ def inv(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_
 
 def main():
 
-    fp12_zero = [monty.ZERO for _ in range(12)]
-    p12_one = [monty.ONE for _ in range(12)]
+    fp12_zero = [0 for _ in range(12)]
+    fp12_one = [monty.ONE for _ in range(12)]
+    fp12_two = [monty.TWO for _ in range(12)]
 
+    #ADDITION
+    assert(add(*fp12_zero, *fp12_zero) == fp12_zero)
+    assert(add(*fp12_zero, *fp12_one) == fp12_one)
+    assert(add(*fp12_one, *fp12_zero) == fp12_one)
+    assert(add(*fp12_one, *fp12_one) == fp12_two)
 
-    # assert(add(*fp12_zero, *fp12_one) == fp12_one)
+    
     pass
 
 if __name__ == '__main__':
