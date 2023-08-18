@@ -12,3 +12,7 @@ run:
 	cd submodules/era-test-node && \
 	make build-precompiles && \
 	cargo run -- --show-calls=all --resolve-hashes run
+
+test:
+	cd tests && \
+	cargo test ${PRECOMPILE}
