@@ -25,7 +25,7 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Run cargo check
-        run: cd tests && cargo check
+        run: cargo check
 
   lint:
     name: Lint
@@ -41,10 +41,10 @@ jobs:
           components: rustfmt, clippy
 
       - name: Run cargo fmt
-        run: cd tests && cargo fmt --all -- --check
+        run: cargo fmt --all -- --check
 
       - name: Run clippy
-        run: cd tests && cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
   run-node:
     name: Development node
