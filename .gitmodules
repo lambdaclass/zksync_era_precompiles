@@ -1,0 +1,7 @@
+[submodule "submodules/eth-tests"]
+	path = submodules/eth-tests
+	url = git@github.com:ethereum/tests.git
+[submodule "submodules/era-test-node"]
+	path = submodules/era-test-node
+	url = git@github.com:lambdaclass/era-test-node.git
+	branch = yul-console-log-vm-fixes
