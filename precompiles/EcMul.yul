@@ -101,15 +101,6 @@ object "EcMul" {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
 
-            /// @notice Computes the modular subtraction of two values.
-            /// @param minuend The value to subtract from.
-            /// @param subtrahend The value to subtract.
-            /// @param modulus The modulus.
-            /// @return difference The modular subtraction of the two values.
-            function submod(minuend, subtrahend, modulus) -> difference {
-                difference := addmod(minuend, sub(modulus, subtrahend), modulus)
-            }
-
             /// @notice Computes an addition and checks for overflow.
             /// @param augend The value to add to.
             /// @param addend The value to add.
@@ -118,40 +109,6 @@ object "EcMul" {
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
                 overflowed := or(lt(sum, augend), lt(sum, addend))
-            }
-
-            // @notice Checks if a point is on the curve.
-            // @dev The curve in question is the alt_bn128 curve.
-            // @dev The Short Weierstrass equation of the curve is y^2 = x^3 + 3.
-            // @param x The x coordinate of the point in Montgomery form.
-            // @param y The y coordinate of the point in Montgomery form.
-            // @return ret True if the point is on the curve, false otherwise.
-            function pointIsInCurve(x, y) -> ret {
-                let ySquared := montgomeryMul(y, y)
-                let xSquared := montgomeryMul(x, x)
-                let xQubed := montgomeryMul(xSquared, x)
-                let xQubedPlusThree := addmod(xQubed, MONTGOMERY_THREE(), P())
-
-                ret := eq(ySquared, xQubedPlusThree)
-            }
-
-            /// @notice Checks if a point is the point at infinity.
-            /// @dev The point at infinity is defined as the point (0, 0).
-            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
-            /// @param x The x coordinate of the point.
-            /// @param y The y coordinate of the point.
-            /// @return ret True if the point is the point at infinity, false otherwise.
-            function isInfinity(x, y) -> ret {
-                ret := and(iszero(x), iszero(y))
-            }
-
-            /// @notice Checks if a coordinate is on the curve group order.
-            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
-            /// @dev This check is required in the precompile specification. See https://eips.ethereum.org/EIPS/eip-196 for further details.
-            /// @param coordinate The coordinate to check.
-            /// @return ret True if the coordinate is in the range, false otherwise.
-            function isOnGroupOrder(coordinate) -> ret {
-                ret := lt(coordinate, P())
             }
 
             /// @notice Checks if the LSB of a number is 1.
