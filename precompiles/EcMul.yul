@@ -431,22 +431,6 @@ object "EcMul" {
                 zr := montgomeryMul(u, montgomeryMul(u, u))
             }
 
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := mload(0xffff)
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
@@ -572,9 +556,6 @@ object "EcMul" {
                 scalar := shr(1, scalar)
             }
 
-            console_log(xr)
-            console_log(yr)
-            console_log(zr)
             xr, yr := projectiveIntoAffine(xr, yr, zr)
             xr := outOfMontgomeryForm(xr)
             yr := outOfMontgomeryForm(yr)
