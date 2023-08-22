@@ -359,10 +359,7 @@ object "EcMul" {
             /// @param z The z coordinate of the point in Montgomery form.
             /// @return ret True if the point is the point at infinity, false otherwise.
             function projectivePointIsInfinity(x, y, z) -> ret {
-                ret := ZERO()
-                if iszero(z) {
-                    ret := affinePointIsInfinity(x, y)
-                }
+                ret := iszero(z)
             }
 
             /// @notice Converts a point in affine coordinates to projective coordinates in Montgomery form.
@@ -485,7 +482,7 @@ object "EcMul" {
             let yq := yp
             let zq := zp
             let xr := ZERO()
-            let yr := ZERO()
+            let yr := MONTGOMERY_ONE()
             let zr := ZERO()
             for {} scalar {} {
                 if lsbIsOne(scalar) {
