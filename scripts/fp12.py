@@ -63,8 +63,11 @@ def main():
     assert(add(*fp12_one, *fp12_zero) == fp12_one)
     assert(add(*fp12_one, *fp12_one) == fp12_two)
 
-    
-    pass
+    #SUBTRACTION
+    assert(sub(*fp12_zero, *fp12_zero) == fp12_zero)
+    assert(sub(*fp12_two, *fp12_one) == fp12_one)
+    assert(sub(*fp12_one, *fp12_zero) == fp12_one)
+    assert(sub(*fp12_one, *fp12_one) == fp12_zero)
 
 if __name__ == '__main__':
     main()
