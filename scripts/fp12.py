@@ -23,9 +23,9 @@ def mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_
     c0 = fp6.add(t0[0][0],t0[0][1],t0[1][0],t0[1][1],t0[2][0],t0[2][1],t2[0][0],t2[0][1],t2[1][0],t2[1][1],t2[2][0],t2[2][1])
     t3 = fp6.add(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
     t4 = fp6.add(b_000, b_001, b_010, b_011, b_020, b_021, b_100, b_101, b_110, b_111, b_120, b_121)
-    t5 = fp6.mul(t3[0][0],t3[0][1],t3[1][0],t3[1][1],t3[2][0],t3[2][1],t4[0][0],t4[0][1],t4[1][0],t4[1][1],t4[2][0],t4[2][1])
-    t6 = fp6.sub(t0[0][0],t0[0][1],t0[1][0],t0[1][1],t0[2][0],t0[2][1],t1[0][0],t1[0][1],t1[1][0],t1[1][1],t1[2][0],t1[2][1])
-    c1 = fp6.sub(t5[0][0],t5[0][1],t5[1][0],t5[1][1],t5[2][0],t5[2][1],t6[0][0],t6[0][1],t6[1][0],t6[1][1],t6[2][0],t6[2][1])
+    c1 = fp6.mul(t3[0][0],t3[0][1],t3[1][0],t3[1][1],t3[2][0],t3[2][1],t4[0][0],t4[0][1],t4[1][0],t4[1][1],t4[2][0],t4[2][1])
+    c1 = fp6.sub(c1[0][0],c1[0][1],c1[1][0],c1[1][1],c1[2][0],c1[2][1],t0[0][0],t0[0][1],t0[1][0],t0[1][1],t0[2][0],t0[2][1])
+    c1 = fp6.sub(c1[0][0],c1[0][1],c1[1][0],c1[1][1],c1[2][0],c1[2][1],t1[0][0],t1[0][1],t1[1][0],t1[1][1],t1[2][0],t1[2][1])
     return c0, c1
 
 # Algorithm 22 from https://eprint.iacr.org/2010/354.pdf
@@ -81,6 +81,15 @@ def main():
     assert(mul(*fp12_all_one, *fp12_one)) == (((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)), ((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)))
     assert(mul(*fp12_one, *fp12_all_two)) == (((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)), ((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)))
 
+    # SQUARE OF 0 and 1
+    assert(square(*fp12_zero) == (((0, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
+    assert(square(*fp12_one) == (((monty.ONE, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
+
+    # MULTIPLICATION AND SQUARE
+    assert(mul(*fp12_one, *fp12_one) == square(*fp12_one))
+    assert(mul(*fp12_all_one, *fp12_all_one) == square(*fp12_all_one))
+    assert(mul(*fp12_all_two, *fp12_all_two) == square(*fp12_all_two))
+
     # MULTIPLY BY INVERSE
     fp12_all_one_inverse = inv(*fp12_all_one)
     # fp12_all_two_inverse = inv(*fp12_all_two)
@@ -89,7 +98,7 @@ def main():
         *fp12_all_one_inverse[0][0],*fp12_all_one_inverse[0][1],*fp12_all_one_inverse[0][2],*fp12_all_one_inverse[1][0],*fp12_all_one_inverse[1][1],*fp12_all_one_inverse[1][2]
     )
     print(multiplication)
-    assert(multiplication == (((1, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
+    assert(multiplication == (((monty.ONE, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
 
 if __name__ == '__main__':
     main()
