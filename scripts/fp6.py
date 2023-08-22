@@ -61,7 +61,7 @@ def inv(a_00, a_01, a_10, a_11, a_20, a_21):
 
     return c0, c1, c2
 
-def mul_by_xi(a_00, a_01, a_10, a_11, a_20, a_21):
+def mul_by_gamma(a_00, a_01, a_10, a_11, a_20, a_21):
     c0 = fp2.mul_by_xi(a_20, a_21)
     c1 = a_00, a_01
     c2 = a_10, a_11
