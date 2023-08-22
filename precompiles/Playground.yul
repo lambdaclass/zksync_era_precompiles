@@ -434,6 +434,123 @@ object "Playground" {
             }
 
             ////////////////////////////////////////////////////////////////
+            //                      FP6 ARITHMETHICS
+            ////////////////////////////////////////////////////////////////
+
+            function fp6Add(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
+                c00, c01 := fp2Add(a00, a01, b00, b01)
+                c10, c11 := fp2Add(a10, a11, b10, b11)
+                c20, c21 := fp2Add(a20, a21, b20, b21)
+            }
+
+            function fp6Sub(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
+                c00, c01 := fp2Sub(a00, a01, b00, b01)
+                c10, c11 := fp2Sub(a10, a11, b10, b11)
+                c20, c21 := fp2Sub(a20, a21, b20, b21)
+            }
+
+            function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
+                c00, c10 := mulByXi(a20, a21)
+                c10, c11 := a00, a01
+                c20, c20 := a10, a11
+            }
+
+            function fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01 {
+                let t00, t01 := fp2Sub(a00, a01, b00, b10)
+                let t10, t11 := fp2Sub(a10, a11, b10, b11)
+                let t20, t21 := fp2Sub(a20, a21, b20, b21)
+
+                let tmp0, temp1 := fp2Add(a10, a11, a20, a21)
+                let tmp2, tmp3 := fp2Add(b10, b11, b20, b21)
+                let tmp4, tmp5 := fp2Mul(tmp0, temp1, tmp2, tmp3)
+                let tmp6, tmp7 := fp2Sub(tmp4, tmp5, t10, t11)
+                let tmp8, tmp9 := fp2Sub(tmp6, tmp7, t20, t21)
+                let tmp10, tmp11 := mulByXi(tmp8, tmp9)
+                c00, c01 := fp2Add(tmp10, tmp11, t00, t01)
+
+                tmp0, temp1 := fp2Add(a00, a01, a10, a11)
+                tmp2, tmp3 := fp2Add(b00, b01, b10, b11)
+                tmp4, tmp5 := fp2Mul(tmp0, temp1, tmp2, tmp3)
+                tmp6, tmp7 := fp2Sub(tmp4, tmp5, t00, t01)
+                tmp8, tmp9 := fp2Sub(tmp6, tmp7, t10, t11)
+                tmp10, tmp11 := mulByXi(t20, t21)
+                c10, c11 := fp2Add(tmp8, tmp9, tmp10, tmp11)
+
+                tmp0, temp1 := fp2Add(a00, a01, a20, a21)
+                tmp2, tmp3 := fp2Add(b00, b01, b20, b21)
+                tmp4, tmp5 := fp2Mul(tmp0, temp1, tmp2, tmp3)
+                tmp6, tmp7 := fp2Sub(tmp4, tmp5, t00, t01)
+                tmp8, tmp9 := fp2Sub(tmp6, tmp7, t20, t21)
+                c20, c21 := fp2Add(tmp8, tmp9, t10, t11)
+            }
+
+            function fp6MulByFp2(a00, a01, a10, a11, a20, a21, b00, b01) -> c00, c01, c10, c11, c20, c21 {
+                c00, c01 := fp2Mul(a00, a01, b00, b01)
+                c10, c11 := fp2Mul(a01, a10, b00, b01)
+                c20, c21 := fp2Mul(a10, a11, b00, b01)
+            }
+
+            function fp6MulByFp4(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11) -> c00, c01, c10, c11, c20, c21 {
+                let t00, t01 := fp2Mul(a00, a01, b00, b01)
+                let t10, t11 := fp2Mul(a10, a11, b10, b11)
+
+                let tmp00, tmp01 := fp2Add(a10, a11, a20, a21)
+                tmp00, tmp01 := fp2Mul(tmp00, tmp01, b10, b11)
+                tmp00, tmp01 := fp2Sub(tmp00, tmp01, t10, t11)
+                tmp00, tmp01 := mulByXi(tmp00, tmp01)
+                c00, c01 := fp2Add(t00, t01)
+
+                tmp00, tmp01 := fp2Add(a00, a01, a10, a11)
+                let tmp10, tmp11 := fp2Add(b00, b01, b10, b11)
+                tmp00, tmp01 := fp2Mul(tmp00, tmp01, tmp10, tmp11)
+                tmp00, tmp01 := fp2Sub(tmp00, tmp01, t00, t01)
+                c10, c11 := fp2Sub(tmp00, tmp01, t10, t11)
+
+                tmp00, tmp01 := fp2Mul(a20, a21, b00, b01)
+                c20, c21 := fp2Add(tmp00, tmp01, t10, t11)
+            }
+
+            function fp6Square(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
+                let tmp0, tmp1 := fp2Mul(a00, a01, a10, a11)
+                tmp0, tmp1 := fp2Add(tmp0, tmp1, tmp0, tmp1)
+                let tmp2, tmp3 := fp2Mul(a20, a21, a20, a21)
+                let tmp4, tmp5 := mulByXi(tmp2, tmp3)
+                c10, c11 := fp2Add(tmp4, tmp5, tmp0, tmp1)
+                c20, c21 := fp2Sub(tmp0, tmp1, tmp2, tmp3)
+                let tmp6, tmp7 := fp2Mul(a00, a01, a00, a01)
+                tmp0, tmp1 := fp2Mul(tmp0, tmp1, tmp0, tmp1)
+                c00, c01 := fp2Add(tmp4, tmp5, tmp6, tmp7)
+                let tmp8, tmp9 := fp2Add(c20, c21, tmp0, tmp1)
+                let tmp10, tmp11 := fp2Add(tmp8, tmp9, tmp4, tmp5)
+                c20, c21 := fp2Sub(tmp10, tmp11, tmp6, tmp7)
+            }
+
+            function fp6Inv(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
+                let t00, t01 := fp2Mul(a00, a01, a00, a01)                
+                let t10, t11 := fp2Mul(a10, a11, a10, a11)                
+                let t20, t21 := fp2Mul(a20, a21, a20, a21)
+                let t30, t31 := fp2Mul(a00, a01, a10, a11)
+                let t40, t41 := fp2Mul(a00, a01, a20, a21)
+                let t50, t51 := fp2Mul(a20, a21, a10, a11)
+                let t50Xi, t51Xi := mulByXi(t50, t51)
+                c00, c01 := fp2Sub(t00, t01, t50Xi, t51Xi)
+                let t20Xi, t21Xi := mulByXi(t20, t21)
+                c10, c11 := fp2Sub(t20Xi, t21Xi, t30, t31)
+                c20, c21 := fp2Mul(t10, t11, t40, t41)
+                let t60, t61 := fp2Mul(a00, a01, c00, c01)
+                let a20Xi, a21Xi := mulByXi(a20, a21)
+                let a20XiC10, a21XiC11 := fp2Mul(a20Xi, a21Xi, c10, c11)
+                t60, t61 := fp2Add(t60, t61, a20XiC10, a21XiC11)
+                let a10Xi, a11Xi := mulByXi(a10, a11)
+                let a10XiC20, a11XiC21 := fp2Mul(a10Xi, a11Xi, c20, c21)
+                t60, t61 := fp2Add(t60, t61, a10XiC20, a11XiC21)
+                t60, t61 := fp2Inv(t60, t61)
+                c00, c01 := fp2Mul(c00, c01, t60, t61)
+                c10, c11 := fp2Mul(c10, c11, t60, t61)
+                c20, c21 := fp2Mul(c20, c21, t60, t61)
+            }
+
+            ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
