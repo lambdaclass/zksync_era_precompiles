@@ -7,19 +7,19 @@ object "Playground" {
             ////////////////////////////////////////////////////////////////
 
             function ZERO() -> zero {
-                zero := 0x0
+                zero := 0x00
             }
 
             function ONE() -> one {
-                one := 0x1
+                one := 0x01
             }
 
             function TWO() -> two {
-                two := 0x2
+                two := 0x02
             }
 
             function THREE() -> three {
-                three := 0x3
+                three := 0x03
             }
 
             function MONTGOMERY_ONE() -> m_one {
@@ -53,10 +53,10 @@ object "Playground" {
 
             // CONSOLE.LOG Caller
             // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(mem, val) -> {
+            function console_log(val) -> {
                 let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
                 // load the free memory pointer
-                let freeMemPointer := mload(mem)
+                let freeMemPointer := mload(0x600)
                 // store the function selector of log(uint256) in memory
                 mstore(freeMemPointer, 0xf82c50f1)
                 // store the first argument of log(uint256) in the next memory slot
@@ -184,6 +184,14 @@ object "Playground" {
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
 
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := addmod(augend, addend, P())
+            }
+
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
+            }
+
             // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
             function montgomeryMul(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
@@ -262,27 +270,209 @@ object "Playground" {
                 ret := and(left, right)
 			}
 
+            function affinePointIsInfinity(x, y) -> ret {
+                ret := and(iszero(x), iszero(y))
+            }
+
+            function projectivePointIsInfinity(z) -> ret {
+                ret := iszero(z)
+            }
+
+            function projectiveFromAffine(xp, yp) -> xr, yr, zr {
+                switch affinePointIsInfinity(xp, yp)
+                case 0 {
+                    xr := xp
+                    yr := yp
+                    zr := MONTGOMERY_ONE()
+                }
+                case 1 {
+                    xr := ZERO()
+                    yr := ZERO()
+                    zr := ZERO()
+                }
+            }
+
+            function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
+                switch zp
+                case 0 {
+                    xr := ZERO()
+                    yr := ZERO()
+                }
+                // MONTGOMERY_ONE(), but compiler expects a literal.
+                case 6350874878119819312338956282401532409788428879151445726012394534686998597021 {
+                    xr := montgomeryDiv(xp, zp)
+                    yr := montgomeryDiv(yp, zp)
+                }
+            }
+
+            function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
+                let x_squared := montgomeryMul(xp, xp)
+                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
+                let yz := montgomeryMul(yp, zp)
+                let u := montgomeryAdd(yz, yz)
+                let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
+                let v := montgomeryAdd(uxy, uxy)
+                let w := montgomerySub(montgomeryMul(t, t), montgomeryAdd(v, v))
+
+                xr := montgomeryMul(u, w)
+                let uy := montgomeryMul(u, yp)
+                let uy_squared := montgomeryMul(uy, uy)
+                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w)), montgomeryAdd(uy_squared, uy_squared))
+                zr := montgomeryMul(u, montgomeryMul(u, u))
+            }
+
+            function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
+                let pIsInfinity := projectivePointIsInfinity(zp)
+                let qIsInfinity := projectivePointIsInfinity(zq)
+                if and(pIsInfinity, zq) {
+                    xr := xq
+                    yr := yq
+                    zr := zq
+                }
+                if and(zp, qIsInfinity) {
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                }
+                switch and(eq(xp, xq), eq(yp, yq))
+                case 0 {
+                    let t0 := yp
+                    let t1 := yq
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xp, zq)
+                    let u1 := xq
+                    let u := montgomerySub(u0, u1)
+                    let u2 := montgomeryMul(u, u)
+                    let u3 := montgomeryMul(u2, u)
+                    let w := montgomerySub(montgomeryMul(t, t), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+    
+                    xr := montgomeryMul(u, w)
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
+                    zr := u3
+                }
+                case 1 {
+                    switch and(pIsInfinity, qIsInfinity) 
+                    case 0 {
+                        xr, yr, zr := projectiveDouble(xp, yp, zp)
+                    }
+                    case 1 {
+                        xr := ZERO()
+                        yr := ZERO()
+                        zr := ZERO()
+                    }
+                }            
+            }
+
+            function projectiveMul(xp, yp, zp, scalar) -> xr, yr, zr {
+                xr := ZERO()
+                yr := ZERO()
+                zr := ZERO()
+                let xq := xp
+                let yq := yp
+                let zq := zp
+                let s := scalar
+            
+                switch scalar
+                case 0 {}
+                case 1 {
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                }
+                case 2 {
+                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                }
+                default {
+                    for {} gt(s, ZERO()) {} {
+                        if and(s, ONE()) {
+                            xr, yr, zr := projectiveAdd(xr, yr, zr, xq, yq, zq)
+                        }
+                        xq, yq, zq := projectiveDouble(xq, yq, zq)
+                        s := shr(1, s)
+                    }
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////
+            //                      FP2 ARITHMETHICS
+            ////////////////////////////////////////////////////////////////
+
+            function fp2Add(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomeryAdd(a00, b00)
+                c01 := montgomeryAdd(a01, b01)
+            }
+
+            function fp2Sub(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomerySub(a00, b00)
+                c01 := montgomerySub(a01, b01)
+            }
+
+            function fp2ScalarMul(a00, a01, scalar) -> c00, c01 {
+                c00 := montgomeryMul(a00, scalar)
+                c01 := montgomeryMul(a01, scalar)
+            }
+
+            function fp2Mul(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomerySub(montgomeryMul(a00, b00), montgomeryMul(a01, b01))
+                c01 := montgomeryAdd(montgomeryMul(a00, b01), montgomeryMul(a01, b00))
+            }
+
+            function fp2Inv(a00, a01) -> c00, c01 {
+                let t0 := montgomeryMul(a00, a00)
+                let t1 := montgomeryMul(a01, a01)
+                t0 := montgomeryAdd(t0, t1)
+                t1 := montgomeryModularInverse(t0)
+
+                c00 := montgomeryMul(a00, t1)
+                c01 := montgomerySub(ZERO(), montgomeryMul(a01, t1))
+            }
+
+            function mulByXi(a00, a01) -> c00, c01 {
+                let t0, t1 := fp2ScalarMul(a00, a01, intoMontgomeryForm(8))
+                c00 := montgomerySub(montgomeryAdd(t0, a00), a01)
+                c01 := montgomeryAdd(montgomeryAdd(t1, a00), a01)
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
-            let g1_x := calldataload(0)
-            let g1_y := calldataload(32)
-            let g2_ix := calldataload(64)
-            let g2_x := calldataload(96)
-            let g2_iy := calldataload(128)
-            let g2_y := calldataload(160)
+            // let g1_x := calldataload(0)
+            // let g1_y := calldataload(32)
+            // let g2_ix := calldataload(64)
+            // let g2_x := calldataload(96)
+            // let g2_iy := calldataload(128)
+            // let g2_y := calldataload(160)
 
-            if iszero(pointIsOnG1(g1_x, g1_y)) {
-                // burnGas()
-            }
+            // if iszero(pointIsOnG1(g1_x, g1_y)) {
+            //     // burnGas()
+            // }
 
-            console_log(0x600, g1_x)
-            console_log(0x600, g1_y)
-            console_log(0x600, g2_ix)
-            console_log(0x600, g2_x)
-            console_log(0x600, g2_iy)
-            console_log(0x600, g2_y)
+            // console_log(0x600, g1_x)
+            // console_log(0x600, g1_y)
+            // console_log(0x600, g2_ix)
+            // console_log(0x600, g2_x)
+            // console_log(0x600, g2_iy)
+            // console_log(0x600, g2_y)
+
+            let one := MONTGOMERY_ONE()
+            let two := MONTGOMERY_TWO()
+
+            let fp2_a0 := one
+            let fp2_a1 := two
+            let fp2_b0 := two
+            let fp2_b1 := two
+
+
+            let c00, c01 := fp2Add(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01))
+            c00, c01 := fp2ScalarMul(fp2_a0, fp2_a1, two)
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01))
+            c00, c01 := fp2Mul(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
+            console_log(outOfMontgomeryForm(montgomerySub(0, c00)))
+            console_log(outOfMontgomeryForm(c01))
         }
     }
 }
