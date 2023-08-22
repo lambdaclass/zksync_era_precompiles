@@ -1,6 +1,6 @@
 import montgomery
 
-INFINITY = (0, 0, 0)
+INFINITY = (0, montgomery.ONE, 0)
 
 def from_affine(x, y):
     if x == 0 and y == 0:
