@@ -59,6 +59,7 @@ def main():
 
     fp12_zero = [0 for _ in range(12)]
     fp12_one = [monty.ONE] + [0 for _ in range(11)]
+    fp12_two = [monty.TWO] + [0 for _ in range(11)]
     fp12_all_one = [monty.ONE for _ in range(12)]
     fp12_all_two = [monty.TWO for _ in range(12)]
 
@@ -82,6 +83,10 @@ def main():
     # MULTIPLICATION BY 1
     assert(mul(*fp12_all_one, *fp12_one)) == (((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)), ((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)))
     assert(mul(*fp12_one, *fp12_all_two)) == (((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)), ((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)))
+
+    # MULTIPLICATION BY 2
+    assert(mul(*fp12_all_one, *fp12_two)==add(*fp12_all_one, *fp12_all_one))
+    assert(mul(*fp12_two, *fp12_all_two)==add(*fp12_all_two, *fp12_all_two))g
 
     # SQUARE OF 0 and 1
     assert(square(*fp12_zero) == (((0, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
