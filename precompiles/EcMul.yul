@@ -278,15 +278,6 @@ object "EcMul" {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
             }
 
-            /// @notice Computes the Montgomery division.
-            /// @dev The Montgomery division is computed by multiplying the dividend with the modular inverse of the divisor.
-            /// @param dividend The dividend in Montgomery form.
-            /// @param divisor The divisor in Montgomery form.
-            /// @return quotient The result of the Montgomery division.
-            function montgomeryDiv(dividend, divisor) -> quotient {
-                quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
-            }
-
             /// @notice Checks if a coordinate is on the curve group order.
             /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
             /// @param coordinate The coordinate to check.
@@ -397,8 +388,9 @@ object "EcMul" {
                     yr := ZERO()
                 }
                 default {
-                    xr := montgomeryDiv(xp, zp)
-                    yr := montgomeryDiv(yp, zp)
+                    let zp_inv := montgomeryModularInverse(zp)
+                    xr := montgomeryMul(xp, zp_inv)
+                    yr := montgomeryMul(yp, zp_inv)
                 }
             }
 
