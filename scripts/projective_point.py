@@ -1,31 +1,31 @@
-import montgomery
+import montgomery as monty
 
-INFINITY = (0, 0, 0)
+INFINITY = (0, monty.ONE, 0)
 
 def from_affine(x, y):
     if x == 0 and y == 0:
         return INFINITY
-    return x, y, montgomery.ONE
+    return x, y, monty.ONE
 
 def into_affine(x, y, z):
     if z == 0:
         return 0, 0
-    return montgomery.div(x, z), montgomery.div(y, z)
+    return monty.div(x, z), monty.div(y, z)
 
 def double(x, y, z):
-    x_squared = montgomery.mul(x, x)
-    t = montgomery.add(x_squared, montgomery.add(x_squared, x_squared))
-    yz = montgomery.mul(y, z)
-    u = montgomery.add(yz, yz)
-    uxy = montgomery.mul(u, montgomery.mul(x, y))
-    v = montgomery.add(uxy, uxy)
-    w = montgomery.sub(montgomery.mul(t, t), montgomery.add(v, v))
+    x_squared = monty.mul(x, x)
+    t = monty.add(x_squared, monty.add(x_squared, x_squared))
+    yz = monty.mul(y, z)
+    u = monty.add(yz, yz)
+    uxy = monty.mul(u, monty.mul(x, y))
+    v = monty.add(uxy, uxy)
+    w = monty.sub(monty.mul(t, t), monty.add(v, v))
 
-    doubled_x = montgomery.mul(u, w)
-    uy = montgomery.mul(u, y)
-    uy_squared = montgomery.mul(uy, uy)
-    doubled_y = montgomery.sub(montgomery.mul(t, montgomery.sub(v, w)), montgomery.add(uy_squared, uy_squared))
-    doubled_z = montgomery.mul(u, montgomery.mul(u, u))
+    doubled_x = monty.mul(u, w)
+    uy = monty.mul(u, y)
+    uy_squared = monty.mul(uy, uy)
+    doubled_y = monty.sub(monty.mul(t, monty.sub(v, w)), monty.add(uy_squared, uy_squared))
+    doubled_z = monty.mul(u, monty.mul(u, u))
 
     return doubled_x, doubled_y, doubled_z
 
@@ -39,20 +39,20 @@ def add(xp, yp, zp, xq, yq, zq):
     if xp == xq and yp == yq:
         return double(xp, yp, zp)
 
-    t0 = montgomery.mul(yp, zq)
-    t1 = montgomery.mul(yq, zp)
-    t = montgomery.sub(t0, t1)
-    u0 = montgomery.mul(xp, zq)
-    u1 = montgomery.mul(xq, zp)
-    u = montgomery.sub(u0, u1)
-    u2 = montgomery.mul(u, u)
-    u3 = montgomery.mul(u2, u)
-    v = montgomery.mul(zp, zq)
-    w = montgomery.sub(montgomery.mul(montgomery.mul(t, t), v), montgomery.mul(u2, montgomery.add(u0, u1)))
+    t0 = monty.mul(yp, zq)
+    t1 = monty.mul(yq, zp)
+    t = monty.sub(t0, t1)
+    u0 = monty.mul(xp, zq)
+    u1 = monty.mul(xq, zp)
+    u = monty.sub(u0, u1)
+    u2 = monty.mul(u, u)
+    u3 = monty.mul(u2, u)
+    v = monty.mul(zp, zq)
+    w = monty.sub(monty.mul(monty.mul(t, t), v), monty.mul(u2, monty.add(u0, u1)))
 
-    xr = montgomery.mul(u, w)
-    yr = montgomery.sub(montgomery.mul(t, montgomery.sub(montgomery.mul(u0, u2), w)), montgomery.mul(t0, u3))
-    zr = montgomery.mul(u3, v)
+    xr = monty.mul(u, w)
+    yr = monty.sub(monty.mul(t, monty.sub(monty.mul(u0, u2), w)), monty.mul(t0, u3))
+    zr = monty.mul(u3, v)
 
     return xr, yr, zr
 
@@ -68,27 +68,27 @@ def mul(x, y, z, scalar):
     return x_res, y_res, z_res
 
 def main():
-    affine_p = (montgomery.ONE, montgomery.TWO)
+    affine_p = (monty.ONE, monty.TWO)
     projective_p = from_affine(*affine_p)
-    assert(projective_p == (montgomery.ONE, montgomery.TWO, montgomery.ONE))
+    assert(projective_p == (monty.ONE, monty.TWO, monty.ONE))
     assert(affine_p == into_affine(*projective_p))
 
     # P + P = 2P
     projective_doubled_p = double(*projective_p)
     affine_doubled_p = into_affine(*projective_doubled_p)
-    assert((montgomery.out_of(affine_doubled_p[0]), montgomery.out_of(affine_doubled_p[1])) == (1368015179489954701390400359078579693043519447331113978918064868415326638035, 9918110051302171585080402603319702774565515993150576347155970296011118125764))
+    assert((monty.out_of(affine_doubled_p[0]), monty.out_of(affine_doubled_p[1])) == (1368015179489954701390400359078579693043519447331113978918064868415326638035, 9918110051302171585080402603319702774565515993150576347155970296011118125764))
 
     # P + O = P = P * 1
     projective_addition = add(*projective_p, *INFINITY)
     affine_addition = into_affine(*projective_addition)
-    assert(affine_addition == (montgomery.ONE, montgomery.TWO))
+    assert(affine_addition == (monty.ONE, monty.TWO))
     assert(mul(*projective_p, 1) == projective_p)
     assert(mul(*projective_p, 1) == projective_addition)
 
     # O + P = P = P * 1
     projective_addition = add(*INFINITY, *projective_p)
     affine_addition = into_affine(*projective_addition)
-    assert(affine_addition == (montgomery.ONE, montgomery.TWO))
+    assert(affine_addition == (monty.ONE, monty.TWO))
     assert(mul(*projective_p, 1) == projective_p)
     assert(mul(*projective_p, 1) == projective_addition)
 
@@ -97,7 +97,7 @@ def main():
     # 3353031288059533942658390886683067124040920775575537747144343083137631628272, 19321533766552368860946552437480515441416830039777911637913418824951667761761
     projective_addition = add(*projective_p, *projective_doubled_p)
     affine_addition = into_affine(*projective_addition)
-    assert((montgomery.out_of(affine_addition[0]), montgomery.out_of(affine_addition[1])) == (3353031288059533942658390886683067124040920775575537747144343083137631628272, 19321533766552368860946552437480515441416830039777911637913418824951667761761))
+    assert((monty.out_of(affine_addition[0]), monty.out_of(affine_addition[1])) == (3353031288059533942658390886683067124040920775575537747144343083137631628272, 19321533766552368860946552437480515441416830039777911637913418824951667761761))
     assert(mul(*projective_p, 3) == projective_addition)
 
 if __name__ == '__main__':
