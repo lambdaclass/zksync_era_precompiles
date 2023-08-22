@@ -56,7 +56,7 @@ def inv(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_
 def main():
 
     fp12_zero = [0 for _ in range(12)]
-    fp12_one = [1] + [0 for _ in range(11)]
+    fp12_one = [monty.ONE] + [0 for _ in range(11)]
     fp12_all_one = [monty.ONE for _ in range(12)]
     fp12_all_two = [monty.TWO for _ in range(12)]
 
@@ -78,10 +78,8 @@ def main():
     assert(mul(*fp12_zero, *fp12_all_two)) == (((0, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0)))
 
     # MULTIPLICATION BY 1
-    print(mul(*fp12_all_one, *fp12_one))
-    print(mul(*fp12_one, *fp12_all_two))
-    # assert(mul(*fp12_all_one, *fp12_one)) == (((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)), ((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)))
-    # assert(mul(*fp12_one, *fp12_all_two)) == (((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)), ((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)))
+    assert(mul(*fp12_all_one, *fp12_one)) == (((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)), ((monty.ONE, monty.ONE), (monty.ONE, monty.ONE), (monty.ONE, monty.ONE)))
+    assert(mul(*fp12_one, *fp12_all_two)) == (((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)), ((monty.TWO, monty.TWO), (monty.TWO, monty.TWO), (monty.TWO, monty.TWO)))
 
     # MULTIPLY BY INVERSE
     fp12_all_one_inverse = inv(*fp12_all_one)
