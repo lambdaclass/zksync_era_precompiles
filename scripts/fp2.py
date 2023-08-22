@@ -40,6 +40,15 @@ def exp(base0, base1, exponent):
         exponent >>= 1 
     return pow0, pow1
 
+# Multiply an element by xi = 9 + u
+def mul_by_xi(a0, a1):
+    t0 = scalar_mul(a0, a1, monty.EIGHT)
+    c0 = monty.add(t0[0], a0)
+    c0 = monty.sub(c0, a1)
+    c1 = monty.add(t0[1], a1)
+    c1 = monty.add(c1, a0)
+    return c0, c1
+
 def main():
     # (1 + 2i) * (2 + 2i) = [ac - bd, (ad + bc)i] = -2 + 6i
     fp2_a = monty.ONE, monty.TWO
