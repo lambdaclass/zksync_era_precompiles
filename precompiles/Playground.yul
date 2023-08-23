@@ -449,13 +449,11 @@ object "Playground" {
                 c20, c21 := fp2Sub(a20, a21, b20, b21)
             }
 
-            function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
-                c00, c10 := mulByXi(a20, a21)
-                c10, c11 := a00, a01
-                c20, c20 := a10, a11
+            function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, a00, a01, a10, a11 {
+                c00, c01 := mulByXi(a20, a21)
             }
 
-            function fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01 {
+            function fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
                 let t00, t01 := fp2Sub(a00, a01, b00, b10)
                 let t10, t11 := fp2Sub(a10, a11, b10, b11)
                 let t20, t21 := fp2Sub(a20, a21, b20, b21)
@@ -498,7 +496,7 @@ object "Playground" {
                 tmp00, tmp01 := fp2Mul(tmp00, tmp01, b10, b11)
                 tmp00, tmp01 := fp2Sub(tmp00, tmp01, t10, t11)
                 tmp00, tmp01 := mulByXi(tmp00, tmp01)
-                c00, c01 := fp2Add(t00, t01)
+                c00, c01 := fp2Add(t00, t01, tmp00, tmp01)
 
                 tmp00, tmp01 := fp2Add(a00, a01, a10, a11)
                 let tmp10, tmp11 := fp2Add(b00, b01, b10, b11)
