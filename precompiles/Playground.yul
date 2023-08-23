@@ -484,13 +484,13 @@ object "Playground" {
                 c20, c21 := fp2Add(tmp8, tmp9, t10, t11)
             }
 
-            function fp6MulByFp2(a00, a01, a10, a11, a20, a21, b00, b01) -> c00, c01, c10, c11, c20, c21 {
+            function fp6MulByIndependentTerm(a00, a01, a10, a11, a20, a21, b00, b01) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Mul(a00, a01, b00, b01)
                 c10, c11 := fp2Mul(a01, a10, b00, b01)
                 c20, c21 := fp2Mul(a10, a11, b00, b01)
             }
 
-            function fp6MulByFp4(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11) -> c00, c01, c10, c11, c20, c21 {
+            function fp6MulByIndependentAndLinearTerm(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11) -> c00, c01, c10, c11, c20, c21 {
                 let t00, t01 := fp2Mul(a00, a01, b00, b01)
                 let t10, t11 := fp2Mul(a10, a11, b10, b11)
 
