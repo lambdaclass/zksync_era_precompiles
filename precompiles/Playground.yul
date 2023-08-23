@@ -594,28 +594,95 @@ object "Playground" {
             let fp2_b0 := two
             let fp2_b1 := two
 
+            let fp6_a00 := one
+            let fp6_a01 := two
+            let fp6_a10 := one
+            let fp6_a11 := two
+            let fp6_a20 := one
+            let fp6_a21 := two
+
+            let fp6_b00 := two
+            let fp6_b01 := two
+            let fp6_b10 := two
+            let fp6_b11 := two
+            let fp6_b20 := two
+            let fp6_b21 := two
+
             
             let c00, c01 := fp2Add(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
-            console_log(outOfMontgomeryForm(c00))
-            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(c00)) // 3
+            console_log(outOfMontgomeryForm(c01)) // 4
 
             c00, c01 := fp2ScalarMul(fp2_a0, fp2_a1, two)
-            console_log(outOfMontgomeryForm(c00))
-            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(c00)) // 2
+            console_log(outOfMontgomeryForm(c01)) // 4
 
             c00, c01 := fp2Mul(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
-            console_log(outOfMontgomeryForm(montgomerySub(0, c00)))
-            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(montgomerySub(0, c00))) // 2
+            console_log(outOfMontgomeryForm(c01)) // 6
 
             c00, c01 := fp2Sub(fp2_b0, fp2_b1, fp2_a0, fp2_a1)
-            console_log(outOfMontgomeryForm(c00))
-            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(c00)) // 1
+            console_log(outOfMontgomeryForm(c01)) // 0
 
             let c00_inv, c01_inv := fp2Inv(fp2_a0, fp2_a1)
             c00, c01 := fp2Mul(fp2_a0, fp2_a1, c00_inv, c01_inv)
-            console_log(outOfMontgomeryForm(c00))
-            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(c00)) // 1
+            console_log(outOfMontgomeryForm(c01)) // 0
 
+            let c00, c01, c10, c11, c20, c21 := fp6Add(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_b00, fp6_b01, fp6_b10, fp6_b11, fp6_b20, fp6_b21)
+            console_log(outOfMontgomeryForm(c00)) // 3
+            console_log(outOfMontgomeryForm(c01)) // 4 
+            console_log(outOfMontgomeryForm(c10)) // 3
+            console_log(outOfMontgomeryForm(c11)) // 4
+            console_log(outOfMontgomeryForm(c20)) // 3 
+            console_log(outOfMontgomeryForm(c21)) // 4
+
+            let fp6_b00 := one
+            let fp6_b01 := two
+            let fp6_b10 := one
+            let fp6_b11 := one
+            let fp6_b20 := one
+            let fp6_b21 := 0
+
+
+            c00, c01, c10, c11, c20, c21 := fp6Sub(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_b00, fp6_b01, fp6_b10, fp6_b11, fp6_b20, fp6_b21)
+            console_log(outOfMontgomeryForm(c00)) // 0
+            console_log(outOfMontgomeryForm(c01)) // 0 
+            console_log(outOfMontgomeryForm(c10)) // 0
+            console_log(outOfMontgomeryForm(c11)) // 1
+            console_log(outOfMontgomeryForm(c20)) // 0 
+            console_log(outOfMontgomeryForm(c21)) // 2
+
+            let c00_aux, c01_aux, c10_aux, c11_aux, c20_aux, c21_aux := fp6Mul(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, MONTGOMERY_TWO(), 0, 0, 0, 0, 0)
+            c00, c01, c10, c11, c20, c21 := fp6Add(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
+            console_log(outOfMontgomeryForm(c00_aux))
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01_aux))
+            console_log(outOfMontgomeryForm(c01)) 
+            console_log(outOfMontgomeryForm(c10_aux))
+            console_log(outOfMontgomeryForm(c10))
+            console_log(outOfMontgomeryForm(c11_aux))
+            console_log(outOfMontgomeryForm(c11))
+            console_log(outOfMontgomeryForm(c20_aux))
+            console_log(outOfMontgomeryForm(c20)) 
+            console_log(outOfMontgomeryForm(c21_aux))
+            console_log(outOfMontgomeryForm(c21)) 
+
+            let c00, c01, c10, c11, c20, c21 := fp6Mul(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
+            let c00_sq, c01_sq, c10_sq, c11_sq, c20_sq, c21_sq := fp6Square(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
+            console_log(outOfMontgomeryForm(c00_sq))
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01_sq))
+            console_log(outOfMontgomeryForm(c01))
+            console_log(outOfMontgomeryForm(c10_sq))
+            console_log(outOfMontgomeryForm(c10))
+            console_log(outOfMontgomeryForm(c11_sq))
+            console_log(outOfMontgomeryForm(c11))
+            console_log(outOfMontgomeryForm(c20_sq))
+            console_log(outOfMontgomeryForm(c20))
+            console_log(outOfMontgomeryForm(c21_sq))
+            console_log(outOfMontgomeryForm(c21))
         }
     }
 }
