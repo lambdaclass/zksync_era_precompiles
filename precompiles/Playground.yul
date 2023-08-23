@@ -449,14 +449,18 @@ object "Playground" {
                 c20, c21 := fp2Sub(a20, a21, b20, b21)
             }
 
-            function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, a00, a01, a10, a11 {
+            function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := mulByXi(a20, a21)
+                c10 := a00
+                c11 := a01
+                c20 := a10
+                c21 := a11
             }
 
             function fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
-                let t00, t01 := fp2Sub(a00, a01, b00, b10)
-                let t10, t11 := fp2Sub(a10, a11, b10, b11)
-                let t20, t21 := fp2Sub(a20, a21, b20, b21)
+                let t00, t01 := fp2Mul(a00, a01, b00, b01)
+                let t10, t11 := fp2Mul(a10, a11, b10, b11)
+                let t20, t21 := fp2Mul(a20, a21, b20, b21)
 
                 let tmp0, temp1 := fp2Add(a10, a11, a20, a21)
                 let tmp2, tmp3 := fp2Add(b10, b11, b20, b21)
@@ -511,16 +515,28 @@ object "Playground" {
             function fp6Square(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 let tmp0, tmp1 := fp2Mul(a00, a01, a10, a11)
                 tmp0, tmp1 := fp2Add(tmp0, tmp1, tmp0, tmp1)
+
                 let tmp2, tmp3 := fp2Mul(a20, a21, a20, a21)
                 let tmp4, tmp5 := mulByXi(tmp2, tmp3)
                 c10, c11 := fp2Add(tmp4, tmp5, tmp0, tmp1)
+
                 c20, c21 := fp2Sub(tmp0, tmp1, tmp2, tmp3)
+
                 let tmp6, tmp7 := fp2Mul(a00, a01, a00, a01)
+                let tmp8, tmp9 := fp2Sub(a00, a01, a10, a11)
+                tmp0, tmp1 := fp2Add(tmp8, tmp9, a20, a21)
+            
+                let tmp10, tmp11 := fp2Mul(a00, a01, a20, a21)
+                tmp2, tmp3 := fp2Add(tmp10, tmp11, tmp10, tmp11)
                 tmp0, tmp1 := fp2Mul(tmp0, tmp1, tmp0, tmp1)
-                c00, c01 := fp2Add(tmp4, tmp5, tmp6, tmp7)
-                let tmp8, tmp9 := fp2Add(c20, c21, tmp0, tmp1)
-                let tmp10, tmp11 := fp2Add(tmp8, tmp9, tmp4, tmp5)
-                c20, c21 := fp2Sub(tmp10, tmp11, tmp6, tmp7)
+
+                let tmp12, tmp13 := mulByXi(tmp2, tmp3)
+                c00, c01 := fp2Add(tmp12, tmp13, tmp6, tmp7)
+
+                let tmp14, tmp15 := fp2Add(c20, c21, tmp0, tmp1)
+                tmp14, tmp15 := fp2Add(tmp14, tmp15, tmp2, tmp3)
+                c20, c21 := fp2Sub(tmp14, tmp15, tmp6, tmp7)
+            
             }
 
             function fp6Inv(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
