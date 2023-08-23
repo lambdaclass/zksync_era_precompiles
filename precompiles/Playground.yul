@@ -578,16 +578,28 @@ object "Playground" {
             let fp2_b0 := two
             let fp2_b1 := two
 
-
+            
             let c00, c01 := fp2Add(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
             console_log(outOfMontgomeryForm(c00))
             console_log(outOfMontgomeryForm(c01))
+
             c00, c01 := fp2ScalarMul(fp2_a0, fp2_a1, two)
             console_log(outOfMontgomeryForm(c00))
             console_log(outOfMontgomeryForm(c01))
+
             c00, c01 := fp2Mul(fp2_a0, fp2_a1, fp2_b0, fp2_b1)
             console_log(outOfMontgomeryForm(montgomerySub(0, c00)))
             console_log(outOfMontgomeryForm(c01))
+
+            c00, c01 := fp2Sub(fp2_b0, fp2_b1, fp2_a0, fp2_a1)
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01))
+
+            let c00_inv, c01_inv := fp2Inv(fp2_a0, fp2_a1)
+            c00, c01 := fp2Mul(fp2_a0, fp2_a1, c00_inv, c01_inv)
+            console_log(outOfMontgomeryForm(c00))
+            console_log(outOfMontgomeryForm(c01))
+
         }
     }
 }
