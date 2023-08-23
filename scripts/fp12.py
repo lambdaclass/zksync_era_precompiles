@@ -86,7 +86,7 @@ def main():
 
     # MULTIPLICATION BY 2
     assert(mul(*fp12_all_one, *fp12_two)==add(*fp12_all_one, *fp12_all_one))
-    assert(mul(*fp12_two, *fp12_all_two)==add(*fp12_all_two, *fp12_all_two))g
+    assert(mul(*fp12_two, *fp12_all_two)==add(*fp12_all_two, *fp12_all_two))
 
     # SQUARE OF 0 and 1
     assert(square(*fp12_zero) == (((0, 0), (0, 0), (0, 0)), ((0, 0), (0, 0), (0, 0))))
