@@ -568,7 +568,7 @@ object "Playground" {
                 c00, c01 := fp2Sub(t00, t01, t50Xi, t51Xi)
                 let t20Xi, t21Xi := mulByXi(t20, t21)
                 c10, c11 := fp2Sub(t20Xi, t21Xi, t30, t31)
-                c20, c21 := fp2Mul(t10, t11, t40, t41)
+                c20, c21 := fp2Sub(t10, t11, t40, t41)
                 let t60, t61 := fp2Mul(a00, a01, c00, c01)
                 let a20Xi, a21Xi := mulByXi(a20, a21)
                 let a20XiC10, a21XiC11 := fp2Mul(a20Xi, a21Xi, c10, c11)
@@ -739,7 +739,7 @@ object "Playground" {
             console_log(outOfMontgomeryForm(c21_aux))
             console_log(outOfMontgomeryForm(c21)) 
 
-            let c00, c01, c10, c11, c20, c21 := fp6Mul(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
+            c00, c01, c10, c11, c20, c21 := fp6Mul(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
             let c00_sq, c01_sq, c10_sq, c11_sq, c20_sq, c21_sq := fp6Square(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
             console_log(outOfMontgomeryForm(c00_sq))
             console_log(outOfMontgomeryForm(c00))
