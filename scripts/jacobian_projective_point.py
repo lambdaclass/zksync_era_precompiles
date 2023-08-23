@@ -8,8 +8,7 @@ def from_affine(x, y):
     return x, y, monty.ONE
 
 def into_affine(x, y, z):
-    if z == 0:
-        return 0, 0
+    assert(z != 0)
     t1 = monty.inv(z)
     t2 = monty.exp(t1, 2)
 
@@ -53,8 +52,8 @@ def add(xp, yp, zp, xq, yq, zq):
     elif xq == 0 and yq == 0 and zq == 0:
         return xp, yp, zp
     else:
-        zpzp = monty.exp(zp, monty.TWO)
-        zqzq = monty.exp(zq, monty.TWO)
+        zpzp = monty.mul(zp, zp)
+        zqzq = monty.mul(zq, zq)
 
         t1 = monty.mul(xp, zqzq)
         t2 = monty.mul(xq, zpzp)
