@@ -753,6 +753,16 @@ object "Playground" {
             console_log(outOfMontgomeryForm(c20))
             console_log(outOfMontgomeryForm(c21_sq))
             console_log(outOfMontgomeryForm(c21))
+
+        
+            let fp6_a00_inv, fp6_a01_inv, fp6_a10_inv, fp6_a11_inv, fp6_a20_inv, fp6_a21_inv := fp6Inv(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21)
+            c00, c01, c10, c11, c20, c21 := fp6Mul(fp6_a00, fp6_a01, fp6_a10, fp6_a11, fp6_a20, fp6_a21, fp6_a00_inv, fp6_a01_inv, fp6_a10_inv, fp6_a11_inv, fp6_a20_inv, fp6_a21_inv)
+            console_log(outOfMontgomeryForm(c00)) // 1
+            console_log(outOfMontgomeryForm(c01)) // 0
+            console_log(outOfMontgomeryForm(c10)) // 0
+            console_log(outOfMontgomeryForm(c11)) // 0
+            console_log(outOfMontgomeryForm(c20)) // 0
+            console_log(outOfMontgomeryForm(c21)) // 0
         }
     }
 }
