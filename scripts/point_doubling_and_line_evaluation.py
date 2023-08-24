@@ -42,7 +42,7 @@ def point_doubling_and_line_evaluation(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     temp0 = fp2.add(*temp0,*temp0)
     temp0 = fp2.scalar_mul(*temp0,yp)
     T = (Xt, Yt, Zt)
-    l = (temp3,0,0,temp3,temp6,0)
+    l = (*temp3,0,0,0,0,*temp3,*temp6,0,0)
     return T,l
 
 
