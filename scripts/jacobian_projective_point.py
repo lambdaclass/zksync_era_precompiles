@@ -8,7 +8,8 @@ def from_affine(x, y):
     return x, y, monty.ONE
 
 def into_affine(x, y, z):
-    assert(z != 0)
+    if is_infinity(x, y, z):
+        return 0, 0
     t1 = monty.inv(z)
     t2 = monty.exp(t1, 2)
 
@@ -17,14 +18,14 @@ def into_affine(x, y, z):
 
     return x, y
 
-def is_zero(_x, _y, z):
+def is_infinity(_x, _y, z):
     return z == 0
 
 def neg(x, y, z):
     return x, monty.sub(0, y), z
 
 def double(x, y, z):
-    if is_zero(x, y, z):
+    if is_infinity(x, y, z):
         return x, y, z
     if y == 0:
         return INFINITY
@@ -35,21 +36,20 @@ def double(x, y, z):
 
     zzzz = monty.mul(zz, zz)
 
+    # All the following multiplications by scalars could be replaced by successive additions.
     s = monty.mul(monty.FOUR, monty.mul(x, yy))
     # y^2 = x^3 + ax + b with a == 0
     m = monty.mul(monty.THREE, xx)
-
     x0 = monty.sub(monty.exp(m, 2), monty.mul(monty.TWO, s))
     y0 = monty.sub(monty.mul(m, monty.sub(s, x0)), monty.mul(monty.EIGHT, yyyy))
     z0 = monty.mul(monty.mul(y, z), monty.TWO)
 
-
     return x0, y0, z0
 
 def add(xp, yp, zp, xq, yq, zq):
-    if xp == 0 and yp == 0 and zp == 0:
+    if is_infinity(xp, yp, zp):
         return xq, yq, zq
-    elif xq == 0 and yq == 0 and zq == 0:
+    elif is_infinity(xq, yq, zq):
         return xp, yp, zp
     else:
         zpzp = monty.mul(zp, zp)
