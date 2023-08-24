@@ -60,15 +60,6 @@ object "Playground" {
                 z21 := 0
             }
 
-            function FP6_ONE() -> o00, o01, o10, o11, o20, o21 {
-                o00 := MONTGOMERY_ONE()
-                o01 := 0
-                o10 := 0
-                o11 := 0
-                o20 := 0
-                o21 := 0
-            }
-
             // CONSOLE.LOG Caller
             // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
             function console_log(val) -> {
@@ -628,10 +619,8 @@ object "Playground" {
                 t100, t101, t110, t111, t120, t121 := fp6Inv(t000, t001, t010, t011, t020, t021)
                 c000, c001, c010, c011, c020, c021 := fp6Mul(a000, a001, a010, a011, a020, a021, t100, t101, t110, t111, t120, t121)
                 let z00, z01, z10, z11, z20, z21 :=  FP6_ZERO()
-                let o00, o01, o10, o11, o20, o21 := FP6_ONE()
-                let m00, m01, m10, m11, m20, m21 := fp6Sub(z00, z01, z10, z11, z20, z21, o00, o01, o10, o11, o20, o21)
-                c100, c101, c110, c111, c120, c121 := fp6Mul(m00, m01, m10, m11, m20, m21, a100, a101, a110, a111, a120, a121)
-                c100, c101, c110, c111, c120, c121 := fp6Mul(c100, c101, c110, c111, c120, c121, t100, t101, t110, t111, t120, t121)
+                c100, c101, c110, c111, c120, c121 := fp6Mul(a100, a101, a110, a111, a120, a121,t100, t101, t110, t111, t120, t121)
+                c100, c101, c110, c111, c120, c121 := fp6Sub(z00, z01, z10, z11, z20, z21, c100, c101, c110, c111, c120, c121)
             }
 
             ////////////////////////////////////////////////////////////////
