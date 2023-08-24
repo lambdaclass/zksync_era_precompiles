@@ -49,7 +49,7 @@ def line_function_add_point(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1, yr0, yr1, 
     l = l0, l1
 
     T = *X_T, *Y_T, *Z_T
-    l, T
+    return l, T
 
 
 def double_step(ixt, xt, iyt, yt, izt, zt, xp, yp):
