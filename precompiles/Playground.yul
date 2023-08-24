@@ -627,7 +627,7 @@ object "Playground" {
                 t000, t001, t010, t011, t020, t021 := fp6Sub(t000, t001, t010, t011, t020, t021, t200, t201, t210, t211, t220, t221)
                 t100, t101, t110, t111, t120, t121 := fp6Inv(t000, t001, t010, t011, t020, t021)
                 c000, c001, c010, c011, c020, c021 := fp6Mul(a000, a001, a010, a011, a020, a021, t100, t101, t110, t111, t120, t121)
-		        let z00, z01, z10, z11, z20, z21 :=  FP6_ZERO()
+                let z00, z01, z10, z11, z20, z21 :=  FP6_ZERO()
                 let o00, o01, o10, o11, o20, o21 := FP6_ONE()
                 let m00, m01, m10, m11, m20, m21 := fp6Sub(z00, z01, z10, z11, z20, z21, o00, o01, o10, o11, o20, o21)
                 c100, c101, c110, c111, c120, c121 := fp6Mul(m00, m01, m10, m11, m20, m21, a100, a101, a110, a111, a120, a121)
@@ -1024,58 +1024,103 @@ object "Playground" {
 
             // let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Square(two,two,two,two,two,two,two,two,two,two,two,two)
             // let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321 := fp12Mul(two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two,two)
-            // console_log(outOfMontgomeryForm(t000))
+            // console_log(outOfMontgomeryForm(t000)) // Same as below
             // console_log(outOfMontgomeryForm(t200))
-            // console_log(outOfMontgomeryForm(t001))
+            // console_log(outOfMontgomeryForm(t001)) // Same as below
             // console_log(outOfMontgomeryForm(t201))
-            // console_log(outOfMontgomeryForm(t010))
+            // console_log(outOfMontgomeryForm(t010)) // Same as below
             // console_log(outOfMontgomeryForm(t210))
-            // console_log(outOfMontgomeryForm(t011))
+            // console_log(outOfMontgomeryForm(t011)) // Same as below
             // console_log(outOfMontgomeryForm(t211))
-            // console_log(outOfMontgomeryForm(t020))
+            // console_log(outOfMontgomeryForm(t020)) // Same as below
             // console_log(outOfMontgomeryForm(t220))
-            // console_log(outOfMontgomeryForm(t021))
+            // console_log(outOfMontgomeryForm(t021)) // Same as below
             // console_log(outOfMontgomeryForm(t221))
-            // console_log(outOfMontgomeryForm(t100))
+            // console_log(outOfMontgomeryForm(t100)) // Same as below
             // console_log(outOfMontgomeryForm(t300))
-            // console_log(outOfMontgomeryForm(t101))
+            // console_log(outOfMontgomeryForm(t101)) // Same as below
             // console_log(outOfMontgomeryForm(t301))
-            // console_log(outOfMontgomeryForm(t110))
+            // console_log(outOfMontgomeryForm(t110)) // Same as below
             // console_log(outOfMontgomeryForm(t310))
-            // console_log(outOfMontgomeryForm(t111))
+            // console_log(outOfMontgomeryForm(t111)) // Same as below
             // console_log(outOfMontgomeryForm(t311))
-            // console_log(outOfMontgomeryForm(t120))
+            // console_log(outOfMontgomeryForm(t120)) // Same as below
             // console_log(outOfMontgomeryForm(t320))
-            // console_log(outOfMontgomeryForm(t121))
+            // console_log(outOfMontgomeryForm(t121)) // Same as below
             // console_log(outOfMontgomeryForm(t321))
 
             // let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Square(one,one,one,one,one,one,one,one,one,one,one,one)
             // let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321 := fp12Mul(one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one,one)
-            // console_log(outOfMontgomeryForm(t000))
+            // console_log(outOfMontgomeryForm(t000)) // Same as below
             // console_log(outOfMontgomeryForm(t200))
-            // console_log(outOfMontgomeryForm(t001))
+            // console_log(outOfMontgomeryForm(t001)) // Same as below
             // console_log(outOfMontgomeryForm(t201))
-            // console_log(outOfMontgomeryForm(t010))
+            // console_log(outOfMontgomeryForm(t010)) // Same as below
             // console_log(outOfMontgomeryForm(t210))
-            // console_log(outOfMontgomeryForm(t011))
+            // console_log(outOfMontgomeryForm(t011)) // Same as below
             // console_log(outOfMontgomeryForm(t211))
-            // console_log(outOfMontgomeryForm(t020))
+            // console_log(outOfMontgomeryForm(t020)) // Same as below
             // console_log(outOfMontgomeryForm(t220))
-            // console_log(outOfMontgomeryForm(t021))
+            // console_log(outOfMontgomeryForm(t021)) // Same as below
             // console_log(outOfMontgomeryForm(t221))
-            // console_log(outOfMontgomeryForm(t100))
+            // console_log(outOfMontgomeryForm(t100)) // Same as below
             // console_log(outOfMontgomeryForm(t300))
-            // console_log(outOfMontgomeryForm(t101))
+            // console_log(outOfMontgomeryForm(t101)) // Same as below
             // console_log(outOfMontgomeryForm(t301))
-            // console_log(outOfMontgomeryForm(t110))
+            // console_log(outOfMontgomeryForm(t110)) // Same as below
             // console_log(outOfMontgomeryForm(t310))
-            // console_log(outOfMontgomeryForm(t111))
+            // console_log(outOfMontgomeryForm(t111)) // Same as below
             // console_log(outOfMontgomeryForm(t311))
-            // console_log(outOfMontgomeryForm(t120))
+            // console_log(outOfMontgomeryForm(t120)) // Same as below
             // console_log(outOfMontgomeryForm(t320))
-            // console_log(outOfMontgomeryForm(t121))
+            // console_log(outOfMontgomeryForm(t121)) // Same as below
             // console_log(outOfMontgomeryForm(t321))
 
+            // // MUL BY INVERSE
+
+            // let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Inv(one,0,0,0,0,0,0,0,0,0,0,0)
+            // console_log(outOfMontgomeryForm(t000)) // 1
+            // console_log(outOfMontgomeryForm(t001)) // 0
+            // console_log(outOfMontgomeryForm(t010)) // 0
+            // console_log(outOfMontgomeryForm(t011)) // 0
+            // console_log(outOfMontgomeryForm(t020)) // 0
+            // console_log(outOfMontgomeryForm(t021)) // 0
+            // console_log(outOfMontgomeryForm(t100)) // 0
+            // console_log(outOfMontgomeryForm(t101)) // 0
+            // console_log(outOfMontgomeryForm(t110)) // 0
+            // console_log(outOfMontgomeryForm(t111)) // 0
+            // console_log(outOfMontgomeryForm(t120)) // 0
+            // console_log(outOfMontgomeryForm(t121)) // 0
+
+            // let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Inv(one,one,one,one,one,one,one,one,one,one,one,one)
+            // t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Mul(t000,t001,t010,t011,t020,t021,t100,t101,t110,t111,t120,t121,one,one,one,one,one,one,one,one,one,one,one,one)
+            // console_log(outOfMontgomeryForm(t000)) // 1
+            // console_log(outOfMontgomeryForm(t001)) // 0
+            // console_log(outOfMontgomeryForm(t010)) // 0
+            // console_log(outOfMontgomeryForm(t011)) // 0
+            // console_log(outOfMontgomeryForm(t020)) // 0
+            // console_log(outOfMontgomeryForm(t021)) // 0
+            // console_log(outOfMontgomeryForm(t100)) // 0
+            // console_log(outOfMontgomeryForm(t101)) // 0
+            // console_log(outOfMontgomeryForm(t110)) // 0
+            // console_log(outOfMontgomeryForm(t111)) // 0
+            // console_log(outOfMontgomeryForm(t120)) // 0
+            // console_log(outOfMontgomeryForm(t121)) // 0
+
+            // let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Inv(two,two,two,two,two,two,two,two,two,two,two,two)
+            // t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12Mul(two,two,two,two,two,two,two,two,two,two,two,two,t000,t001,t010,t011,t020,t021,t100,t101,t110,t111,t120,t121)
+            // console_log(outOfMontgomeryForm(t000)) // 1
+            // console_log(outOfMontgomeryForm(t001)) // 0
+            // console_log(outOfMontgomeryForm(t010)) // 0
+            // console_log(outOfMontgomeryForm(t011)) // 0
+            // console_log(outOfMontgomeryForm(t020)) // 0
+            // console_log(outOfMontgomeryForm(t021)) // 0
+            // console_log(outOfMontgomeryForm(t100)) // 0
+            // console_log(outOfMontgomeryForm(t101)) // 0
+            // console_log(outOfMontgomeryForm(t110)) // 0
+            // console_log(outOfMontgomeryForm(t111)) // 0
+            // console_log(outOfMontgomeryForm(t120)) // 0
+            // console_log(outOfMontgomeryForm(t121)) // 0
         }
     }
 }
