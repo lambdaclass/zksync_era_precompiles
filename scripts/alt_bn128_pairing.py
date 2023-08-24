@@ -1,5 +1,56 @@
 import montgomery as monty
-import quadratic_extension_field_arithmetic as fp2
+import fp2 as fp2
+
+# Algorithm 27 from https://eprint.iacr.org/2010/354.pdf
+def line_function_add_point(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1, yr0, yr1, zr0, zr1, xp, yp, _zp):
+    zr_squared = fp2.mul(zr0, zr1, zr0, zr1)
+    yq_squared = fp2.mul(yq0, yq1, yq0, yq1)
+    yr_doubled = fp2.add(yr0, yr1, yr0, yr1)
+    t0 = fp2.mul(xq0, xq1, *zr_squared)
+    t1 = fp2.add(yq0, yq1, zr0, zr1)
+    t1 = fp2.mul(*t1, *t1)
+    t1 = fp2.sub(*t1, *yq_squared)
+    t1 = fp2.sub(*t1, *zr_squared)
+    t1 = fp2.mul(*t1, *zr_squared)
+    t2 = fp2.sub(*t0, xr0, xr1)
+    t3 = fp2.mul(*t2, *t2)
+    t4 = fp2.add(*t3, *t3)
+    t4 = fp2.add(*t4, *t4)
+    t5 = fp2.mul(*t4, *t2)
+    t6 = fp2.sub(*t1, *yr_doubled)
+    t9 = fp2.mul(*t6, xq0, xq1)
+    t7 = fp2.mul(xr0, xr1, *t4)
+    X_T = fp2.mul(*t6, *t6)
+    X_T = fp2.sub(*X_T, *t5)
+    X_T = fp2.sub(*X_T, *fp2.add(*t7, *t7))
+    Z_T = fp2.add(zr0, zr1, *t2)
+    Z_T = fp2.mul(*Z_T, *Z_T)
+    Z_T = fp2.sub(*Z_T, *zr_squared)
+    Z_T = fp2.sub(*Z_T, *t3)
+    t10 = fp2.add(yq0, yq1, *Z_T)
+    t8 = fp2.sub(*t7, *X_T)
+    t8 = fp2.mul(*t8, *t6)
+    t0 = fp2.mul(yr0, yr1, *t5)
+    t0 = fp2.add(*t0, *t0)
+    Y_T = fp2.sub(*t8, *t0)
+    t10 = fp2.mul(*t10, *t10)
+    t10 = fp2.sub(*t10, *yq_squared)
+    t10 = fp2.sub(*t10, *fp2.mul(*Z_T, *Z_T))
+    t9 = fp2.add(*t9, *t9)
+    t9 = fp2.sub(*t9, *t10)
+    t10 = fp2.scalar_mul(*Z_T, yp)
+    t10 = fp2.add(*t10, *t10)
+    t6 = fp2.neg(*t6)
+    t1 = fp2.scalar_mul(*t6, xp)
+    t1 = fp2.add(*t1, *t1)
+
+    l0 = t10[0], t10[1], 0, 0, 0, 0
+    l1 = t1[0], t1[1], t9[0], t9[1], 0, 0
+    l = l0, l1
+
+    T = *X_T, *Y_T, *Z_T
+    l, T
+
 
 def double_step(ixt, xt, iyt, yt, izt, zt, xp, yp):
     '''Double over E'(Fp^2)'''
