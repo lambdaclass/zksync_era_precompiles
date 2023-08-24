@@ -8,6 +8,9 @@ def point_doubling_and_line_evaluation(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     t0 = fp2.mul(Xq0,Xq1,Xq0,Xq1)
     t1 = fp2.mul(Yq0,Yq1,Yq0,Yq1)
     t2 = fp2.mul(*t1,*t1)
+    # TODO: This could be an optimization in the future, make sure to test it
+    # t3 = fp2.mul(*t1,Xq0,Xq1)
+    # t3 = fp2.add(*t3, *t3)
     t3 = fp2.add(*t1,Xq0,Xq1)
     t3 = fp2.mul(*t3,*t3)
     t3 = fp2.sub(*t3,*t0)
@@ -19,6 +22,9 @@ def point_doubling_and_line_evaluation(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     Xt = fp2.scalar_mul(*t3,2)
     Xt = fp2.sub(*t5,*Xt)
     Zq_squared = fp2.mul(Zq0,Zq1,Zq0,Zq1)
+    # TODO: This could be an optimization in the future, make sure to test it
+    # Zt = fp2.mul(Yq0,Yq1,Zq0,Zq1 )
+    # Zt = fp2.add(*Zt, *Zt)
     Zt = fp2.add(Yq0,Yq1,Zq0,Zq1)
     Zt = fp2.mul(*Zt,*Zt)
     Zt = fp2.sub(*Zt,*t1)
