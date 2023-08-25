@@ -7,19 +7,19 @@ object "Playground" {
             ////////////////////////////////////////////////////////////////
 
             function ZERO() -> zero {
-                zero := 0x0
+                zero := 0x00
             }
 
             function ONE() -> one {
-                one := 0x1
+                one := 0x01
             }
 
             function TWO() -> two {
-                two := 0x2
+                two := 0x02
             }
 
             function THREE() -> three {
-                three := 0x3
+                three := 0x03
             }
 
             function MONTGOMERY_ONE() -> m_one {
@@ -184,6 +184,14 @@ object "Playground" {
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
 
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := addmod(augend, addend, P())
+            }
+
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
+            }
+
             // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
             function montgomeryMul(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
@@ -262,27 +270,187 @@ object "Playground" {
                 ret := and(left, right)
 			}
 
+            function affinePointIsInfinity(x, y) -> ret {
+                ret := and(iszero(x), iszero(y))
+            }
+
+            function projectivePointIsInfinity(z) -> ret {
+                ret := iszero(z)
+            }
+
+            function projectiveFromAffine(xp, yp) -> xr, yr, zr {
+                switch affinePointIsInfinity(xp, yp)
+                case 0 {
+                    xr := xp
+                    yr := yp
+                    zr := MONTGOMERY_ONE()
+                }
+                case 1 {
+                    xr := ZERO()
+                    yr := ZERO()
+                    zr := ZERO()
+                }
+            }
+
+            function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
+                switch zp
+                case 0 {
+                    xr := ZERO()
+                    yr := ZERO()
+                }
+                // MONTGOMERY_ONE(), but compiler expects a literal.
+                case 6350874878119819312338956282401532409788428879151445726012394534686998597021 {
+                    xr := montgomeryDiv(xp, zp)
+                    yr := montgomeryDiv(yp, zp)
+                }
+            }
+
+            function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
+                let x_squared := montgomeryMul(xp, xp)
+                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
+                let yz := montgomeryMul(yp, zp)
+                let u := montgomeryAdd(yz, yz)
+                let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
+                let v := montgomeryAdd(uxy, uxy)
+                let w := montgomerySub(montgomeryMul(t, t), montgomeryAdd(v, v))
+
+                xr := montgomeryMul(u, w)
+                let uy := montgomeryMul(u, yp)
+                let uy_squared := montgomeryMul(uy, uy)
+                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w)), montgomeryAdd(uy_squared, uy_squared))
+                zr := montgomeryMul(u, montgomeryMul(u, u))
+            }
+
+            function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
+                let pIsInfinity := projectivePointIsInfinity(zp)
+                let qIsInfinity := projectivePointIsInfinity(zq)
+                if and(pIsInfinity, zq) {
+                    xr := xq
+                    yr := yq
+                    zr := zq
+                }
+                if and(zp, qIsInfinity) {
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                }
+                switch and(eq(xp, xq), eq(yp, yq))
+                case 0 {
+                    let t0 := yp
+                    let t1 := yq
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xp, zq)
+                    let u1 := xq
+                    let u := montgomerySub(u0, u1)
+                    let u2 := montgomeryMul(u, u)
+                    let u3 := montgomeryMul(u2, u)
+                    let w := montgomerySub(montgomeryMul(t, t), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+    
+                    xr := montgomeryMul(u, w)
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
+                    zr := u3
+                }
+                case 1 {
+                    switch and(pIsInfinity, qIsInfinity) 
+                    case 0 {
+                        xr, yr, zr := projectiveDouble(xp, yp, zp)
+                    }
+                    case 1 {
+                        xr := ZERO()
+                        yr := ZERO()
+                        zr := ZERO()
+                    }
+                }            
+            }
+
+            function projectiveMul(xp, yp, zp, scalar) -> xr, yr, zr {
+                xr := ZERO()
+                yr := ZERO()
+                zr := ZERO()
+                let xq := xp
+                let yq := yp
+                let zq := zp
+                let s := scalar
+            
+                switch scalar
+                case 0 {}
+                case 1 {
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                }
+                case 2 {
+                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                }
+                default {
+                    for {} gt(s, ZERO()) {} {
+                        if and(s, ONE()) {
+                            xr, yr, zr := projectiveAdd(xr, yr, zr, xq, yq, zq)
+                        }
+                        xq, yq, zq := projectiveDouble(xq, yq, zq)
+                        s := shr(1, s)
+                    }
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
-            let g1_x := calldataload(0)
-            let g1_y := calldataload(32)
-            let g2_ix := calldataload(64)
-            let g2_x := calldataload(96)
-            let g2_iy := calldataload(128)
-            let g2_y := calldataload(160)
+            // let g1_x := calldataload(0)
+            // let g1_y := calldataload(32)
+            // let g2_ix := calldataload(64)
+            // let g2_x := calldataload(96)
+            // let g2_iy := calldataload(128)
+            // let g2_y := calldataload(160)
 
-            if iszero(pointIsOnG1(g1_x, g1_y)) {
-                // burnGas()
-            }
+            // if iszero(pointIsOnG1(g1_x, g1_y)) {
+            //     // burnGas()
+            // }
 
-            console_log(0x600, g1_x)
-            console_log(0x600, g1_y)
-            console_log(0x600, g2_ix)
-            console_log(0x600, g2_x)
-            console_log(0x600, g2_iy)
-            console_log(0x600, g2_y)
+            // console_log(0x600, g1_x)
+            // console_log(0x600, g1_y)
+            // console_log(0x600, g2_ix)
+            // console_log(0x600, g2_x)
+            // console_log(0x600, g2_iy)
+            // console_log(0x600, g2_y)
+
+            let xp := MONTGOMERY_ONE()
+            let yp := MONTGOMERY_TWO()
+            console_log(0x100, xp)
+            console_log(0x100, yp)
+            let xr, yr, zr := projectiveFromAffine(xp, yp)
+            console_log(0x100, xr)
+            console_log(0x100, yr)
+            console_log(0x100, zr)
+            xp, yp := projectiveIntoAffine(xr, yr, zr)
+            console_log(0x100, xp)
+            console_log(0x100, yp)
+
+            let xq, yq, zq := projectiveMul(xr, yr, zr, ZERO())
+            console_log(0x100, xq)
+            console_log(0x100, yq)
+            console_log(0x100, zq)
+
+            xq, yq, zq := projectiveMul(xr, yr, zr, ONE())
+            console_log(0x100, xq)
+            console_log(0x100, yq)
+            console_log(0x100, zq)
+
+            xq, yq, zq := projectiveMul(xr, yr, zr, TWO())
+            console_log(0x100, xq)
+            console_log(0x100, yq)
+            console_log(0x100, zq)
+
+            xq, yq, zq := projectiveDouble(xr, yr, zr)
+            console_log(0x100, xq)
+            console_log(0x100, yq)
+            console_log(0x100, zq)
+
+            xq, yq, zq := projectiveAdd(xr, yr, zr, xr, yr, zr)
+            console_log(0x100, xq)
+            console_log(0x100, yq)
+            console_log(0x100, zq)
         }
     }
 }
