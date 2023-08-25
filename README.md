@@ -3,6 +3,7 @@
 DISCLAIMER: This implementation is still being developed and has not been reviewed or audited. Use at your own risk.
 
 This is a precompile library implemented in Yul to speedup arithmetic operations of elliptic curves.
+In the next weeks we will add more optimizations and benchmarks.
 
 ## Precompiles
 
