@@ -6,15 +6,12 @@ This is a precompile library implemented in Yul to speedup arithmetic operations
 
 ## Precompiles
 
-| Name | Supported | optimized | audited |
-| ---| --- | --- | --- |
-| `ecAdd` | ✅ | 🏗 | 🏗 |
-| `ecMul` | ✅ | 🏗 |  🏗 |
-| `modExp` |  🏗  | ❌ | ❌ |
-| `ecPairing` | ❌ | ❌ | ❌ |
-| `P256` | ❌ | ❌ | ❌ |
-| `secp256r1` | ❌ | ❌ | ❌ |
-| `secp256q1` | ❌ | ❌ | ❌ |
+| Name | Supported | optimized |
+| ---| --- | --- | 
+| `ecAdd` | ✅ | ✅ |
+| `ecMul` | ✅ | ✅ |
+| `modExp` |  ✅  | 🏗 |
+| `ecPairing` | 🏗 | ❌ |
 ## Observations
 
 ### `ecAdd`
