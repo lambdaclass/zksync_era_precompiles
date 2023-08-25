@@ -1,4 +1,5 @@
 import montgomery as monty
+import frobenius
 import fp2 as fp2
 import fp12
 
@@ -122,7 +123,7 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
     f = fp12.FP6_ONE
     
-    for i in range(n):
+    for i in ?????:
         double_step = point_doubling_and_line_evaluation(xp,yp,*T)
         f = fp12.square(*f)
         f = fp12.mul(*f,*double_step[0])
@@ -134,20 +135,29 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
-        else if ?????:
+        elif ?????:
             add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
-    # Q1 <- pi_p(Q)
-    # Q2 <- pi_p_square(Q)
-    # minus_Q2 = g2.negate(Q2)
+    # Q1 <- pi_p(Q) -- (No me queda claro si hay que pasar Q a Affine antes de esto)
+    Xq1 = fp2.conj(Xq0, Xq1)
+    Yq1 = fp2.conj(Yq0, Yq1)
+    Xq1 = frobenius.mul_by_gamma_1_2(*Xq1)
+    Yq1 = frobenius.mul_by_gamma_1_3(*Xq1)
+    Q1 = g2_jacobian.from_affine(*Xq1, *Yq1) # -> Hay que crear ahora un punto de G2 en jacobianas con estas coordenadas X e Y
 
+    # Q2 <- pi_p_square(Q)
+    Xq2 = frobenius.mul_by_gamma_2_2(Xq0, Xq1)
+    Yq2 = frobenius.mul_by_gamma_2_3(Yq0, Yq1)
+    Q2 = g2_jacobian.from_affine(*Xq2, *Yq2)
+    Q2 = g2.negate(Q2)
+    
     add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
     f = fp12.mul(*f,*add_step[0])
     T = add_step[1]
 
-    add_step = point_addition_and_line_evaluation(*minus_Q2,*T,xp,yp)
+    add_step = point_addition_and_line_evaluation(*Q2,*T,xp,yp)
     f = fp12.mul(*f,*add_step[0])
 
     return f
