@@ -53,7 +53,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
 # P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
 # Q belongs to curve E' over Fp2 in Jacobian coordinates: Q = (Xq, Yq, Zq)
 # R belongs to curve E' over Fp2 in Jacobian coordinates: R = (Xr, Yr, Zr)
-def line_function_add_point(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1, yr0, yr1, zr0, zr1, xp, yp):
+def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1, yr0, yr1, zr0, zr1, xp, yp):
     zr_squared = fp2.mul(zr0, zr1, zr0, zr1)
     yq_squared = fp2.mul(yq0, yq1, yq0, yq1)
     yr_doubled = fp2.add(yr0, yr1, yr0, yr1)
