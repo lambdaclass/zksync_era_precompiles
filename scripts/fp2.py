@@ -49,6 +49,9 @@ def mul_by_xi(a0, a1):
     c1 = monty.add(c1, a0)
     return c0, c1
 
+def neg(a0, a1):
+    return monty.sub(0, a0), monty.sub(0, a1)
+
 def main():
     # (1 + 2i) * (2 + 2i) = [ac - bd, (ad + bc)i] = -2 + 6i
     fp2_a = monty.ONE, monty.TWO
