@@ -1,40 +1,6 @@
 # zkSync Era Precompiles
 
-## Development
-
-Follow the instructions below to setup the repo and run a development L2 node.
-
-### Setup the repo
-
-```
-make setup
-```
-
-### Update the submodules (if needed)
-
-```
-make update
-```
-
-### Run a development L2 node
-
-```
-make run
-```
-
-### Run the tests
-
-If you want to run all the tests:
-
-```
-make test
-```
-
-If you want to run a specific test:
-
-```
-make test PRECOMPILE=<precompile_name>
-```
+DISCLAIMER: This implementation is still being developed and has not been reviewed or audited. Use at your own risk.
 
 ## Precompiles
 
@@ -99,3 +65,39 @@ default {
 - [EIP-198: Big integer modular exponentiation](https://eips.ethereum.org/EIPS/eip-198)
 - [EIP-1108: Reduce alt_bn128 precompile gas costs](https://eips.ethereum.org/EIPS/eip-1108)
 - [EIP-2565: ModExp Gas Cost](https://eips.ethereum.org/EIPS/eip-2565)
+
+## Development
+
+Follow the instructions below to setup the repo and run a development L2 node.
+
+### Setup the repo
+
+```
+make setup
+```
+
+### Update the submodules (if needed)
+
+```
+make update
+```
+
+### Run a development L2 node
+
+```
+make run
+```
+
+### Run the tests
+
+If you want to run all the tests:
+
+```
+make test
+```
+
+If you want to run a specific test:
+
+```
+make test PRECOMPILE=<precompile_name>
+```
