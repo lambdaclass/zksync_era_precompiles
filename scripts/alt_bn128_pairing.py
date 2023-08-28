@@ -1,3 +1,4 @@
+import loop_counter
 import montgomery as monty
 import frobenius
 import fp2 as fp2
@@ -124,19 +125,19 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
     f = fp12.FP6_ONE
     
-    for i in ?????:
+    for i in range(64, -1, -1):
         double_step = point_doubling_and_line_evaluation(xp,yp,*T)
         f = fp12.square(*f)
         f = fp12.mul(*f,*double_step[0])
         T = double_step[1]
 
-        if ?????:
+        if loop_counter.S_NAF[i] == -1: 
             minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
             add_step = point_addition_and_line_evaluation(*minus_Q,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
-        elif ?????:
+        elif loop_counter.S_NAF[i] == 1:
             add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
