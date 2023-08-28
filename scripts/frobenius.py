@@ -1,5 +1,56 @@
 import fp2
 
+def frobenius(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    t1 = fp2.conjugate(a_000, a_001)
+    t2 = fp2.conjugate(a_100, a_101)
+    t3 = fp2.conjugate(a_010, a_011)
+    t4 = fp2.conjugate(a_110, a_111)
+    t5 = fp2.conjugate(a_020, a_021)
+    t6 = fp2.conjugate(a_120, a_121)
+
+    t2 = mul_by_gamma_1_1(*t2)
+    t3 = mul_by_gamma_1_2(*t3)
+    t4 = mul_by_gamma_1_3(*t4)
+    t5 = mul_by_gamma_1_4(*t5)
+    t6 = mul_by_gamma_1_5(*t6)
+
+    c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
+    c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
+
+    return c0, c1
+
+def frobenius_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    t1 = a_000, a_001
+    t2 = mul_by_gamma_2_1(a_100, a_101)
+    t3 = mul_by_gamma_2_2(a_010, a_011)
+    t4 = mul_by_gamma_2_3(a_110, a_111)
+    t5 = mul_by_gamma_2_4(a_020, a_021)
+    t6 = mul_by_gamma_2_5(a_120, a_121)
+
+    c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
+    c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
+
+    return c0, c1 
+
+def frobenius_cube(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    t1 = fp2.conjugate(a_000, a_001)
+    t2 = fp2.conjugate(a_100, a_101)
+    t3 = fp2.conjugate(a_010, a_011)
+    t4 = fp2.conjugate(a_110, a_111)
+    t5 = fp2.conjugate(a_020, a_021)
+    t6 = fp2.conjugate(a_120, a_121)
+
+    t2 = mul_by_gamma_3_1(*t2)
+    t3 = mul_by_gamma_3_2(*t3)
+    t4 = mul_by_gamma_3_3(*t4)
+    t5 = mul_by_gamma_3_4(*t5)
+    t6 = mul_by_gamma_3_5(*t6)
+
+    c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
+    c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
+
+    return c0, c1
+
 # Implement the precomputed constant multiplications for utilizing the Frobenius Operator.
 # TODO: Verify the precomputed numbers. 
 
