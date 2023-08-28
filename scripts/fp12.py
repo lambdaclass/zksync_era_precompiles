@@ -1,5 +1,6 @@
 import montgomery as monty
 import fp6
+import fp2
 
 FP6_ZERO = [0,0,0,0,0,0]
 FP6_ONE = [monty.ONE] + [0 for _ in range(5)]
@@ -54,6 +55,106 @@ def inv(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_
     c1 = fp6.mul(minus_one[0][0],minus_one[0][1],minus_one[1][0],minus_one[1][1],minus_one[2][0],minus_one[2][1], a_100, a_101, a_110, a_111, a_120, a_121)
     c1 = fp6.mul(c1[0][0],c1[0][1],c1[1][0],c1[1][1],c1[2][0],c1[2][1], t1[0][0],t1[0][1],t1[1][0],t1[1][1],t1[2][0],t1[2][1])
     return c0, c1
+
+def conjugate(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    return a_000, a_001, a_010, a_011, a_020, a_021, fp6.neg(a_100, a_101, a_110, a_111, a_120, a_121)
+
+def cyclotomic_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    t0 = fp2.mul(a_110, a_111, a_110, a_111)
+    t1 = fp2.mul(a_000, a_001, a_000, a_001)
+    t6 = fp2.add(a_110, a_111, a_000, a_001)
+    t6 = fp2.mul(*t6, *t6)
+    t6 = fp2.sub(*t6, *t0)
+    t6 = fp2.sub(*t6, *t1)
+    t2 = fp2.mul(a_020, a_021, a_020, a_021)
+    t3 = fp2.mul(a_100, a_101, a_100, a_101)
+    t7 = fp2.add(a_020, a_021, a_100, a_101)
+    t7 = fp2.mul(*t7, *t7)
+    t7 = fp2.sub(*t7, *t2)
+    t7 = fp2.sub(*t7, *t3)
+    t4 = fp2.mul(a_120, a_121, a_120, a_121)
+    t5 = fp2.mul(a_010, a_011, a_010, a_011)
+    t8 = fp2.add(a_120, a_121, a_010, a_011)
+    t8 = fp2.mul(*t8, *t8)
+    t8 = fp2.sub(*t8, *t4)
+    t8 = fp2.sub(*t8, *t5)
+    t8 = fp2.mul_by_xi(*t8)
+    t0 = fp2.mul_by_xi(*t0)
+    t0 = fp2.add(*t0, *t1)
+    t2 = fp2.mul_by_xi(*t2)
+    t2 = fp2.add(*t2, *t3)
+    t4 = fp2.mul_by_xi(*t4)
+    t4 = fp2.add(*t4, *t5)
+    
+    c0c0 = fp2.sub(*t0, a_000, a_001)
+    c0c0 = fp2.add(*c0c0, *c0c0)
+    c0c0 = fp2.add(*c0c0, *t0)
+
+    c0c1 = fp2.sub(*t2, a_010, a_011)
+    c0c1 = fp2.add(*c0c1, *c0c1)
+    c0c1 = fp2.add(*c0c1, *t2)
+
+    c0c2 = fp2.sub(*t4, a_020, a_021)
+    c0c2 = fp2.add(*c0c2, *c0c2)
+    c0c2 = fp2.add(*c0c2, *t4)
+
+    c1c0 = fp2.add(*t8, a_100, a_101)
+    c1c0 = fp2.add(*c1c0, *c1c0)
+    c1c0 = fp2.add(*c1c0, *t8)
+
+    c1c1 = fp2.add(*t6, a_110, a_111)
+    c1c1 = fp2.add(*c1c1, *c1c1)
+    c1c1 = fp2.add(*c1c1, *t6)
+
+    c1c2 = fp2.add(*t7, a_120, a_121)
+    c1c2 = fp2.add(*c1c2, *c1c2)
+    c1c2 = fp2.add(*c1c2, *t7)
+
+    c0 = c0c0, c0c1, c0c2
+    c1 = c1c0, c1c1, c1c2
+
+    return c0 + c1
+
+def n_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, N):
+    out = a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121
+
+    for i in range(0, 2):
+        out = cyclotomic_square(*out)
+
+    return out
+
+def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    t3 = cyclotomic_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+    t5 = cyclotomic_square(*t3)
+    result = cyclotomic_square(*t5)
+    t0 = cyclotomic_square(*result)
+    t2 = mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, *t0)
+    t0 = mul(*t2, *t3)
+    t1 = t2
+    t4 = mul(*result, *t2)
+    t6 = cyclotomic_square(*t2)
+    t1 = mul(*t1, *t0)
+    t0 = mul(*t1, *t3)
+    t6 = n_square(*t6)
+    t5 = mul(*t5, *t6)
+    t5 = mul(*t4, *t5)
+    t5 = n_square(*t5, monty.SEVEN)
+    t4 = mul(*t4, *t5)
+    t4 = n_square(*t4, monty.EIGHT)
+    t4 = mul(*t4, *t0)
+    t3 = mul(*t3, *t4)
+    t3 = n_square(*t3, monty.SIX)
+    t2 = mul(*t2, *t3)
+    t2 = n_square(*t2, monty.EIGHT)
+    t2 = mul(*t0, *t2)
+    t2 = n_square(*t2, monty.SIX)
+    t2 = mul(*t0, *t2)
+    t2 = n_square(*t2, monty.TEN)
+    t1 = mul(*t1, *t2)
+    t1 = n_square(*t1, monty.SIX)
+    t0 = mul(*t0, *t1)
+    result = mul(*result, *t0)
+    return result
 
 def main():
 
