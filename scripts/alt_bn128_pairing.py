@@ -2,6 +2,7 @@ import montgomery as monty
 import frobenius
 import fp2 as fp2
 import fp12
+import g2
 
 # Algorithm 26. https://eprint.iacr.org/2010/354.pdf
 # P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
@@ -130,7 +131,7 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
         T = double_step[1]
 
         if ?????:
-            minus_Q = g2.negate(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1) # Hay que implementar el neg de un punto de G2
+            minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
             add_step = point_addition_and_line_evaluation(*minus_Q,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
@@ -145,13 +146,13 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     Yq1 = fp2.conj(Yq0, Yq1)
     Xq1 = frobenius.mul_by_gamma_1_2(*Xq1)
     Yq1 = frobenius.mul_by_gamma_1_3(*Xq1)
-    Q1 = g2_jacobian.from_affine(*Xq1, *Yq1) # -> Hay que crear ahora un punto de G2 en jacobianas con estas coordenadas X e Y
+    Q1 = g2.from_affine(*Xq1, *Yq1)
 
     # Q2 <- pi_p_square(Q)
     Xq2 = frobenius.mul_by_gamma_2_2(Xq0, Xq1)
     Yq2 = frobenius.mul_by_gamma_2_3(Yq0, Yq1)
-    Q2 = g2_jacobian.from_affine(*Xq2, *Yq2)
-    Q2 = g2.negate(Q2)
+    Q2 = g2.from_affine(*Xq2, *Yq2)
+    Q2 = g2.neg(Q2)
     
     add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
     f = fp12.mul(*f,*add_step[0])
