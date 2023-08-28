@@ -1,5 +1,7 @@
 import montgomery as monty
 import fp2 as fp2
+import fp12
+import frobenius as frb
 
 # Algorithm 26. https://eprint.iacr.org/2010/354.pdf
 # P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
@@ -116,6 +118,47 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
 
     T = *X_T, *Y_T, *Z_T
     return l, T
+
+def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    result = (a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+    t0 = fp12.conjugate(*result)
+    result = fp12.inv(*result)
+    t0 = fp12.mul(*t0, *result)
+    
+    result = frb.frobenius_square(*t0)
+
+    result = fp12.mul(*result, *t0)
+
+    result = fp12.exponentiation(*result)
+    t0 = fp12.conjugate(*t0)
+    t0 = fp12.cyclotomic_square(*t0)
+    t2 = fp12.exponentiation(*t0)
+    t2 = fp12.conjugate(*t2)
+    t1 = fp12.cyclotomic_square(*t2)
+    t2 = fp12.mul(*t2, *t1)
+    t2 = fp12.mul(*t2, *result)
+    t1 = fp12.exponentiation(*t2)
+    t1 = fp12.cyclotomic_square(*t1)
+    t1 = fp12.mul(*t1, *t2)
+    t1 = fp12.conjugate(*t1)
+    t3 = fp12.conjugate(*t1)
+    t1 = fp12.cyclotomic_square(*t0)
+    t1 = fp12.mul(*t1, *result)
+    t1 = fp12.conjugate(*t1)
+    t1 = fp12.mul(*t1, *t3)
+    t0 = fp12.mul(*t0, *t1)
+    t2 = fp12.mul(*t2, *t1)
+    t3 = frb.frobenius_square(*t1)
+    t2 = fp12.mul(*t2, *t3)
+    t3 = fp12.conjugate(*result)
+    t3 = fp12.mul(*t3, t0)
+    t1 = frb.frobenius_cube(*t3)
+    t2 = fp12.mul(*t2, *t1)
+    t1 = frb.frobenius(*t0)
+    t1 = fp12.mul(*t1, *t2)
+    return t1
+
+
 
 # TODO
 def miller_loop(xp, yp, ixq, xq, iyq, yq, izq, zq):
