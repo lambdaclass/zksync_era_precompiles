@@ -1,6 +1,7 @@
 import montgomery as monty
 import fp6
 import fp2
+import frobenius as frb
 
 FP6_ZERO = (0,0,0,0,0,0)
 FP6_ONE = [monty.ONE] + [0 for _ in range(5)]
@@ -123,6 +124,15 @@ def n_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_11
 
     return out
 
+# def is_in_subgroup(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+#     a = frb.frobenius(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+#     b = exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+#     b = exponentiation(*b)
+#     b = cyclotomic_square(*b)
+#     b2 = cyclotomic_square(*b)
+#     b = mul(*b, *b2)
+#     return a == b
+
 def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
     t3 = cyclotomic_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
     t5 = cyclotomic_square(*t3)
@@ -130,7 +140,7 @@ def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110
     t0 = cyclotomic_square(*result)
     t2 = mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, *t0)
     t0 = mul(*t2, *t3)
-    t1 = t2
+    t1 = mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, *t0)
     t4 = mul(*result, *t2)
     t6 = cyclotomic_square(*t2)
     t1 = mul(*t1, *t0)
@@ -163,6 +173,7 @@ def main():
     fp12_two = tuple([monty.TWO] + [0 for _ in range(11)])
     fp12_all_one = tuple([monty.ONE for _ in range(12)])
     fp12_all_two = tuple([monty.TWO for _ in range(12)])
+    ffp12_random = (monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO)
 
     # ADDITION
     assert(add(*fp12_zero, *fp12_zero) == fp12_zero)
@@ -206,5 +217,14 @@ def main():
     assert(mul(*fp12_all_two_inverse, *fp12_all_two) == fp12_one)
 
 
+    # CYCLOTOMIC SQUARE
+    b = conjugate(*ffp12_random)
+    a = inv(*ffp12_random)
+    b = mul(*b, *a)
+    a = frb.frobenius_square(*b)
+    a = mul(*a, *b)
+    c = square(*a)
+    d = cyclotomic_square(*a)
+    assert(c == d)
 if __name__ == '__main__':
     main()
