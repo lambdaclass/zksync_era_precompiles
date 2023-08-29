@@ -47,7 +47,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     t0 = fp2.mul(*Zt,*Zq_squared)
     t0 = fp2.add(*t0,*t0)
     t0 = fp2.scalar_mul(*t0,yp)
-    T = (Xt, Yt, Zt)
+    T = Xt, Yt, Zt
     l = (*t3,0,0,0,0,*t3,*t6,0,0)
     return l, T
 
@@ -116,7 +116,7 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
     l1 = t1[0], t1[1], t9[0], t9[1], 0, 0
     l = l0 + l1
 
-    T = *X_T, *Y_T, *Z_T
+    T = X_T, Y_T, Z_T
     return l, T
 
 def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):

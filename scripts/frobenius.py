@@ -17,7 +17,7 @@ def frobenius(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_1
     c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
     c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
 
-    return c0, c1
+    return c0 + c1
 
 def frobenius_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
     t1 = a_000, a_001
@@ -30,7 +30,7 @@ def frobenius_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_1
     c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
     c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
 
-    return c0, c1 
+    return c0 + c1 
 
 def frobenius_cube(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
     t1 = fp2.conjugate(a_000, a_001)
@@ -49,7 +49,7 @@ def frobenius_cube(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110
     c0 = t1[0], t1[1], t3[0], t3[1], t5[0], t5[1]
     c1 = t2[0], t2[1], t4[0], t4[1], t6[0], t6[1]
 
-    return c0, c1
+    return c0 + c1
 
 # Implement the precomputed constant multiplications for utilizing the Frobenius Operator.
 # TODO: Verify the precomputed numbers. 
