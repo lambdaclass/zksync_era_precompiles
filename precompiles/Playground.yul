@@ -2,9 +2,7 @@ object "Playground" {
     code { }
     object "Playground_deployed" {
         code {
-            ////////////////////////////////////////////////////////////////
-            //                      CONSTANTS
-            ////////////////////////////////////////////////////////////////
+            // CONSTANTS
 
             function ZERO() -> zero {
                 zero := 0x0
@@ -262,9 +260,7 @@ object "Playground" {
                 ret := and(left, right)
 			}
 
-            ////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
             let g1_x := calldataload(0)
             let g1_y := calldataload(32)
@@ -276,13 +272,6 @@ object "Playground" {
             if iszero(pointIsOnG1(g1_x, g1_y)) {
                 // burnGas()
             }
-
-            console_log(0x600, g1_x)
-            console_log(0x600, g1_y)
-            console_log(0x600, g2_ix)
-            console_log(0x600, g2_x)
-            console_log(0x600, g2_iy)
-            console_log(0x600, g2_y)
         }
     }
 }

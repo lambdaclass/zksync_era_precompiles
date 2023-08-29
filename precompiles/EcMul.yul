@@ -2,9 +2,7 @@ object "EcMul" {
     code { }
     object "EcMul_deployed" {
         code {
-            ////////////////////////////////////////////////////////////////
-            //                      CONSTANTS
-            ////////////////////////////////////////////////////////////////
+            // CONSTANTS
 
             /// @notice Constant function for value zero.
             /// @return zero The value zero.
@@ -75,9 +73,7 @@ object "EcMul" {
                 ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
             }
 
-            // ////////////////////////////////////////////////////////////////
-            //                      HELPER FUNCTIONS
-            // ////////////////////////////////////////////////////////////////
+            // HELPER FUNCTIONS
 
             /// @dev Executes the `precompileCall` opcode.
             function precompileCall(precompileParams, gasToBurn) -> ret {
@@ -346,9 +342,7 @@ object "EcMul" {
                 }
             }
 
-            ////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
             // Retrieve the coordinates from the calldata
             let x := calldataload(0)

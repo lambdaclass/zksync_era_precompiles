@@ -2,9 +2,7 @@ object "EcPairing" {
 	code { }
 	object "EcPairing_deployed" {
 		code {
-			////////////////////////////////////////////////////////////////
-            //                      CONSTANTS
-            ////////////////////////////////////////////////////////////////
+            // CONSTANTS
 
             function ZERO() -> zero {
                 zero := 0x0
@@ -54,9 +52,7 @@ object "EcPairing" {
 				log_count := 63
 			}
 
-			// ////////////////////////////////////////////////////////////////
-			//                      HELPER FUNCTIONS
-			// ////////////////////////////////////////////////////////////////
+			// HELPER FUNCTIONS
 
 			/// @dev Executes the `precompileCall` opcode.
 			function precompileCall(precompileParams, gasToBurn) -> ret {
@@ -128,37 +124,6 @@ object "EcPairing" {
 				ret := and(iszero(ix), iszero(x), iszero(iy), iszero(y))
 			}
 
-			// function finalExponentiation(...) {
-
-			// }
-
-			// def miller_loop(Q, P):
-			// 	if Q is None or P is None:
-			// 		return FQ12.one()
-			// 	R = Q
-			// 	f = FQ12.one()
-			// 	for i in range(log_ate_loop_count, -1, -1):
-			// 		f = f * f * linefunc(R, R, P)
-			// 		R = double(R)
-			// 		if ate_loop_count & (2**i):
-			// 			f = f * linefunc(R, Q, P)
-			// 			R = add(R, Q)
-			// 	# assert R == multiply(Q, ate_loop_count)
-			// 	Q1 = (Q[0] ** field_modulus, Q[1] ** field_modulus)
-			// 	# assert is_on_curve(Q1, b12)
-			// 	nQ2 = (Q1[0] ** field_modulus, -Q1[1] ** field_modulus)
-			// 	# assert is_on_curve(nQ2, b12)
-			// 	f = f * linefunc(R, Q1, P)
-			// 	R = add(R, Q1)
-			// 	f = f * linefunc(R, nQ2, P)
-			// 	# R = add(R, nQ2) This line is in many specifications but it technically does nothing
-			// 	return f ** ((field_modulus ** 12 - 1) // curve_order)
-			// function miller(g1_x, g1_y, g2_ix, g1_x, g2_iy, g2_x) {
-			// 	for { let i := LOG_ATE_LOOP_COUNT() } gt(i, ZERO()) { i := sub(i, 1) } {
-			// 		f := mulFQ12()
-			// 	}
-			// }
-
 			function checkPairing(k) -> ret {
 		  		let inputSize := calldatasize()
 
@@ -197,9 +162,7 @@ object "EcPairing" {
 				// return eq(finalExponentiation(acc), ONE())
 			}
 
-			////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
 		  	let inputSize := calldatasize()
 
