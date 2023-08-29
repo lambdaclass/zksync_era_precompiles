@@ -30,7 +30,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     Zt = fp2.add(Yq0,Yq1,Zq0,Zq1)
     Zt = fp2.mul(*Zt,*Zt)
     Zt = fp2.sub(*Zt,*t1)
-    Zt = fp2.sub(*Zt,Zq_squared)
+    Zt = fp2.sub(*Zt, *Zq_squared)
     t2_times_eight = fp2.scalar_mul(*t2,monty.EIGHT)
     Yt = fp2.sub(*t3,*Xt)
     Yt = fp2.mul(*Yt,*t4)
@@ -151,7 +151,7 @@ def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101,
     t3 = frb.frobenius_square(*t1)
     t2 = fp12.mul(*t2, *t3)
     t3 = fp12.conjugate(*result)
-    t3 = fp12.mul(*t3, t0)
+    t3 = fp12.mul(*t3, *t0)
     t1 = frb.frobenius_cube(*t3)
     t2 = fp12.mul(*t2, *t1)
     t1 = frb.frobenius(*t0)
@@ -159,36 +159,23 @@ def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101,
     return t1
 
 
-
-# TODO
-def miller_loop(xp, yp, ixq, xq, iyq, yq, izq, zq):
-    T = ixq, xq, iyq, yq, izq, zq
-    f = ((0, 0), (0, 0), (1, 0))
-    f = ((0, 1), (0, 0), (0, 0))
-
-    for i in range(L-2, 0, -1):
-        xr, yr, zr, e0, e1, e2 = double_step(*T, *P)
-        # f <- f^2 * l(T, T, P)
-        # TODO
-        # T <- 2T
-        T = xr, yr, zr
-        if s[i] == -1:
-            xr, yr, zr, e0, e1, e2 = addition_step(*T, *Q, *P)
-            # f <- f * l(T, -Q, P)
-            # TODO
-            # T <- T - Q
-            T = xr, yr, zr
-        elif s[i] == 1:
-            Q_neg = Q[0], monty.sub(0, Q[1]), Q[2]
-            xr, yr, zr, e0, e1, e2 = addition_step(*T, *Q_neg, *P)
-            # f <- f * l(T, Q, P)
-            # TODO
-            # T <- T + Q
-            T = xr, yr, zr
-
-
 def main():
-    pass
+    fp12_a = (monty.ONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    result = final_exponentiation(*fp12_a)
+    assert(monty.out_of(result[0]) == 1)
+    assert(monty.out_of(result[1]) == 0)
+    assert(monty.out_of(result[2]) == 0)
+    assert(monty.out_of(result[3]) == 0)
+    assert(monty.out_of(result[4]) == 0)
+    assert(monty.out_of(result[5]) == 0)
+    assert(monty.out_of(result[6]) == 0)
+    assert(monty.out_of(result[7]) == 0)
+    assert(monty.out_of(result[8]) == 0)
+    assert(monty.out_of(result[9]) == 0)
+    assert(monty.out_of(result[10]) == 0)
+    assert(monty.out_of(result[11]) == 0)
+
+
 
 if __name__ == '__main__':
     main()

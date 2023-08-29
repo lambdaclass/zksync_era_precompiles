@@ -110,15 +110,15 @@ def cyclotomic_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_
     c1c2 = fp2.add(*c1c2, *c1c2)
     c1c2 = fp2.add(*c1c2, *t7)
 
-    c0 = c0c0, c0c1, c0c2
-    c1 = c1c0, c1c1, c1c2
+    c0 = c0c0 + c0c1 + c0c2
+    c1 = c1c0 + c1c1 + c1c2
 
     return c0 + c1
 
-def n_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, N):
+def n_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, n):
     out = a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121
 
-    for i in range(0, 2):
+    for i in range(0, n):
         out = cyclotomic_square(*out)
 
     return out
@@ -135,23 +135,23 @@ def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110
     t6 = cyclotomic_square(*t2)
     t1 = mul(*t1, *t0)
     t0 = mul(*t1, *t3)
-    t6 = n_square(*t6)
+    t6 = n_square(*t6, 6)
     t5 = mul(*t5, *t6)
     t5 = mul(*t4, *t5)
-    t5 = n_square(*t5, monty.SEVEN)
+    t5 = n_square(*t5, 7)
     t4 = mul(*t4, *t5)
-    t4 = n_square(*t4, monty.EIGHT)
+    t4 = n_square(*t4, 8)
     t4 = mul(*t4, *t0)
     t3 = mul(*t3, *t4)
-    t3 = n_square(*t3, monty.SIX)
+    t3 = n_square(*t3, 6)
     t2 = mul(*t2, *t3)
-    t2 = n_square(*t2, monty.EIGHT)
+    t2 = n_square(*t2, 8)
     t2 = mul(*t0, *t2)
-    t2 = n_square(*t2, monty.SIX)
+    t2 = n_square(*t2, 6)
     t2 = mul(*t0, *t2)
-    t2 = n_square(*t2, monty.TEN)
+    t2 = n_square(*t2, 10)
     t1 = mul(*t1, *t2)
-    t1 = n_square(*t1, monty.SIX)
+    t1 = n_square(*t1, 6)
     t0 = mul(*t0, *t1)
     result = mul(*result, *t0)
     return result
