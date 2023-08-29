@@ -119,63 +119,73 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
     T = X_T, Y_T, Z_T
     return l, T
 
+# Algorithm 31 from https://eprint.iacr.org/2010/354.pdf
 def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
-    result = (a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
-    t0 = fp12.conjugate(*result)
-    result = fp12.inv(*result)
-    t0 = fp12.mul(*t0, *result)
     
-    result = frb.frobenius_square(*t0)
+    f = (a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+    # First part
+    f1 = fp12.conjugate(*f)
+    f2 = fp12.inv(*f)
+    f = fp12.mul(*f1, *f2)
+    f_aux = frb.frobenius_square(*f)
+    f = fp12.mul(*f_aux, *f)
 
-    result = fp12.mul(*result, *t0)
+    # Second part
+    ft_1 = fp12.exponentiation(*f)
+    ft_2 = fp12.square(*ft_1)
+    ft_3 = fp12.mul(*ft_2, *ft_1)
 
-    result = fp12.exponentiation(*result)
-    t0 = fp12.conjugate(*t0)
-    t0 = fp12.cyclotomic_square(*t0)
-    t2 = fp12.exponentiation(*t0)
-    t2 = fp12.conjugate(*t2)
-    t1 = fp12.cyclotomic_square(*t2)
-    t2 = fp12.mul(*t2, *t1)
-    t2 = fp12.mul(*t2, *result)
-    t1 = fp12.exponentiation(*t2)
-    t1 = fp12.cyclotomic_square(*t1)
-    t1 = fp12.mul(*t1, *t2)
-    t1 = fp12.conjugate(*t1)
-    t3 = fp12.conjugate(*t1)
-    t1 = fp12.cyclotomic_square(*t0)
-    t1 = fp12.mul(*t1, *result)
-    t1 = fp12.conjugate(*t1)
-    t1 = fp12.mul(*t1, *t3)
-    t0 = fp12.mul(*t0, *t1)
-    t2 = fp12.mul(*t2, *t1)
-    t3 = frb.frobenius_square(*t1)
-    t2 = fp12.mul(*t2, *t3)
-    t3 = fp12.conjugate(*result)
-    t3 = fp12.mul(*t3, *t0)
-    t1 = frb.frobenius_cube(*t3)
-    t2 = fp12.mul(*t2, *t1)
-    t1 = frb.frobenius(*t0)
-    t1 = fp12.mul(*t1, *t2)
-    return t1
+    fp_1 = frb.frobenius(*f)
+    fp_2 = frb.frobenius_square(*f)
+    fp_3 = frb.frobenius_cube(*f)
+
+    y0 = fp12.mul(*fp_1, *fp_2)
+    y0 = fp12.mul(*y0, *fp_3)
+    
+    y1 = f1
+    y2 = frb.frobenius_square(*ft_2)
+    y3 = frb.frobenius(*ft_1)
+    y3 = fp12.conjugate(*y3)
+    y4 = frb.frobenius(*ft_2)
+    y4 = fp12.mul(*y4, *ft_1)
+    y4 = fp12.conjugate(*y4)
+    y5 = fp12.conjugate(*ft_2)
+    y6 = frb.frobenius(*ft_3)
+    y6 = fp12.mul(*y6, *ft_3)
+    y6 = fp12.conjugate(*y6)
+
+    t0 = fp12.square(*y6)
+    t0 = fp12.mul(*t0, *y4)
+    t0 = fp12.mul(*t0, *y5)
+
+    t1 = fp12.mul(*y3, *y5)
+    t1 = fp12.mul(*t1, *t0)
+
+    t0 = fp12.mul(*t0, *y2)
+
+    t1 = fp12.square(*t1)
+    t1 = fp12.mul(*t1, *t0)
+    t1 = fp12.square(*t1)
+
+    t0 = fp12.mul(*t1, *y1)
+    t1 = fp12.mul(*t1, *y0)
+    t0 = fp12.square(*t0)
+    f = fp12.mul(*t0, *t1)
+    return f
 
 
 def main():
+    # Test 1
     fp12_a = (monty.ONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     result = final_exponentiation(*fp12_a)
-    assert(monty.out_of(result[0]) == 1)
-    assert(monty.out_of(result[1]) == 0)
-    assert(monty.out_of(result[2]) == 0)
-    assert(monty.out_of(result[3]) == 0)
-    assert(monty.out_of(result[4]) == 0)
-    assert(monty.out_of(result[5]) == 0)
-    assert(monty.out_of(result[6]) == 0)
-    assert(monty.out_of(result[7]) == 0)
-    assert(monty.out_of(result[8]) == 0)
-    assert(monty.out_of(result[9]) == 0)
-    assert(monty.out_of(result[10]) == 0)
-    assert(monty.out_of(result[11]) == 0)
+    assert(result == fp12_a)
 
-
+    # Test 2
+    # This test won't pass
+    # fp12_b = (monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO)
+    # result = final_exponentiation(*fp12_b)
+    # assert(not fp12.is_in_subgroup(*fp12_b))
+    # assert(fp12.is_in_subgroup(*result))
 
 if __name__ == '__main__':
     main()
