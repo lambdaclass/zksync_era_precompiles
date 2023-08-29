@@ -2,10 +2,8 @@ object "EcAdd" {
     code { }
     object "EcAdd_deployed" {
         code {
-            ////////////////////////////////////////////////////////////////
-            //                      CONSTANTS
-            ////////////////////////////////////////////////////////////////
-
+            // CONSTANTS
+            
             /// @notice Constant function for value zero.
             /// @return zero The value zero.
             function ZERO() -> zero {
@@ -50,9 +48,7 @@ object "EcAdd" {
                 ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
             }
 
-            //////////////////////////////////////////////////////////////////
-            //                      HELPER FUNCTIONS
-            //////////////////////////////////////////////////////////////////
+            // HELPER FUNCTIONS
 
             /// @dev Executes the `precompileCall` opcode.
             function precompileCall(precompileParams, gasToBurn) -> ret {
@@ -273,9 +269,7 @@ object "EcAdd" {
                 quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
             }
 
-            ////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
             // Retrieve the coordinates from the calldata
             let x1 := calldataload(0)
