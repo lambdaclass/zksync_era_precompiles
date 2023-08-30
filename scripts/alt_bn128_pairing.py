@@ -1,4 +1,4 @@
-import loop_counter
+import pairing_utils
 import montgomery as monty
 import frobenius
 import fp2 as fp2
