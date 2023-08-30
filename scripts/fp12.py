@@ -1,8 +1,8 @@
 import montgomery as monty
 import fp6
 
-FP6_ZERO = (0,0,0,0,0,0)
-FP6_ONE = [monty.ONE] + [0 for _ in range(5)]
+ZERO = (0,0,0,0,0,0,0,0,0,0,0,0)
+ONE = [monty.ONE] + [0 for _ in range(11)]
 
 # Algorithm 18 from https://eprint.iacr.org/2010/354.pdf
 def add(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, b_000, b_001, b_010, b_011, b_020, b_021, b_100, b_101, b_110, b_111, b_120, b_121):
@@ -50,7 +50,7 @@ def inv(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_
     t0 = fp6.sub(*t0,*t2)
     t1 = fp6.inv(*t0)
     c0 = fp6.mul(a_000, a_001, a_010, a_011, a_020, a_021, *t1)
-    minus_one = fp6.sub(*FP6_ZERO, *FP6_ONE)
+    minus_one = fp6.sub(*fp6.ZERO, *fp6.ONE)
     c1 = fp6.mul(*minus_one, a_100, a_101, a_110, a_111, a_120, a_121)
     c1 = fp6.mul(*c1,*t1)
     return c0 + c1
