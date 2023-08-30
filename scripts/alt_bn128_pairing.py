@@ -143,7 +143,7 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
             T = add_step[1]
 
     # Q1 <- pi_p(Q)
-    Xq1 = fp2.conj(Xq0, Xq1)g
+    Xq1 = fp2.conj(Xq0, Xq1)
     Yq1 = fp2.conj(Yq0, Yq1)
     Xq1 = frobenius.mul_by_gamma_1_2(*Xq1)
     Yq1 = frobenius.mul_by_gamma_1_3(*Xq1)
