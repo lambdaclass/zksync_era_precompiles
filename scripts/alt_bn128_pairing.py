@@ -49,8 +49,8 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     t0 = fp2.mul(*Zt,*Zq_squared)
     t0 = fp2.add(*t0,*t0)
     t0 = fp2.scalar_mul(*t0,yp)
-    T = Xt, Yt, Zt
-    l = (*t3,0,0,0,0,*t3,*t6,0,0)
+    T = Xt + Yt + Zt
+    l = (*t0,0,0,0,0,*t3,*t6,0,0)
     return l, T
 
 # Algorithm 27 from https://eprint.iacr.org/2010/354.pdf
@@ -118,7 +118,7 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
     l1 = t1[0], t1[1], t9[0], t9[1], 0, 0
     l = l0 + l1
 
-    T = X_T, Y_T, Z_T
+    T = X_T + Y_T + Z_T
     return l, T
 
 # Algorithm 31 from https://eprint.iacr.org/2010/354.pdf
@@ -176,19 +176,19 @@ def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101,
 
     return f
 
-def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
-    T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
+def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
+    T = Xq0, Xq1, Yq0, Yq1, Zq0, Zq1
     f = fp12.ONE
-    
+
     for i in range(64, -1, -1):
-        double_step = point_doubling_and_line_evaluation(xp,yp,*T)
+        double_step = point_doubling_and_line_evaluation(*T, xp, yp)
         f = fp12.square(*f)
         f = fp12.mul(*f,*double_step[0])
         T = double_step[1]
 
         if pairing_utils.S_NAF[i] == -1: 
             minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
-            add_step = point_addition_and_line_evaluation(*minus_Q,*T,xp,yp)
+            add_step = point_addition_and_line_evaluation(*minus_Q, *T, xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
@@ -198,17 +198,17 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
             T = add_step[1]
 
     # Q1 <- pi_p(Q)
-    Xq1 = fp2.conj(Xq0, Xq1)
-    Yq1 = fp2.conj(Yq0, Yq1)
-    Xq1 = frb.mul_by_gamma_1_2(*Xq1)
-    Yq1 = frb.mul_by_gamma_1_3(*Xq1)
-    Q1 = g2.from_affine(*Xq1, *Yq1)
+    X_q0, X_q1 = fp2.conjugate(Xq0, Xq1)
+    Y_q0, Y_q1 = fp2.conjugate(Yq0, Yq1)
+    X_q0, X_q1 = frb.mul_by_gamma_1_2(X_q0, X_q1)
+    Y_q0, Y_q1 = frb.mul_by_gamma_1_3(Y_q0, Y_q1)
+    Q1 = g2.from_affine(X_q0, X_q1, Y_q0, Y_q1)
 
     # Q2 <- pi_p_square(Q)
-    Xq2 = frb.mul_by_gamma_2_2(Xq0, Xq1)
-    Yq2 = frb.mul_by_gamma_2_3(Yq0, Yq1)
-    Q2 = g2.from_affine(*Xq2, *Yq2)
-    Q2 = g2.neg(Q2)
+    X_q20, X_q21 = frb.mul_by_gamma_2_2(Xq0, Xq1)
+    Y_q20, Y_q21 = frb.mul_by_gamma_2_3(Yq0, Yq1)
+    Q2 = g2.from_affine(X_q20, X_q21, Y_q20, Y_q21)
+    Q2 = g2.neg(*Q2)
     
     add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
     f = fp12.mul(*f,*add_step[0])
