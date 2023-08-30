@@ -1,7 +1,8 @@
 import pairing_utils
 import montgomery as monty
 import frobenius
-import fp2 as fp2
+import fp2
+import fp6
 import fp12
 import g2
 
@@ -123,7 +124,7 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
 
 def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
-    f = fp12.FP6_ONE
+    f = fp6.ONE
     
     for i in range(64, -1, -1):
         double_step = point_doubling_and_line_evaluation(xp,yp,*T)
