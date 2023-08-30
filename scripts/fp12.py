@@ -173,7 +173,7 @@ def main():
     fp12_two = tuple([monty.TWO] + [0 for _ in range(11)])
     fp12_all_one = tuple([monty.ONE for _ in range(12)])
     fp12_all_two = tuple([monty.TWO for _ in range(12)])
-    ffp12_random = (monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO)
+    fp12_random = (monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO)
 
     # ADDITION
     assert(add(*fp12_zero, *fp12_zero) == fp12_zero)
@@ -216,10 +216,12 @@ def main():
     assert(mul(*fp12_all_one,*fp12_all_one_inverse) == fp12_one)
     assert(mul(*fp12_all_two_inverse, *fp12_all_two) == fp12_one)
 
+    # CONJUGATE
+    assert(conjugate(*conjugate(*fp12_random)) == fp12_random)
 
     # CYCLOTOMIC SQUARE
-    b = conjugate(*ffp12_random)
-    a = inv(*ffp12_random)
+    b = conjugate(*fp12_random)
+    a = inv(*fp12_random)
     b = mul(*b, *a)
     a = frb.frobenius_square(*b)
     a = mul(*a, *b)
