@@ -1,8 +1,8 @@
 import pairing_utils
 import montgomery as monty
-import frobenius
-import fp2
+import fp2 as fp2
 import fp12
+import frobenius as frb
 import g2
 
 # Algorithm 26. https://eprint.iacr.org/2010/354.pdf
@@ -32,7 +32,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     Zt = fp2.add(Yq0,Yq1,Zq0,Zq1)
     Zt = fp2.mul(*Zt,*Zt)
     Zt = fp2.sub(*Zt,*t1)
-    Zt = fp2.sub(*Zt,Zq_squared)
+    Zt = fp2.sub(*Zt, *Zq_squared)
     t2_times_eight = fp2.scalar_mul(*t2,monty.EIGHT)
     Yt = fp2.sub(*t3,*Xt)
     Yt = fp2.mul(*Yt,*t4)
@@ -49,7 +49,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     t0 = fp2.mul(*Zt,*Zq_squared)
     t0 = fp2.add(*t0,*t0)
     t0 = fp2.scalar_mul(*t0,yp)
-    T = (Xt, Yt, Zt)
+    T = Xt, Yt, Zt
     l = (*t3,0,0,0,0,*t3,*t6,0,0)
     return l, T
 
@@ -118,8 +118,63 @@ def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1,
     l1 = t1[0], t1[1], t9[0], t9[1], 0, 0
     l = l0 + l1
 
-    T = *X_T, *Y_T, *Z_T
+    T = X_T, Y_T, Z_T
     return l, T
+
+# Algorithm 31 from https://eprint.iacr.org/2010/354.pdf
+def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
+    
+    f = (a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
+    # First part
+    f1 = fp12.conjugate(*f)
+    f2 = fp12.inv(*f)
+    f = fp12.mul(*f1, *f2)
+    f_aux = frb.frobenius_square(*f)
+    f = fp12.mul(*f_aux, *f)
+
+    # Second part
+    ft_1 = fp12.exponentiation(*f)
+    ft_2 = fp12.square(*ft_1)
+    ft_3 = fp12.mul(*ft_2, *ft_1)
+
+    fp_1 = frb.frobenius(*f)
+    fp_2 = frb.frobenius_square(*f)
+    fp_3 = frb.frobenius_cube(*f)
+
+    y0 = fp12.mul(*fp_1, *fp_2)
+    y0 = fp12.mul(*y0, *fp_3)
+    
+    y1 = f1
+    y2 = frb.frobenius_square(*ft_2)
+    y3 = frb.frobenius(*ft_1)
+    y3 = fp12.conjugate(*y3)
+    y4 = frb.frobenius(*ft_2)
+    y4 = fp12.mul(*y4, *ft_1)
+    y4 = fp12.conjugate(*y4)
+    y5 = fp12.conjugate(*ft_2)
+    y6 = frb.frobenius(*ft_3)
+    y6 = fp12.mul(*y6, *ft_3)
+    y6 = fp12.conjugate(*y6)
+
+    t0 = fp12.square(*y6)
+    t0 = fp12.mul(*t0, *y4)
+    t0 = fp12.mul(*t0, *y5)
+
+    t1 = fp12.mul(*y3, *y5)
+    t1 = fp12.mul(*t1, *t0)
+
+    t0 = fp12.mul(*t0, *y2)
+
+    t1 = fp12.square(*t1)
+    t1 = fp12.mul(*t1, *t0)
+    t1 = fp12.square(*t1)
+
+    t0 = fp12.mul(*t1, *y1)
+    t1 = fp12.mul(*t1, *y0)
+    t0 = fp12.square(*t0)
+    f = fp12.mul(*t0, *t1)
+
+    return f
 
 def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
@@ -145,13 +200,13 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     # Q1 <- pi_p(Q)
     Xq1 = fp2.conj(Xq0, Xq1)
     Yq1 = fp2.conj(Yq0, Yq1)
-    Xq1 = frobenius.mul_by_gamma_1_2(*Xq1)
-    Yq1 = frobenius.mul_by_gamma_1_3(*Xq1)
+    Xq1 = frb.mul_by_gamma_1_2(*Xq1)
+    Yq1 = frb.mul_by_gamma_1_3(*Xq1)
     Q1 = g2.from_affine(*Xq1, *Yq1)
 
     # Q2 <- pi_p_square(Q)
-    Xq2 = frobenius.mul_by_gamma_2_2(Xq0, Xq1)
-    Yq2 = frobenius.mul_by_gamma_2_3(Yq0, Yq1)
+    Xq2 = frb.mul_by_gamma_2_2(Xq0, Xq1)
+    Yq2 = frb.mul_by_gamma_2_3(Yq0, Yq1)
     Q2 = g2.from_affine(*Xq2, *Yq2)
     Q2 = g2.neg(Q2)
     
@@ -164,9 +219,18 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
 
     return f
 
-
 def main():
-    pass
+    # Test 1
+    fp12_a = (monty.ONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    result = final_exponentiation(*fp12_a)
+    assert(result == fp12_a)
+
+    # Test 2
+    # This test won't pass
+    # fp12_b = (monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO, monty.ONE, monty.TWO)
+    # result = final_exponentiation(*fp12_b)
+    # assert(not fp12.is_in_subgroup(*fp12_b))
+    # assert(fp12.is_in_subgroup(*result))
 
 if __name__ == '__main__':
     main()

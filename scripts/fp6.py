@@ -71,6 +71,9 @@ def mul_by_gamma(a_00, a_01, a_10, a_11, a_20, a_21):
 
     return c0 + c1 + c2
 
+def neg(a_00, a_01, a_10, a_11, a_20, a_21):
+    return fp2.neg(a_00, a_01) + fp2.neg(a_10, a_11) + fp2.neg(a_20, a_21)
+
 def main():
     # (1, 2) + (1, 2)x + (1, 2)x^2
     fp2_a_0 = monty.ONE, monty.TWO
