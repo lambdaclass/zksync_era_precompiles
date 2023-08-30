@@ -1,7 +1,9 @@
+import pairing_utils
 import montgomery as monty
 import fp2 as fp2
 import fp12
 import frobenius as frb
+import g2
 
 # Algorithm 26. https://eprint.iacr.org/2010/354.pdf
 # P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
@@ -171,8 +173,51 @@ def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101,
     t1 = fp12.mul(*t1, *y0)
     t0 = fp12.square(*t0)
     f = fp12.mul(*t0, *t1)
+
     return f
 
+def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
+    T = (Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
+    f = fp12.ONE
+    
+    for i in range(64, -1, -1):
+        double_step = point_doubling_and_line_evaluation(xp,yp,*T)
+        f = fp12.square(*f)
+        f = fp12.mul(*f,*double_step[0])
+        T = double_step[1]
+
+        if pairing_utils.S_NAF[i] == -1: 
+            minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
+            add_step = point_addition_and_line_evaluation(*minus_Q,*T,xp,yp)
+            f = fp12.mul(*f,*add_step[0])
+            T = add_step[1]
+
+        elif pairing_utils.S_NAF[i] == 1:
+            add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
+            f = fp12.mul(*f,*add_step[0])
+            T = add_step[1]
+
+    # Q1 <- pi_p(Q)
+    Xq1 = fp2.conj(Xq0, Xq1)
+    Yq1 = fp2.conj(Yq0, Yq1)
+    Xq1 = frb.mul_by_gamma_1_2(*Xq1)
+    Yq1 = frb.mul_by_gamma_1_3(*Xq1)
+    Q1 = g2.from_affine(*Xq1, *Yq1)
+
+    # Q2 <- pi_p_square(Q)
+    Xq2 = frb.mul_by_gamma_2_2(Xq0, Xq1)
+    Yq2 = frb.mul_by_gamma_2_3(Yq0, Yq1)
+    Q2 = g2.from_affine(*Xq2, *Yq2)
+    Q2 = g2.neg(Q2)
+    
+    add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
+    f = fp12.mul(*f,*add_step[0])
+    T = add_step[1]
+
+    add_step = point_addition_and_line_evaluation(*Q2,*T,xp,yp)
+    f = fp12.mul(*f,*add_step[0])
+
+    return f
 
 def main():
     # Test 1

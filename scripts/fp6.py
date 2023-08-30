@@ -1,6 +1,9 @@
 import montgomery as monty
 import fp2
 
+ZERO = (0,0,0,0,0,0)
+ONE = [monty.ONE] + [0 for _ in range(5)]
+
 # Algorithm 10 from https://eprint.iacr.org/2010/354.pdf
 def add(a_00, a_01, a_10, a_11, a_20, a_21, b_00, b_01, b_10, b_11, b_20, b_21):
     c0 = fp2.add(a_00, a_01, b_00, b_01)
