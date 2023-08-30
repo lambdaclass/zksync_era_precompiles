@@ -131,18 +131,17 @@ def miller_loop(xp, yp, Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
         f = fp12.mul(*f,*double_step[0])
         T = double_step[1]
 
-        if loop_counter.S_NAF[i] == -1: 
+        if pairing_utils.S_NAF[i] == -1: 
             minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
             add_step = point_addition_and_line_evaluation(*minus_Q,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
-        elif loop_counter.S_NAF[i] == 1:
+        elif pairing_utils.S_NAF[i] == 1:
             add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
             f = fp12.mul(*f,*add_step[0])
             T = add_step[1]
 
-    # Q1 <- pi_p(Q) -- (No me queda claro si hay que pasar Q a Affine antes de esto)
     Xq1 = fp2.conj(Xq0, Xq1)
     Yq1 = fp2.conj(Yq0, Yq1)
     Xq1 = frobenius.mul_by_gamma_1_2(*Xq1)
