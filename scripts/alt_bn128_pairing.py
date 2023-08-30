@@ -219,6 +219,11 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
 
     return f
 
+def pair(xp, yp, Xq0, Xq1, Yq0, Yq1):
+    f = miller_loop(Xq0, Xq1, Yq0, Yq1, monty.ONE, 0, xp, yp)
+    f = final_exponentiation(*f)
+    return f
+
 def main():
     # Test 1
     fp12_a = (monty.ONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
