@@ -4,6 +4,7 @@ import fp2 as fp2
 import fp12
 import frobenius as frb
 import g2
+import pairing_utils as utils
 
 # Algorithm 26. https://eprint.iacr.org/2010/354.pdf
 # P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
@@ -23,7 +24,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     t4 = fp2.scalar_mul(*t0,monty.THREE)
     t6 = fp2.add(Xq0,Xq1,*t4)
     t5 = fp2.mul(*t4,*t4)
-    Xt = fp2.scalar_mul(*t3,2)
+    Xt = fp2.scalar_mul(*t3, monty.TWO)
     Xt = fp2.sub(*t5,*Xt)
     Zq_squared = fp2.mul(Zq0,Zq1,Zq0,Zq1)
     # TODO: This could be an optimization in the future, make sure to test it
@@ -40,7 +41,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     t3 = fp2.mul(*Zq_squared,*t4)
     t3 = fp2.add(*t3,*t3)
     t3 = fp2.sub(0,0,*t3) # multiply by -1
-    t3 = fp2.scalar_mul(*t3,xp)
+    t3 = fp2.scalar_mul(*t3, xp)
     t1_times_4 = fp2.scalar_mul(*t1,monty.FOUR)
     t6 = fp2.mul(*t6,*t6)
     t6 = fp2.sub(*t6,*t0)
@@ -180,22 +181,22 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     T = Xq0, Xq1, Yq0, Yq1, Zq0, Zq1
     f = fp12.ONE
 
-    for i in range(64, -1, -1):
-        double_step = point_doubling_and_line_evaluation(*T, xp, yp)
+    for i in range(len(utils.S_NAF) - 1, -1, -1):
+        line_eval, double_step = point_doubling_and_line_evaluation(*T, xp, yp)
         f = fp12.square(*f)
-        f = fp12.mul(*f,*double_step[0])
-        T = double_step[1]
+        f = fp12.mul(*f,*line_eval)
+        T = double_step
 
-        if pairing_utils.S_NAF[i] == -1: 
+        if pairing_utils.S_NAF[i] == -1:
             minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
-            add_step = point_addition_and_line_evaluation(*minus_Q, *T, xp,yp)
-            f = fp12.mul(*f,*add_step[0])
-            T = add_step[1]
+            line_eval, add_step = point_addition_and_line_evaluation(*minus_Q, *T, xp,yp)
+            f = fp12.mul(*f, *line_eval)
+            T = add_step
 
         elif pairing_utils.S_NAF[i] == 1:
-            add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
-            f = fp12.mul(*f,*add_step[0])
-            T = add_step[1]
+            line_eval, add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
+            f = fp12.mul(*f,*line_eval)
+            T = add_step
 
     # Q1 <- pi_p(Q)
     X_q0, X_q1 = fp2.conjugate(Xq0, Xq1)
