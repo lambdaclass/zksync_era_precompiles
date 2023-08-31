@@ -250,21 +250,24 @@ def main():
     Xq1 = monty.into(14752851163271972921165116810778899752274893127848647655434033030151679466487)
     Yq0 = monty.into(8159591693044959083845993640644415462154314071906244874217244895511876957520)
     Yq1 = monty.into(19774899457345372253936887903062884289284519982717033379297427576421785416781)
+    Zq0 = monty.ONE
+    Zq1 = 0
 
     a = pair(xp, yp, Xq0, Xq1, Yq0, Yq1)
 
     xp = monty.into(7742452358972543465462254569134860944739929848367563713587808717088650354556)
     yp = monty.into(14563720768440487558151020426243236708567496944263114635856508834497000371217)
-    Xq0 = monty.into(10857046999023057135944570762232829481370756359578518086990519993285655852781)
-    Xq1 = monty.into(11559732032986387107991004021392285783925812861821192530917403151452391805634)
-    Yq0 = monty.into(8495653923123431417604973247489272438418190587263600148770280649306958101930)
-    Yq1 = monty.into(4082367875863433681332203403145435568316851327593401208105741076214120093531)
+    Xr0 = monty.into(10857046999023057135944570762232829481370756359578518086990519993285655852781)
+    Xr1 = monty.into(11559732032986387107991004021392285783925812861821192530917403151452391805634)
+    Yr0 = monty.into(8495653923123431417604973247489272438418190587263600148770280649306958101930)
+    Yr1 = monty.into(4082367875863433681332203403145435568316851327593401208105741076214120093531)
+    Zr0 = monty.ONE
+    Zr1 = 0
 
-    b = pair(xp, yp, Xq0, Xq1, Yq0, Yq1)
+    b = pair(xp, yp, Xr0, Xr1, Yr0, Yr1)
 
     # Point doubling and line evaluation
-    Zq0 = monty.ONE
-    Zq1 = 0
+
     line_evaluation, double = point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp)
 
     # Xr = 9 Xt ** 4 - 8 Xt Yt **2
@@ -320,6 +323,52 @@ def main():
     l_tt_z = fp2.sub(*l_tt_z, *t0)
     # We ignore the 0 between the fp2 in line evaluation like the paper does
     assert((line_evaluation[8], line_evaluation[9]) == l_tt_z)
+
+    # # Point addition and line evaluation
+
+    Xq = Xq0, Xq1
+    Yq = Yq0, Yq1
+    Zq = Zq0, Zq1
+    Xt = Xr0, Xr1
+    Yt = Yr0, Yr1
+    Zt = Zr0, Zr1
+
+    line_evaluation, addition = point_addition_and_line_evaluation(*Xq, *Yq, *Zq, *Xt, *Yt, *Zt, xp, yp)
+
+    # Xr
+    Zt_squared = fp2.mul(*Zt,*Zt)
+    Xr_a = fp2.mul(*Zt_squared,*Zt)
+    Xr_a = fp2.mul(*Xr_a,*Yq)
+    Xr_a = fp2.scalar_mul(*Xr_a, monty.TWO)
+    Xr_a2 = fp2.scalar_mul(*Yt, monty.TWO)
+    Xr_a = fp2.sub(*Xr_a,*Xr_a2)
+    Xr_af = fp2.mul(*Xr_a,*Xr_a)
+    Xr_b = fp2.mul(*Xq,*Zt_squared)
+    Xr_b = fp2.sub(*Xr_b,*Xt)
+    Xr_bf = fp2.exp(*Xr_b, 3)
+    Xr_bf = fp2.scalar_mul(*Xr_bf, monty.FOUR)
+    Xr_c = fp2.mul(*Xr_b,*Xr_b)
+    Xr_c = fp2.mul(*Xr_c,*Xt)
+    Xr_c = fp2.scalar_mul(*Xr_c, monty.FOUR)
+    Xr_cf = fp2.scalar_mul(*Xr_c, monty.TWO)
+    Xr = fp2.sub(*Xr_af,*Xr_bf)
+    Xr = fp2.sub(*Xr,*Xr_cf)
+    assert((addition[0],addition[1]) == Xr)
+
+    # Yr
+    Yr_a = fp2.sub(*Xr_c,*Xr)
+    Yr_a = fp2.mul(*Xr_a,*Yr_a)
+    Yr_b = fp2.scalar_mul(*Xr_bf, monty.TWO)
+    Yr_b = fp2.mul(*Yr_b,*Yt)
+    Yr = fp2.sub(*Yr_a, *Yr_b)
+    assert((addition[2],addition[3]) == Yr)
+
+    # Zr
+    Zr = fp2.mul(*Xq,*Zt_squared)
+    Zr = fp2.sub(*Zr,*Xt)
+    Zr = fp2.mul(*Zr,*Zt)
+    Zr = fp2.scalar_mul(*Zr, monty.TWO)
+    assert((addition[4],addition[5]) == Zr)
 
     # Pairing Test
     # # Should be 1
