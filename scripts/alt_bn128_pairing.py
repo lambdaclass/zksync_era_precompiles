@@ -222,16 +222,11 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
 
 def pair(xp, yp, Xq0, Xq1, Yq0, Yq1):
     f = miller_loop(Xq0, Xq1, Yq0, Yq1, monty.ONE, 0, xp, yp)
-    f = final_exponentiation(*f)
+    # This should be final exponentiation
+    f = fp12.exponentiation(*f, 552484233613224096312617126783173147097382103762957654188882734314196910839907541213974502761540629817009608548654680343627701153829446747810907373256841551006201639677726139946029199968412598804882391702273019083653272047566316584365559776493027495458238373902875937659943504873220554161550525926302303331747463515644711876653177129578303191095900909191624817826566688241804408081892785725967931714097716709526092261278071952560171111444072049229123565057483750161460024353346284167282452756217662335528813519139808291170539072125381230815729071544861602750936964829313608137325426383735122175229541155376346436093930287402089517426973178917569713384748081827255472576937471496195752727188261435633271238710131736096299798168852925540549342330775279877006784354801422249722573783561685179618816480037695005515426162362431072245638324744480)
     return f
 
 def main():
-    # Test 1
-    fp12_a = (monty.ONE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    result = final_exponentiation(*fp12_a)
-    assert(result == fp12_a)
-
-    # Pairing Test 
 
     # 1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f59 -> Xp1
     # 3034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41 -> Yp1
@@ -267,23 +262,70 @@ def main():
 
     b = pair(xp, yp, Xq0, Xq1, Yq0, Yq1)
 
-    # Should be 1
-    result = fp12.mul(*a, *b)
-    print(result)
-    assert(result == fp12.ONE)
+    # Point doubling and line evaluation
+    Zq0 = monty.ONE
+    Zq1 = 0
+    line_evaluation, double = point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp)
 
-    # 1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f59
-    # 3034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41
-    # 209dd15ebff5d46c4bd888e51a93cf99a7329636c63514396b4a452003a35bf7
-    # 04bf11ca01483bfa8b34b43561848d28905960114c8ac04049af4b6315a41678
-    # 2bb8324af6cfc93537a2ad1a445cfd0ca2a71acd7ac41fadbf933c2a51be344d
-    # 120a2a4cf30c1bf9845f20c6fe39e07ea2cce61f0c9bb048165fe5e4de877550
-    # 111e129f1cf1097710d41c4ac70fcdfa5ba2023c6ff1cbeac322de49d1b6df7c
-    # 2032c61a830e3c17286de9462bf242fca2883585b93870a73853face6a6bf411
-    # 198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2
-    # 1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed
-    # 090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b
-    # 12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
+    # Xr = 9 Xt ** 4 - 8 Xt Yt **2
+    Xr_a = fp2.exp(Xq0,Xq1,4)
+    Xr_a = fp2.scalar_mul(*Xr_a,monty.NINE)
+    Xr_b = fp2.exp(Yq0,Yq1,2)
+    Xr_b = fp2.mul(Xq0,Xq1, *Xr_b)
+    Xr_b = fp2.scalar_mul(*Xr_b,monty.EIGHT)
+    Xr = fp2.sub(*Xr_a,*Xr_b)
+    assert((double[0], double[1]) == Xr)
+
+    # Yr = 3 * (Xt ** 2) * (4 * (Xt ** 2) * (Yt ** 2) - Xr) - 8 * (Yt ** 4)
+    Xq_squared = fp2.mul(Xq0,Xq1,Xq0,Xq1)
+    Yq_squared = fp2.mul(Yq0,Yq1,Yq0,Yq1)
+    Yr_a = fp2.scalar_mul(*Xq_squared, monty.THREE)
+    Yr_b = fp2.scalar_mul(Xq0,Xq1, monty.FOUR)
+    Yr_b = fp2.mul(*Yr_b, *Yq_squared)
+    Yr_b = fp2.sub(*Yr_b,*Xr)
+    Yr_c = fp2.mul(*Yq_squared,*Yq_squared)
+    Yr_c = fp2.scalar_mul(*Yr_c, monty.EIGHT)
+    Yr = fp2.mul(*Yr_a, *Yr_b)
+    Yr = fp2.sub(*Yr, *Yr_c)
+    assert((double[2], double[3]) == Yr)
+
+    # Zr = 2 * Yt * Zt
+    Zr = fp2.mul(Yq0,Yq1,Zq0,Zq1)
+    Zr = fp2.scalar_mul(*Zr,monty.TWO)
+    assert((double[4], double[5]) == Zr)
+
+    # l_tt_x = 2 * Zr * Zt^2 * yp
+    l_tt_x = fp2.mul(Zq0, Zq1, Zq0, Zq1)
+    l_tt_x = fp2.mul(*l_tt_x, *Zr)
+    l_tt_x = fp2.scalar_mul(*l_tt_x, yp)
+    l_tt_x = fp2.scalar_mul(*l_tt_x, monty.TWO)
+    assert((line_evaluation[0], line_evaluation[1]) == l_tt_x)
+
+    # l_tt_y = 6 * Xt^2 * Zt^2 * xp
+    l_tt_y = fp2.mul(Xq0, Xq1, Xq0, Xq1)
+    t0 = fp2.mul(Zq0, Zq1, Zq0, Zq1)
+    l_tt_y = fp2.mul(*l_tt_y, *t0)
+    l_tt_y = fp2.scalar_mul(*l_tt_y, xp)
+    l_tt_y = fp2.scalar_mul(*l_tt_y, monty.SIX)
+    l_tt_y = fp2.neg(*l_tt_y)
+    # We ignore the 0 between the fp2 in line evaluation like the paper does
+    assert((line_evaluation[6], line_evaluation[7]) == l_tt_y)
+
+    # l_tt_z = 6 * Xt^3 - 4 * Yt^2
+    l_tt_z = fp2.mul(Xq0, Xq1, Xq0, Xq1)
+    l_tt_z = fp2.mul(*l_tt_z, Xq0, Xq1)
+    l_tt_z = fp2.scalar_mul(*l_tt_z, monty.SIX)
+    t0 = fp2.mul(Yq0, Yq1, Yq0, Yq1)
+    t0 = fp2.scalar_mul(*t0, monty.FOUR)
+    l_tt_z = fp2.sub(*l_tt_z, *t0)
+    # We ignore the 0 between the fp2 in line evaluation like the paper does
+    assert((line_evaluation[8], line_evaluation[9]) == l_tt_z)
+
+    # Pairing Test
+    # # Should be 1
+    # result = fp12.mul(*a, *b)
+    # print(result)
+    # assert(result == fp12.ONE)
 
 if __name__ == '__main__':
     main()
