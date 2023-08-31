@@ -124,50 +124,20 @@ def n_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_11
 
     return out
 
-# def is_in_subgroup(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
-#     a = frb.frobenius(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
-#     b = exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
-#     b = exponentiation(*b)
-#     b = cyclotomic_square(*b)
-#     b2 = cyclotomic_square(*b)
-#     b = mul(*b, *b2)
-#     return a == b
-
-def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
-    t3 = cyclotomic_square(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121)
-    t5 = cyclotomic_square(*t3)
-    result = cyclotomic_square(*t5)
-    t0 = cyclotomic_square(*result)
-    t2 = mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, *t0)
-    t0 = mul(*t2, *t3)
-    t1 = mul(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, *t0)
-    t4 = mul(*result, *t2)
-    t6 = cyclotomic_square(*t2)
-    t1 = mul(*t1, *t0)
-    t0 = mul(*t1, *t3)
-    t6 = n_square(*t6, 6)
-    t5 = mul(*t5, *t6)
-    t5 = mul(*t4, *t5)
-    t5 = n_square(*t5, 7)
-    t4 = mul(*t4, *t5)
-    t4 = n_square(*t4, 8)
-    t4 = mul(*t4, *t0)
-    t3 = mul(*t3, *t4)
-    t3 = n_square(*t3, 6)
-    t2 = mul(*t2, *t3)
-    t2 = n_square(*t2, 8)
-    t2 = mul(*t0, *t2)
-    t2 = n_square(*t2, 6)
-    t2 = mul(*t0, *t2)
-    t2 = n_square(*t2, 10)
-    t1 = mul(*t1, *t2)
-    t1 = n_square(*t1, 6)
-    t0 = mul(*t0, *t1)
-    result = mul(*result, *t0)
+def exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, exp):
+    a = a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121
+    result = ONE
+    bits_exp = bin(exp)[2:]
+    for i in bits_exp:
+        aux = mul(*result, *result)
+        if i != '0':
+            result = mul(*a, *aux)
+        else: 
+            result = aux
+    
     return result
 
 def main():
-
     fp12_zero = tuple([0 for _ in range(12)])
     fp12_one = tuple([monty.ONE] + [0 for _ in range(11)])
     fp12_two = tuple([monty.TWO] + [0 for _ in range(11)])
@@ -228,5 +198,6 @@ def main():
     c = square(*a)
     d = cyclotomic_square(*a)
     assert(c == d)
+
 if __name__ == '__main__':
     main()
