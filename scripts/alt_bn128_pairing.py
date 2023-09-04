@@ -211,12 +211,12 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     Q2 = g2.from_affine(X_q20, X_q21, Y_q20, Y_q21)
     Q2 = g2.neg(*Q2)
     
-    add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
-    f = fp12.mul(*f,*add_step[0])
-    T = add_step[1]
+    line_eval, add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
+    f = fp12.mul(*f,*line_eval)
+    T = add_step
 
-    add_step = point_addition_and_line_evaluation(*Q2,*T,xp,yp)
-    f = fp12.mul(*f,*add_step[0])
+    line_eval, add_step = point_addition_and_line_evaluation(*Q2,*T,xp,yp)
+    f = fp12.mul(*f,*line_eval)
 
     return f
 
@@ -228,6 +228,7 @@ def pair(xp, yp, Xq0, Xq1, Yq0, Yq1):
 
 def main():
 
+    # From Ethereum tests
     # 1c76476f4def4bb94541d57ebba1193381ffa7aa76ada664dd31c16024c43f59 -> Xp1
     # 3034dd2920f673e204fee2811c678745fc819b55d3e9d294e45c9b03a76aef41 -> Yp1
 
@@ -253,21 +254,22 @@ def main():
     Zq0 = monty.ONE
     Zq1 = 0
 
-    a = pair(xp, yp, Xq0, Xq1, Yq0, Yq1)
+    assert(utils.is_in_curve(xp, yp))
+    assert(utils.is_in_twisted_curve(Xq0, Xq1, Yq0, Yq1))
 
     xp = monty.into(7742452358972543465462254569134860944739929848367563713587808717088650354556)
     yp = monty.into(14563720768440487558151020426243236708567496944263114635856508834497000371217)
-    Xr0 = monty.into(10857046999023057135944570762232829481370756359578518086990519993285655852781)
-    Xr1 = monty.into(11559732032986387107991004021392285783925812861821192530917403151452391805634)
-    Yr0 = monty.into(8495653923123431417604973247489272438418190587263600148770280649306958101930)
-    Yr1 = monty.into(4082367875863433681332203403145435568316851327593401208105741076214120093531)
-    Zr0 = monty.ONE
-    Zr1 = 0
+    Xt0 = monty.into(10857046999023057135944570762232829481370756359578518086990519993285655852781)
+    Xt1 = monty.into(11559732032986387107991004021392285783925812861821192530917403151452391805634)
+    Yt0 = monty.into(8495653923123431417604973247489272438418190587263600148770280649306958101930)
+    Yt1 = monty.into(4082367875863433681332203403145435568316851327593401208105741076214120093531)
+    Zt0 = monty.ONE
+    Zt1 = 0
 
-    b = pair(xp, yp, Xr0, Xr1, Yr0, Yr1)
+    assert(utils.is_in_curve(xp, yp))
+    assert(utils.is_in_twisted_curve(Xt0, Xt1, Yt0, Yt1))
 
     # Point doubling and line evaluation
-
     line_evaluation, double = point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp)
 
     # Xr = 9 Xt ** 4 - 8 Xt Yt **2
@@ -324,14 +326,13 @@ def main():
     # We ignore the 0 between the fp2 in line evaluation like the paper does
     assert((line_evaluation[8], line_evaluation[9]) == l_tt_z)
 
-    # # Point addition and line evaluation
-
+    # Point addition and line evaluation
     Xq = Xq0, Xq1
     Yq = Yq0, Yq1
     Zq = Zq0, Zq1
-    Xt = Xr0, Xr1
-    Yt = Yr0, Yr1
-    Zt = Zr0, Zr1
+    Xt = Xt0, Xt1
+    Yt = Yt0, Yt1
+    Zt = Zt0, Zt1
 
     line_evaluation, addition = point_addition_and_line_evaluation(*Xq, *Yq, *Zq, *Xt, *Yt, *Zt, xp, yp)
 
@@ -370,11 +371,40 @@ def main():
     Zr = fp2.scalar_mul(*Zr, monty.TWO)
     assert((addition[4],addition[5]) == Zr)
 
+    # l_tq_x = 2 * Zr * yp
+    l_tq_x = fp2.add(*Zr,*Zr)
+    l_tq_x = fp2.scalar_mul(*l_tq_x, yp)
+    assert((line_evaluation[0],line_evaluation[1]) == l_tq_x)
+
+    # l_tq_y = - (4 * xp * (Yq * Zt^3 - Yt))
+    # Change respect to the paper, the algorithm use sub and not add
+    Zt_cubed = fp2.mul(*Zt_squared, *Zt)
+    l_tq_y = fp2.mul(*Yq, *Zt_cubed)
+    # l_tq_y = fp2.add(*l_tq_y, *Yt)
+    l_tq_y = fp2.sub(*l_tq_y, *Yt)
+    l_tq_y = fp2.scalar_mul(*l_tq_y, monty.FOUR)
+    l_tq_y = fp2.scalar_mul(*l_tq_y, xp)
+    l_tq_y = fp2.neg(*l_tq_y)
+    assert((line_evaluation[6],line_evaluation[7]) == l_tq_y)
+
+    # l_tq_z = 4 * Xq * (Yq * Zt^3 − Yt ) − 2 * Yq * Zr
+    # Change respect to the paper, the algorithm does not multiply by Xq
+    l_tq_z = fp2.mul(*Yq, *Zt_cubed)
+    #l_tq_z = fp2.mul(*l_tq_z, *Xq)
+    l_tq_z = fp2.sub(*l_tq_z, *Yt)
+    l_tq_z = fp2.scalar_mul(*l_tq_z, monty.FOUR)
+    l_tq_z = fp2.mul(*l_tq_z, *Xq)
+    t0 = fp2.scalar_mul(*Yq, monty.TWO)
+    t0 = fp2.mul(*t0,*Zr)
+    l_tq_z = fp2.sub(*l_tq_z, *t0)
+    assert((line_evaluation[8],line_evaluation[9]) == l_tq_z)
+
     # Pairing Test
-    # # Should be 1
-    # result = fp12.mul(*a, *b)
-    # print(result)
-    # assert(result == fp12.ONE)
+    # Should be 1
+    a = pair(xp, yp, Xq0, Xq1, Yq0, Yq1)
+    b = pair(xp, yp, Xt0, Xt1, Yt0, Yt1)
+    result = fp12.mul(*a, *b)
+    assert(result == fp12.ONE)
 
 if __name__ == '__main__':
     main()
