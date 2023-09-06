@@ -2,7 +2,9 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
-            // CONSTANTS
+            ////////////////////////////////////////////////////////////////
+            //                      CONSTANTS
+            ////////////////////////////////////////////////////////////////
 
             function ZERO() -> zero {
                 zero := 0x0
@@ -20,7 +22,9 @@ object "ModExp" {
                 word := 0x20
             }
 
-            // HELPER FUNCTIONS
+            //////////////////////////////////////////////////////////////////
+            //                      HELPER FUNCTIONS
+            //////////////////////////////////////////////////////////////////
 
             function exponentIsZero(exponent_limbs, exponent_pointer) -> isZero {
                 isZero := ZERO()
@@ -36,7 +40,9 @@ object "ModExp" {
                 isZero := iszero(isZero)
             }
 
-            // FALLBACK
+            ////////////////////////////////////////////////////////////////
+            //                      FALLBACK
+            ////////////////////////////////////////////////////////////////
 
             let base_length := calldataload(0)
             let exponent_length := calldataload(32)
