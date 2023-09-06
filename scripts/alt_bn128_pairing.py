@@ -137,24 +137,39 @@ def final_exponentiation(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101,
 
     return f
 
-def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
-    T = Xq0, Xq1, Yq0, Yq1, Zq0, Zq1
+def miller_loop(Xq0, Xq1, Yq0, Yq1, xp, yp):
+
+    Q = Xq0, Xq1, Yq0, Yq1
+    T = g2.from_affine(Xq0, Xq1, Yq0, Yq1)
     f = fp12.ONE
 
-    for i in range(len(utils.S_NAF) - 1, -1, -1):
-        line_eval, double_step = point_doubling_and_line_evaluation(*T, xp, yp)
+    for i in range(len(utils.S_NAF) - 2, -1, -1):
         f = fp12.square(*f)
+
+        line_eval, double_step = point_doubling_and_line_evaluation(*T)
+        aux = list(line_eval)
+        aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
+        aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
+        line_eval = tuple(aux)
         f = fp12.mul(*f,*line_eval)
         T = double_step
 
         if pairing_utils.S_NAF[i] == -1:
-            minus_Q = g2.neg(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1)
-            line_eval, add_step = point_addition_and_line_evaluation(*minus_Q, *T, xp,yp)
+            minus_Q = g2.neg(*Q)
+            line_eval, add_step = point_addition_and_line_evaluation(*minus_Q, *T)
+            aux = list(line_eval)
+            aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
+            aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
+            line_eval = tuple(aux)
             f = fp12.mul(*f, *line_eval)
             T = add_step
 
         elif pairing_utils.S_NAF[i] == 1:
-            line_eval, add_step = point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1,*T,xp,yp)
+            line_eval, add_step = point_addition_and_line_evaluation(*Q,*T)
+            aux = list(line_eval)
+            aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
+            aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
+            line_eval = tuple(aux)
             f = fp12.mul(*f,*line_eval)
             T = add_step
 
@@ -163,25 +178,34 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
     Y_q0, Y_q1 = fp2.conjugate(Yq0, Yq1)
     X_q0, X_q1 = frb.mul_by_gamma_1_2(X_q0, X_q1)
     Y_q0, Y_q1 = frb.mul_by_gamma_1_3(Y_q0, Y_q1)
-    Q1 = g2.from_affine(X_q0, X_q1, Y_q0, Y_q1)
+    Q1 = X_q0, X_q1, Y_q0, Y_q1
 
     # Q2 <- pi_p_square(Q)
     X_q20, X_q21 = frb.mul_by_gamma_2_2(Xq0, Xq1)
     Y_q20, Y_q21 = frb.mul_by_gamma_2_3(Yq0, Yq1)
-    Q2 = g2.from_affine(X_q20, X_q21, Y_q20, Y_q21)
-    Q2 = g2.neg(*Q2)
+    Y_q20, Y_q21 = fp2.neg(Y_q20, Y_q21)
+    Q2 = X_q20, X_q21, Y_q20, Y_q21
     
-    line_eval, add_step = point_addition_and_line_evaluation(*Q1,*T,xp,yp)
+    line_eval, add_step = point_addition_and_line_evaluation(*Q1,*T)
+    aux = list(line_eval)
+    aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
+    aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
+    line_eval = tuple(aux)
     f = fp12.mul(*f,*line_eval)
     T = add_step
 
-    line_eval, add_step = point_addition_and_line_evaluation(*Q2,*T,xp,yp)
+    line_eval, add_step = point_addition_and_line_evaluation(*Q2,*T)
+    aux = list(line_eval)
+    aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
+    aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
+    line_eval = tuple(aux)
     f = fp12.mul(*f,*line_eval)
+    T = add_step
 
     return f
 
 def pair(xp, yp, Xq0, Xq1, Yq0, Yq1):
-    f = miller_loop(Xq0, Xq1, Yq0, Yq1, monty.ONE, 0, xp, yp)
+    f = miller_loop(Xq0, Xq1, Yq0, Yq1, xp, yp)
     # This should be final exponentiation
     f = fp12.exponentiation(*f, 552484233613224096312617126783173147097382103762957654188882734314196910839907541213974502761540629817009608548654680343627701153829446747810907373256841551006201639677726139946029199968412598804882391702273019083653272047566316584365559776493027495458238373902875937659943504873220554161550525926302303331747463515644711876653177129578303191095900909191624817826566688241804408081892785725967931714097716709526092261278071952560171111444072049229123565057483750161460024353346284167282452756217662335528813519139808291170539072125381230815729071544861602750936964829313608137325426383735122175229541155376346436093930287402089517426973178917569713384748081827255472576937471496195752727188261435633271238710131736096299798168852925540549342330775279877006784354801422249722573783561685179618816480037695005515426162362431072245638324744480)
     return f
