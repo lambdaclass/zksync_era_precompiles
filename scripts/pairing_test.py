@@ -14,6 +14,7 @@ with open(json_file_path, "r") as json_file:
     for element in data:
         input_data = element["Input"]
         expected_data = element["Expected"]
+        name = element["Name"]
 
         chunks = [monty.into(int(input_data[i:i+64], 16)) for i in range(0, len(input_data), 64)]
         sublistas = [chunks[i:i+6] for i in range(0, len(chunks), 6)]
@@ -29,11 +30,13 @@ with open(json_file_path, "r") as json_file:
 
         tests.append({
             "Input": sublistas,
-            "Expected": int(element["Expected"], 16)
+            "Expected": int(element["Expected"], 16),
+            "Name": name
         })
 
 for test in tests:
     result = []
+    print("Test: ", test["Name"])
     for i in test["Input"]:
         result.append(pairing.pair(*i))
     try:
@@ -42,7 +45,7 @@ for test in tests:
             resultado = 1
         else:
             resultado = 0
-
-        print(resultado == test["Expected"])
+        print("-> ", resultado == test["Expected"])
     except:
         print("Error")
+    print("___________")
