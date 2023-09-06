@@ -6,120 +6,80 @@ import frobenius as frb
 import g2
 import pairing_utils as utils
 
-# Algorithm 26. https://eprint.iacr.org/2010/354.pdf
-# P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
-# Q belongs to curve E' over Fp2 in Jacobian coordinates: Q = (Xq, Yq, Zq)
-def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1, xp, yp):
-    t0 = fp2.mul(Xq0,Xq1,Xq0,Xq1)
-    t1 = fp2.mul(Yq0,Yq1,Yq0,Yq1)
-    t2 = fp2.mul(*t1,*t1)
-    # TODO: This could be an optimization in the future, make sure to test it
-    # t3 = fp2.mul(*t1,Xq0,Xq1)
-    # t3 = fp2.add(*t3, *t3)
-    t3 = fp2.add(*t1,Xq0,Xq1)
-    t3 = fp2.mul(*t3,*t3)
-    t3 = fp2.sub(*t3,*t0)
-    t3 = fp2.sub(*t3,*t2)
-    t3 = fp2.add(*t3,*t3)
-    t4 = fp2.scalar_mul(*t0,monty.THREE)
-    t6 = fp2.add(Xq0,Xq1,*t4)
-    t5 = fp2.mul(*t4,*t4)
-    Xt = fp2.scalar_mul(*t3, monty.TWO)
-    Xt = fp2.sub(*t5,*Xt)
-    Zq_squared = fp2.mul(Zq0,Zq1,Zq0,Zq1)
-    # TODO: This could be an optimization in the future, make sure to test it
-    # Zt = fp2.mul(Yq0,Yq1,Zq0,Zq1 )
-    # Zt = fp2.add(*Zt, *Zt)
-    Zt = fp2.add(Yq0,Yq1,Zq0,Zq1)
-    Zt = fp2.mul(*Zt,*Zt)
-    Zt = fp2.sub(*Zt,*t1)
-    Zt = fp2.sub(*Zt, *Zq_squared)
-    t2_times_eight = fp2.scalar_mul(*t2,monty.EIGHT)
-    Yt = fp2.sub(*t3,*Xt)
-    Yt = fp2.mul(*Yt,*t4)
-    Yt = fp2.sub(*Yt,*t2_times_eight)
-    t3 = fp2.mul(*Zq_squared,*t4)
-    t3 = fp2.add(*t3,*t3)
-    t3 = fp2.sub(0,0,*t3) # multiply by -1
-    t3 = fp2.scalar_mul(*t3, xp)
-    t1_times_4 = fp2.scalar_mul(*t1,monty.FOUR)
-    t6 = fp2.mul(*t6,*t6)
-    t6 = fp2.sub(*t6,*t0)
-    t6 = fp2.sub(*t6,*t5)
-    t6 = fp2.sub(*t6,*t1_times_4)
-    t0 = fp2.mul(*Zt,*Zq_squared)
-    t0 = fp2.add(*t0,*t0)
-    t0 = fp2.scalar_mul(*t0,yp)
-    T = Xt + Yt + Zt
-    l = (*t0,0,0,0,0,*t3,*t6,0,0)
-    return l, T
+def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
+    two_inv = monty.inv(monty.TWO)
+    t0 = fp2.mul(Xq0,Xq1,Yq0,Yq1)
+    A = fp2.scalar_mul(*t0, two_inv)
+    B = fp2.mul(Yq0, Yq1, Yq0, Yq1)
+    C = fp2.mul(Zq0, Zq1, Zq0, Zq1)
+    D = fp2.add(*C, *C)
+    D = fp2.add(*D, *C)
+    E = fp2.mul(*D, *utils.TWISTED_CURVE_COEFFS)
+    F = fp2.add(*E, *E)
+    F = fp2.add(*F, *E)
+    G = fp2.add(*B, *F)
+    G = fp2.scalar_mul(*G, two_inv)
+    H = fp2.add(Yq0, Yq1, Zq0, Zq1)
+    H = fp2.mul(*H, *H)
+    t1 = fp2.add(*B, *C)
+    H = fp2.sub(*H, *t1)
+    I = fp2.sub(*E, *B)
+    J = fp2.mul(Xq0, Xq1, Xq0, Xq1)
+    EE = fp2.mul(*E, *E)
+    K = fp2.add(*EE,*EE)
+    K = fp2.add(*K,*EE)
 
-# Algorithm 27 from https://eprint.iacr.org/2010/354.pdf
-# P belongs to curve E over Fp in affine coordinates: P = (xp, yp)
-# Q belongs to curve E' over Fp2 in Jacobian coordinates: Q = (Xq, Yq, Zq)
-# R belongs to curve E' over Fp2 in Jacobian coordinates: R = (Xr, Yr, Zr)
-def point_addition_and_line_evaluation(xq0, xq1, yq0, yq1, _zq0, _zq1, xr0, xr1, yr0, yr1, zr0, zr1, xp, yp):
-    zr_squared = fp2.mul(zr0, zr1, zr0, zr1)
-    yq_squared = fp2.mul(yq0, yq1, yq0, yq1)
-    yr_doubled = fp2.add(yr0, yr1, yr0, yr1)
-    t0 = fp2.mul(xq0, xq1, *zr_squared)
+    Tx = fp2.sub(*B, *F)
+    Tx = fp2.mul(*Tx, *A)
 
-    # TODO: This could be an optimization in the future, make sure to test it
-    # t1 = fp2.mul(yq0, yq1, zr0, zr1)
-    # t1 = fp2.add(*t1, *t1)
-    t1 = fp2.add(yq0, yq1, zr0, zr1)
-    t1 = fp2.mul(*t1, *t1)
-    t1 = fp2.sub(*t1, *yq_squared)
-    t1 = fp2.sub(*t1, *zr_squared)
-    t1 = fp2.mul(*t1, *zr_squared)
+    Ty = fp2.mul(*G, *G)
+    Ty = fp2.sub(*Ty, *K)
+
+    Tz = fp2.mul(*B, *H)
+
+    l0 = fp2.neg(*H)
+    l1 = fp2.add(*J, *J)
+    l1 = fp2.add(*l1, *J)
+    l2 = I
+
+    l = (*l0,0,0,0,0,*l1,*l2,0,0)
+    T = Tx + Ty + Tz
+    return l,T
+
+def point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Xt0, Xt1, Yt0, Yt1, Zt0, Zt1):
+    temp = fp2.mul(Yq0,Yq1,Zt0,Zt1) # Y2Z1.Mul(&a.Y, &p.z)
+    O = fp2.sub(Yt0,Yt1,*temp) # O.Sub(&p.y, &Y2Z1)
+    temp = fp2.mul(Xq0,Xq1,Zt0,Zt1) # X2Z1.Mul(&a.X, &p.z)
+    L = fp2.sub(Xt0,Xt1,*temp) # L.Sub(&p.x, &X2Z1)
+    C = fp2.mul(*O,*O) # C.Square(&O)
+    D = fp2.mul(*L,*L) # D.Square(&L)
+    E = fp2.mul(*L,*D) # E.Mul(&L, &D)
+    F = fp2.mul(Zt0,Zt1,*C) # F.Mul(&p.z, &C)
+    G = fp2.mul(Xt0,Xt1,*D) # G.Mul(&p.x, &D)
+    temp = fp2.add(*G,*G) # t0.Double(&G)
+    H = fp2.add(*E,*F)
+    H = fp2.sub(*H,*temp) # H.Add(&E, &F).Sub(&H, &t0)
+    temp = fp2.mul(Yt0, Yt1, *E) # t1.Mul(&p.y, &E)
+
+    # X, Y, Z
+    Tx0, Tx1 = fp2.mul(*L,*H) # p.x.Mul(&L, &H)
+    Ty0, Ty1 = fp2.sub(*G,*H)
+    Ty0, Ty1 = fp2.mul(Ty0,Ty1,*O)
+    Ty0, Ty1 = fp2.sub(Ty0,Ty1,*temp) # p.y.Sub(&G, &H).Mul(&p.y, &O).Sub(&p.y, &t1)
+    Tz0, Tz1 = fp2.mul(*E, Zt0, Zt1) # p.z.Mul(&E, &p.z)
+
+    temp = fp2.mul(*L,Yq0,Yq1) # t2.Mul(&L, &a.Y)
+    J = fp2.mul(Xq0,Xq1,*O) 
+    J = fp2.sub(*J, *temp) # J.Mul(&a.X, &O).Sub(&J, &t2)
     
-    t2 = fp2.sub(*t0, xr0, xr1)
-    t3 = fp2.mul(*t2, *t2)
-    t4 = fp2.add(*t3, *t3)
-    t4 = fp2.add(*t4, *t4)
-    t5 = fp2.mul(*t4, *t2)
-    t6 = fp2.sub(*t1, *yr_doubled)
-    t9 = fp2.mul(*t6, xq0, xq1)
-    t7 = fp2.mul(xr0, xr1, *t4)
-    X_T = fp2.mul(*t6, *t6)
-    X_T = fp2.sub(*X_T, *t5)
-    X_T = fp2.sub(*X_T, *fp2.add(*t7, *t7))
+    # Line evaluation
+    l0 = L # evaluations.r0.Set(&L)
+    l1 = fp2.neg(*O) # evaluations.r1.Neg(&O)
+    l2 = J # evaluations.r2.Set(&J)
 
-    # TODO: This could be an optimization in the future, make sure to test it
-    # Z_T = fp2.mul(zr0, zr1, *t2)
-    # Z_T = fp2.add(*Z_T, *Z_T)
-    Z_T = fp2.add(zr0, zr1, *t2)
-    Z_T = fp2.mul(*Z_T, *Z_T)
-    Z_T = fp2.sub(*Z_T, *zr_squared)
-    Z_T = fp2.sub(*Z_T, *t3)
+    l = (*l0,0,0,0,0,*l1,*l2,0,0)
+    T = Tx0, Tx1, Ty0, Ty1, Tz0, Tz1
 
-    t10 = fp2.add(yq0, yq1, *Z_T)
-    t8 = fp2.sub(*t7, *X_T)
-    t8 = fp2.mul(*t8, *t6)
-    t0 = fp2.mul(yr0, yr1, *t5)
-    t0 = fp2.add(*t0, *t0)
-    Y_T = fp2.sub(*t8, *t0)
-
-    # TODO: This could be an optimization in the future, make sure to test it
-    # t10 = fp2.mul(yq0, yq1, *Z_T)
-    # t10 = fp2.add(*t10, *t10)
-    t10 = fp2.mul(*t10, *t10)
-    t10 = fp2.sub(*t10, *yq_squared)
-    t10 = fp2.sub(*t10, *fp2.mul(*Z_T, *Z_T))
-
-    t9 = fp2.add(*t9, *t9)
-    t9 = fp2.sub(*t9, *t10)
-    t10 = fp2.scalar_mul(*Z_T, yp)
-    t10 = fp2.add(*t10, *t10)
-    t6 = fp2.neg(*t6)
-    t1 = fp2.scalar_mul(*t6, xp)
-    t1 = fp2.add(*t1, *t1)
-
-    l0 = t10[0], t10[1], 0, 0, 0, 0
-    l1 = t1[0], t1[1], t9[0], t9[1], 0, 0
-    l = l0 + l1
-
-    T = X_T + Y_T + Z_T
     return l, T
 
 # Algorithm 31 from https://eprint.iacr.org/2010/354.pdf
