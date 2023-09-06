@@ -51,87 +51,76 @@ object "ModExp" {
                 return(0, 0)
             }
 
-            let base := ZERO()
-            let exponent := ZERO()
-            let exponent_limbs := ONE()
-            let memory_exponent_pointer := 96
-            let modulus := ZERO()
-            // This is a little optimization that avoids loading calldata that we already know are zeros.
-            // The first 96 bytes are the numbers representing the number of bytes to be taken up by the next value.
-            // As call data is assumed to be infinitely right-padded with zero bytes, if the calldata doesn't have
-            // more than 96 bytes, it is pointless to execute the above logic.
-            if gt(calldatasize(), 96) {
-                let base_pointer := 96
-                let base_padding := sub(WORD_SIZE(), base_length)
-                let padded_base_pointer := add(96, base_padding)
-                calldatacopy(padded_base_pointer, base_pointer, base_length)
-                base := mload(base_pointer)
-                
-                // As the exponent length could be more than 32 bytes we
-                // decided to represent the exponent with limbs. Because
-                // of that, we keep track of a calldata pointer and a memory 
-                // pointer.
-                //
-                // The calldata pointer keeps track of the real exponent length
-                // (which could not be divisible by the word size).
-                // The memory pointer keeps track of the adjusted exponent length
-                // (which is always divisible by the word size).
-                //
-                // There is a special case to handle when the leftmost limb of 
-                // the exponent has less than 32 bytes in the calldata (e.g. if 
-                // the calldata has 33 bytes in the calldata, in our limbs 
-                // representation it should have 64 bytes). Here is where it
-                // it could be a difference between the real exponent length and
-                // the adjusted exponent length.
-                //
-                // For the amount of limbs, if the exponent length is divisible 
-                // by the word size, then we just divide it by the word size. 
-                // If not, we divide and then add the remainder limb (this is
-                // the case when the leftmost limb has less than 32 bytes).
-                //
-                // In the special case, the memory exponent pointer and the
-                // calldata exponent pointer are outphased. That's why after
-                // loading the exponent from the calldata, we still need to 
-                // compute two pointers for the modulus.
-                let calldata_exponent_pointer := add(base_pointer, base_length)
-                memory_exponent_pointer := add(base_pointer, WORD_SIZE())
-                exponent_limbs := ZERO()
-                switch iszero(mod(exponent_length, WORD_SIZE()))
-                case 0 {
-                    exponent_limbs := add(div(exponent_length, WORD_SIZE()), ONE())
-                }
-                case 1 {
-                    exponent_limbs := div(exponent_length, WORD_SIZE())
-                }
-                // The exponent expected length given the amount of limbs.
-                let adjusted_exponent_length := mul(WORD_SIZE(), exponent_limbs)
-                let calldata_next_limb_pointer := calldata_exponent_pointer
-                let memory_next_limb_pointer := memory_exponent_pointer
-                for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, ONE()) } {
-                    // The msb of the leftmost limb could be one.
-                    // This left-pads with zeros the leftmost limbs to achieve 32 bytes.
-                    if iszero(limb_number) {
-                        // The amount of zeros to left-pad.
-                        let padding := sub(adjusted_exponent_length, exponent_length)
-                        // This is either 0 or > 0 if there are any zeros to pad.
-                        let padded_exponent_pointer := add(memory_exponent_pointer, padding)
-                        let amount_of_bytes_for_first_limb := sub(WORD_SIZE(), padding)
-                        calldatacopy(padded_exponent_pointer, calldata_exponent_pointer, amount_of_bytes_for_first_limb)
-                        calldata_next_limb_pointer := add(calldata_exponent_pointer, amount_of_bytes_for_first_limb)
-                        memory_next_limb_pointer := add(memory_exponent_pointer, WORD_SIZE())
-                        continue
-                    }
-                    calldatacopy(memory_next_limb_pointer, calldata_next_limb_pointer, WORD_SIZE())
-                    calldata_next_limb_pointer := add(calldata_next_limb_pointer, WORD_SIZE())
-                    memory_next_limb_pointer := add(memory_next_limb_pointer, WORD_SIZE())
-                }
-    
-                let calldata_modulus_pointer := add(calldata_exponent_pointer, exponent_length)
-                let memory_modulus_pointer := add(memory_exponent_pointer, adjusted_exponent_length)
-                calldatacopy(add(memory_modulus_pointer, sub(WORD_SIZE(), modulus_length)), calldata_modulus_pointer, modulus_length)
-    
-                modulus := mload(memory_modulus_pointer)
+            let base_pointer := 96
+            let base_padding := sub(WORD_SIZE(), base_length)
+            let padded_base_pointer := add(96, base_padding)
+            calldatacopy(padded_base_pointer, base_pointer, base_length)
+            let base := mload(base_pointer)
+            
+            // As the exponent length could be more than 32 bytes we
+            // decided to represent the exponent with limbs. Because
+            // of that, we keep track of a calldata pointer and a memory 
+            // pointer.
+            //
+            // The calldata pointer keeps track of the real exponent length
+            // (which could not be divisible by the word size).
+            // The memory pointer keeps track of the adjusted exponent length
+            // (which is always divisible by the word size).
+            //
+            // There is a special case to handle when the leftmost limb of 
+            // the exponent has less than 32 bytes in the calldata (e.g. if 
+            // the calldata has 33 bytes in the calldata, in our limbs 
+            // representation it should have 64 bytes). Here is where it
+            // it could be a difference between the real exponent length and
+            // the adjusted exponent length.
+            //
+            // For the amount of limbs, if the exponent length is divisible 
+            // by the word size, then we just divide it by the word size. 
+            // If not, we divide and then add the remainder limb (this is
+            // the case when the leftmost limb has less than 32 bytes).
+            //
+            // In the special case, the memory exponent pointer and the
+            // calldata exponent pointer are outphased. That's why after
+            // loading the exponent from the calldata, we still need to 
+            // compute two pointers for the modulus.
+            let calldata_exponent_pointer := add(base_pointer, base_length)
+            let memory_exponent_pointer := add(base_pointer, WORD_SIZE())
+            let exponent_limbs := ZERO()
+            switch iszero(mod(exponent_length, WORD_SIZE()))
+            case 0 {
+                exponent_limbs := add(div(exponent_length, WORD_SIZE()), ONE())
             }
+            case 1 {
+                exponent_limbs := div(exponent_length, WORD_SIZE())
+            }
+            // The exponent expected length given the amount of limbs.
+            let adjusted_exponent_length := mul(WORD_SIZE(), exponent_limbs)
+            let calldata_next_limb_pointer := calldata_exponent_pointer
+            let memory_next_limb_pointer := memory_exponent_pointer
+            for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, ONE()) } {
+                // The msb of the leftmost limb could be one.
+                // This left-pads with zeros the leftmost limbs to achieve 32 bytes.
+                if iszero(limb_number) {
+                    // The amount of zeros to left-pad.
+                    let padding := sub(adjusted_exponent_length, exponent_length)
+                    // This is either 0 or > 0 if there are any zeros to pad.
+                    let padded_exponent_pointer := add(memory_exponent_pointer, padding)
+                    let amount_of_bytes_for_first_limb := sub(WORD_SIZE(), padding)
+                    calldatacopy(padded_exponent_pointer, calldata_exponent_pointer, amount_of_bytes_for_first_limb)
+                    calldata_next_limb_pointer := add(calldata_exponent_pointer, amount_of_bytes_for_first_limb)
+                    memory_next_limb_pointer := add(memory_exponent_pointer, WORD_SIZE())
+                    continue
+                }
+                calldatacopy(memory_next_limb_pointer, calldata_next_limb_pointer, WORD_SIZE())
+                calldata_next_limb_pointer := add(calldata_next_limb_pointer, WORD_SIZE())
+                memory_next_limb_pointer := add(memory_next_limb_pointer, WORD_SIZE())
+            }
+
+            let calldata_modulus_pointer := add(calldata_exponent_pointer, exponent_length)
+            let memory_modulus_pointer := add(memory_exponent_pointer, adjusted_exponent_length)
+            calldatacopy(add(memory_modulus_pointer, sub(WORD_SIZE(), modulus_length)), calldata_modulus_pointer, modulus_length)
+
+            let modulus := mload(memory_modulus_pointer)
 
             // 1^exponent % modulus = 1
             if eq(base, ONE()) {
@@ -165,7 +154,7 @@ object "ModExp" {
                 let pow := 1
                 // If we have one limb, then the exponent has 32 bytes and it is
                 // located in 0x
-                exponent := mload(memory_exponent_pointer)
+                let exponent := mload(memory_exponent_pointer)
                 base := mod(base, modulus)
                 for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
                     if eq(mod(exponent, TWO()), ONE()) {
