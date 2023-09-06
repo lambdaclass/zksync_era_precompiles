@@ -4,7 +4,7 @@ import fp2
 import frobenius as frb
 
 ZERO = (0,0,0,0,0,0,0,0,0,0,0,0)
-ONE = [monty.ONE] + [0 for _ in range(11)]
+ONE = tuple([monty.ONE] + [0 for _ in range(11)])
 
 # Algorithm 18 from https://eprint.iacr.org/2010/354.pdf
 def add(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121, b_000, b_001, b_010, b_011, b_020, b_021, b_100, b_101, b_110, b_111, b_120, b_121):
