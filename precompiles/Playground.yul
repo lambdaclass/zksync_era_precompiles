@@ -635,7 +635,7 @@ object "Playground" {
 
             // PAIRING FUNCTIONS
             
-            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero zero, c30, c31, c40, c41, c50, c51 {
+            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero, zero, c30, c31, c40, c41, c50, c51 {
                 let zero := ZERO()
                 let twoInv := montgomeryModularInverse(MONTGOMERY_TWO())
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
@@ -668,7 +668,8 @@ object "Playground" {
                 c10, c11 := fp2Add(c10, c11, t110, t111)
                 
                 // l2
-                let c20, c21 := t100, t101
+                let c20 := t100
+                let c21 := t101
 
                 // Tx
                 let c30, c31 := fp2Sub(t20, t21, t40, t41)
