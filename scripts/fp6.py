@@ -36,7 +36,7 @@ def square(a_00, a_01, a_10, a_11, a_20, a_21):
     c2 = fp2.sub(*c4, *c5)
     c3 = fp2.exp(a_00, a_01, 2)
     c4 = fp2.add(*fp2.sub(a_00, a_01, a_10, a_11), a_20, a_21)
-    c5 = fp2.scalar_mul(*fp2.mul(a_00, a_01, a_20, a_21), monty.TWO)
+    c5 = fp2.scalar_mul(*fp2.mul(a_10, a_11, a_20, a_21), monty.TWO)
     c4 = fp2.exp(*c4, 2)
     c0 = fp2.add(*fp2.mul_by_xi(*c5), *c3)
     c2 = fp2.sub(*fp2.add(*fp2.add(*c2, *c4), *c5), *c3)
@@ -125,14 +125,14 @@ def main():
 
     # INVERSE
     fp6_inversed = inv(*fp2_a_0, *fp2_a_1, *fp2_a_2)
-    fp6_zero = mul(*fp2_a_0, *fp2_a_1, *fp2_a_2, *fp6_inversed)
+    fp6_one = mul(*fp2_a_0, *fp2_a_1, *fp2_a_2, *fp6_inversed)
 
-    assert(fp6_zero[0] == monty.ONE)
-    assert(fp6_zero[1] == 0)
-    assert(fp6_zero[2] == 0)
-    assert(fp6_zero[3] == 0)
-    assert(fp6_zero[4] == 0)
-    assert(fp6_zero[5] == 0)
+    assert(fp6_one[0] == monty.ONE)
+    assert(fp6_one[1] == 0)
+    assert(fp6_one[2] == 0)
+    assert(fp6_one[3] == 0)
+    assert(fp6_one[4] == 0)
+    assert(fp6_one[5] == 0)
 
 if __name__ == '__main__':
     main()
