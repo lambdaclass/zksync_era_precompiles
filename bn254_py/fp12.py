@@ -226,5 +226,6 @@ def main():
     c = square(*a)
     d = cyclotomic_square(*a)
     assert(c == d)
+
 if __name__ == '__main__':
     main()

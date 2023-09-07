@@ -49,39 +49,39 @@ def double(x, y, z):
 def add(xp, yp, zp, xq, yq, zq):
     if is_infinity(xp, yp, zp):
         return xq, yq, zq
-    elif is_infinity(xq, yq, zq):
+    if is_infinity(xq, yq, zq):
         return xp, yp, zp
-    else:
-        zpzp = monty.mul(zp, zp)
-        zqzq = monty.mul(zq, zq)
 
-        t1 = monty.mul(xp, zqzq)
-        t2 = monty.mul(xq, zpzp)
+    zpzp = monty.mul(zp, zp)
+    zqzq = monty.mul(zq, zq)
 
-        s1 = monty.mul(yp, monty.mul(zq, zqzq))
-        s2 = monty.mul(yq, monty.mul(zp, zpzp))
+    t1 = monty.mul(xp, zqzq)
+    t2 = monty.mul(xq, zpzp)
 
-        if t1 == t2:
-            if s1 != s2:
-                return INFINITY
-            else:
-                return double(xp, yp, zp)
+    s1 = monty.mul(yp, monty.mul(zq, zqzq))
+    s2 = monty.mul(yq, monty.mul(zp, zpzp))
+
+    if t1 == t2:
+        if s1 != s2:
+            return INFINITY
         else:
-            h = monty.sub(t2, t1)
-            r = monty.sub(s2, s1)
+            return double(xp, yp, zp)
+    else:
+        h = monty.sub(t2, t1)
+        r = monty.sub(s2, s1)
 
-            hh = monty.mul(h, h)
-            hhh = monty.mul(hh, h)
-            x3 = monty.sub(monty.mul(r, r), hhh)
-            x3 = monty.sub(x3, monty.mul(monty.mul(t1, hh), monty.TWO))
-            y3 = monty.mul(r, monty.sub(monty.mul(t1, hh), x3))
-            y3 = monty.sub(y3, monty.mul(s1, hhh))
-            z3 = monty.mul(h, monty.mul(zp, zq))
-            
-            return x3, y3, z3
+        hh = monty.mul(h, h)
+        hhh = monty.mul(hh, h)
+        x3 = monty.sub(monty.mul(r, r), hhh)
+        x3 = monty.sub(x3, monty.mul(monty.mul(t1, hh), monty.TWO))
+        y3 = monty.mul(r, monty.sub(monty.mul(t1, hh), x3))
+        y3 = monty.sub(y3, monty.mul(s1, hhh))
+        z3 = monty.mul(h, monty.mul(zp, zq))
+        
+        return x3, y3, z3
 
 def sub(xp, yp, zp, xq, yq, zq):
-    add(xp, yp, zp, neg(xq, yq, zq))
+    return add(xp, yp, zp, neg(xq, yq, zq))
 
 def mul(x, y, z, scalar):
     x_res, y_res, z_res = INFINITY
