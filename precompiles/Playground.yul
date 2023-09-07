@@ -632,7 +632,7 @@ object "Playground" {
             //                      FROBENIUS
             ////////////////////////////////////////////////////////////////
 
-            function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+            function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21 {
                 let t10, t11 := fp2Conjugate(a000, a001)
                 let t20, t21 := fp2Conjugate(a100, a101)
                 let t30, t31 := fp2Conjugate(a010, a011)
@@ -646,11 +646,10 @@ object "Playground" {
                 t50, t51 := mulByGamma14(t50, t51)
                 t60, t61 := mulByGamma15(t60, t61)
 
-                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51)
-                c30, c31, c40, c41, c50, c51 := fp6Add(t20, t21, t40, t41, t60, t61)
+                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51, t20, t21, t40, t41, t60, t61)
             }
 
-            function frobeniusSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+            function frobeniusSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21 {
                 let t10, t11 := a000, a001
                 let t20, t21 := mulByGamma21(a100, a101)
                 let t30, t31 := mulByGamma22(a010, a011)
@@ -658,11 +657,10 @@ object "Playground" {
                 let t50, t51 := mulByGamma24(a020, a021)
                 let t60, t61 := mulByGamma25(a120, a121)
 
-                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51)
-                c30, c31, c40, c41, c50, c51 := fp6Add(t20, t21, t40, t41, t60, t61)
+                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51, t20, t21, t40, t41, t60, t61)
             }
 
-            function frobeniusCube(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+            function frobeniusCube(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21 {
                 let t10, t11 := fp2Conjugate(a000, a001)
                 let t20, t21 := fp2Conjugate(a100, a101)
                 let t30, t31 := fp2Conjugate(a010, a011)
@@ -676,8 +674,7 @@ object "Playground" {
                 t50, t51 := mulByGamma34(t50, t51)
                 t60, t61 := mulByGamma35(t60, t61)
 
-                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51)
-                c30, c31, c40, c41, c50, c51 := fp6Add(t20, t21, t40, t41, t60, t61)
+                c00, c01, c10, c11, c20, c21 := fp6Add(t10, t11, t30, t31, t50, t51, t20, t21, t40, t41, t60, t61)
             }
 
             // GAMMA_1_i
