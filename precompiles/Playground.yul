@@ -431,7 +431,7 @@ object "Playground" {
                 c01 := montgomeryAdd(montgomeryMul(a00, b01), montgomeryMul(a01, b00))
             }
 
-            function fp2Neg(a00, a01, b00, b01) -> c00, c01 {
+            function fp2Neg(a00, a01) -> c00, c01 {
                 c00 := montgomerySub(ZERO(), a00)
                 c01 := montgomerySub(ZERO(), a01)
             }
