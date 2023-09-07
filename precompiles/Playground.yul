@@ -34,6 +34,11 @@ object "Playground" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
+                z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
+                z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
+            }
+
             // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
@@ -426,6 +431,11 @@ object "Playground" {
                 c01 := montgomeryAdd(montgomeryMul(a00, b01), montgomeryMul(a01, b00))
             }
 
+            function fp2Neg(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomerySub(ZERO(), a00)
+                c01 := montgomerySub(ZERO(), a01)
+            }
+
             function fp2Inv(a00, a01) -> c00, c01 {
                 let t0 := montgomeryMul(a00, a00)
                 let t1 := montgomeryMul(a01, a01)
@@ -621,6 +631,55 @@ object "Playground" {
                 let z00, z01, z10, z11, z20, z21 :=  FP6_ZERO()
                 c100, c101, c110, c111, c120, c121 := fp6Mul(a100, a101, a110, a111, a120, a121,t100, t101, t110, t111, t120, t121)
                 c100, c101, c110, c111, c120, c121 := fp6Sub(z00, z01, z10, z11, z20, z21, c100, c101, c110, c111, c120, c121)
+            }
+
+            // PAIRING FUNCTIONS
+            
+            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero zero, c30, c31, c40, c41, c50, c51 {
+                let zero := ZERO()
+                let twoInv := montgomeryModularInverse(MONTGOMERY_TWO())
+                let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
+                let t10, t11 := fp2ScalarMul(t00, t01, twoInv)
+                let t20, t21 := fp2Mul(yq0, yq1, yq0, yq1)
+                let t30, t31 := fp2Mul(zq0, zq1, zq0, zq1)
+                let t40, t41 := fp2Add(t30, t31, t30, t31)
+                t40, t41 := fp2Add(t40, t41, t30, t31)
+                let t50, t51 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                t50, t51 := fp2Mul(t40, t41, t50, t51)
+                let t60, t61 :=fp2Add(t50, t51, t50, t51)
+                t60, t61 := fp2Add(t60, t61, t50, t51)
+                let t70, t71 := fp2Add(t20, t21, t60, t61)
+                t70, t71 := fp2ScalarMul(t70, t71, twoInv)
+                let t80, t81 := fp2Add(yq0, yq1, zq0, zq1)
+                t80, t81 := fp2Mul(t80, t81, t80, t81)
+                let t90, t91 := fp2Add(t30, t31, t20, t21)
+                t80, t81 := fp2Sub(t80, t81, t90, t91)
+                let t100, t101 := fp2Sub(t50, t51, t20, t21)
+                let t110, t111 := fp2Mul(xq0, xq1, xq0, xq1)
+                let t120, t121 := fp2Mul(t50, t51, t50, t51)
+                let t130, t131 := fp2Add(t120, t121, t120, t121)
+                t130, t131 := fp2Add(t130, t131, t120, t121)
+
+                // l0
+                let c00, c01 := fp2Neg(t80, t81)
+
+                // l1
+                let c10, c11 := fp2Add(t110, t111, t110, t111)
+                c10, c11 := fp2Add(c10, c11, t110, t111)
+                
+                // l2
+                let c20, c21 := t100, t101
+
+                // Tx
+                let c30, c31 := fp2Sub(t20, t21, t40, t41)
+                c30, c31 := fp2Mul(c30, c31, t10, t11)
+
+                // Ty
+                let c40, c41 := fp2Mul(t70, t71, t70, t71)
+                c40, c41 := fp2Sub(c40, c41, t130, t131)
+
+                // Tz
+                let c50, c51 := fp2Mul(t20, t21, t80, t81)
             }
 
             ////////////////////////////////////////////////////////////////
