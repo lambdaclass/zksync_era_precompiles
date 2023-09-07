@@ -645,55 +645,55 @@ object "Playground" {
             }
 
             function cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
-                let t00, t01 := fp2.mul(a110, a111, a110, a111)
-                let t10, t11 := fp2.mul(a000, a001, a000, a001)
-                let t20, t21 := fp2.add(a_110, a_111, a_000, a_001)  // t6
-                t20, t21 := fp2.mul(t20, t21, t20, t21)
-                t20, t21 := fp2.sub(t20, t21, t00, t01)
-                t20, t21 := fp2.sub(t20, t21, t10, t11)
-                let t30, t31 := fp2.mul(a020, a021, a020, a021) // t2
-                let t40, t41 := fp2.mul(a100, a101, a100, a101)  // t3
-                let t50, t51 := fp2.add(a_020, a_021, a_100, a_101) // t7
-                t50, t51 := fp2.mul(t50, t51, t50, t51)
-                t50, t51 := fp2.sub(t50, t51, t30, t31)
-                t50, t51 := fp2.sub(t50, t51, t40, t41)
-                let t60, t61 := fp2.mul(a120, a121, a120, a121) // t4
-                let t70, t71 := fp2.mul(a010, a011, a010, a011) // t5
-                let t80, t81 := fp2.add(a120, a121, a010, a011)
-                t80, t81 := fp2.mul(t80, t81, t80, t81)
-                t80, t81 := fp2.sub(t80, t81, t60, t61)
-                t80, t81 := fp2.sub(t80, t81, t70, t71)
-                t80, t81 := fp2.mul_by_xi(t80, t81)
-                t00, t01 := fp2.mul_by_xi(t00, t01)
-                t00, t01 := fp2.add(t00, t01, t10, t11)
-                t30, t31 := fp2.mul_by_xi(t30, t31)
-                t30, t31 := fp2.add(t30, t31, t40, t41)
-                t60, t61 := fp2.mul_by_xi(t60, t61)
-                t60, t61 := fp2.add(t60, t61, t70, t71)
+                let t00, t01 := fp2Mul(a110, a111, a110, a111)
+                let t10, t11 := fp2Mul(a000, a001, a000, a001)
+                let t20, t21 := fp2Add(a_110, a_111, a_000, a_001)  // t6
+                t20, t21 := fp2Mul(t20, t21, t20, t21)
+                t20, t21 := fp2Sub(t20, t21, t00, t01)
+                t20, t21 := fp2Sub(t20, t21, t10, t11)
+                let t30, t31 := fp2Mul(a020, a021, a020, a021) // t2
+                let t40, t41 := fp2Muul(a100, a101, a100, a101)  // t3
+                let t50, t51 := fp2Add(a_020, a_021, a_100, a_101) // t7
+                t50, t51 := fp2Mul(t50, t51, t50, t51)
+                t50, t51 := fp2Sub(t50, t51, t30, t31)
+                t50, t51 := fp2Sub(t50, t51, t40, t41)
+                let t60, t61 := fp2Mul(a120, a121, a120, a121) // t4
+                let t70, t71 := fp2Mul(a010, a011, a010, a011) // t5
+                let t80, t81 := fp2Add(a120, a121, a010, a011)
+                t80, t81 := fp2Mul(t80, t81, t80, t81)
+                t80, t81 := fp2Sub(t80, t81, t60, t61)
+                t80, t81 := fp2Sub(t80, t81, t70, t71)
+                t80, t81 := fp2Mul_by_xi(t80, t81)
+                t00, t01 := fp2Mul_by_xi(t00, t01)
+                t00, t01 := fp2Add(t00, t01, t10, t11)
+                t30, t31 := fp2Mul_by_xi(t30, t31)
+                t30, t31 := fp2Add(t30, t31, t40, t41)
+                t60, t61 := fp2Mul_by_xi(t60, t61)
+                t60, t61 := fp2Add(t60, t61, t70, t71)
 
-                c000, c001 := fp2.sub(t00, t01, a000, a001)
-                c000, c001 := fp2.add(c000, c001, c000, c001)
-                c000, c001 := fp2.add(c000, c001, t00, t01)
+                c000, c001 := fp2Sub(t00, t01, a000, a001)
+                c000, c001 := fp2Add(c000, c001, c000, c001)
+                c000, c001 := fp2Add(c000, c001, t00, t01)
             
-                c010, c011 := fp2.sub(t30, t31, a010, a011)
-                c010, c011 := fp2.add(c010, c011, c010, c011)
-                c010, c011 := fp2.add(c010, c011, t30, t31)
+                c010, c011 := fp2Sub(t30, t31, a010, a011)
+                c010, c011 := fp2Add(c010, c011, c010, c011)
+                c010, c011 := fp2Add(c010, c011, t30, t31)
             
-                c020, c021 := fp2.sub(t60, t61, a020, a021)
-                c020, c021 := fp2.add(c020, c021, c020, c021)
-                c020, c021 := fp2.add(c020, c021, t60, t61)
+                c020, c021 := fp2Sub(t60, t61, a020, a021)
+                c020, c021 := fp2Add(c020, c021, c020, c021)
+                c020, c021 := fp2Add(c020, c021, t60, t61)
             
-                c100, c101 := fp2.add(t80, t81, a100, a101)
-                c100, c101 := fp2.add(c100, c101, c100, c101)
-                c100, c101 := fp2.add(c100, c101, t80, t81)
+                c100, c101 := fp2Add(t80, t81, a100, a101)
+                c100, c101 := fp2Add(c100, c101, c100, c101)
+                c100, c101 := fp2Add(c100, c101, t80, t81)
             
-                c110, c111 := fp2.add(t20, t21, a110, a111)
-                c110, c111 := fp2.add(c110, c111, c110, c111)
-                c110, c111 := fp2.add(c110, c111, t20, t21)
+                c110, c111 := fp2Add(t20, t21, a110, a111)
+                c110, c111 := fp2Add(c110, c111, c110, c111)
+                c110, c111 := fp2Add(c110, c111, t20, t21)
             
-                c120, c121 = fp2.add(t50, t51, a120, a121)
-                c120, c121 = fp2.add(c120, c121, c120, c121)
-                c120, c121 = fp2.add(c120, c121, t50, t51)
+                c120, c121 := fp2Add(t50, t51, a120, a121)
+                c120, c121 := fp2Add(c120, c121, c120, c121)
+                c120, c121 := fp2Add(c120, c121, t50, t51)
             }
                 
 
