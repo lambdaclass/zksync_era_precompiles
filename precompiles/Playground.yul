@@ -935,8 +935,8 @@ object "Playground" {
 
             // // FP12 TESTS:
 
-            let one := MONTGOMERY_ONE()
-            let two := MONTGOMERY_TWO()
+            // let one := MONTGOMERY_ONE()
+            // let two := MONTGOMERY_TWO()
 
             // // ADD
 
@@ -1289,6 +1289,88 @@ object "Playground" {
             // console_log(outOfMontgomeryForm(t111)) // 0
             // console_log(outOfMontgomeryForm(t120)) // 0
             // console_log(outOfMontgomeryForm(t121)) // 0
+
+            // FROBENIUS TESTS:
+
+            let one := MONTGOMERY_ONE()
+            let two := MONTGOMERY_TWO()
+
+            let fp12_a000 := one
+            let fp12_a001 := two
+            let fp12_a010 := one
+            let fp12_a011 := two
+            let fp12_a020 := one
+            let fp12_a021 := two
+            let fp12_a100 := one
+            let fp12_a101 := two
+            let fp12_a110 := one
+            let fp12_a111 := two
+            let fp12_a120 := one
+            let fp12_a121 := two
+
+            let result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
+
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
+
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
         }
     }
 }
