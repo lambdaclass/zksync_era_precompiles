@@ -6,7 +6,7 @@ import frobenius as frb
 import g2
 import pairing_utils as utils
 
-def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
+def double_step(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     two_inv = monty.inv(monty.TWO)
     t0 = fp2.mul(Xq0,Xq1,Yq0,Yq1)
     A = fp2.scalar_mul(*t0, two_inv)
@@ -46,7 +46,7 @@ def point_doubling_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Zq0, Zq1):
     T = Tx + Ty + Tz
     return l,T
 
-def point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Xt0, Xt1, Yt0, Yt1, Zt0, Zt1):
+def mixed_addition_step(Xq0, Xq1, Yq0, Yq1, Xt0, Xt1, Yt0, Yt1, Zt0, Zt1):
     temp = fp2.mul(Yq0,Yq1,Zt0,Zt1) 
     O = fp2.sub(Yt0,Yt1,*temp)
     temp = fp2.mul(Xq0,Xq1,Zt0,Zt1)
@@ -61,7 +61,6 @@ def point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Xt0, Xt1, Yt0, Yt1, Z
     H = fp2.sub(*H,*temp) 
     temp = fp2.mul(Yt0, Yt1, *E) 
 
-    # X, Y, Z
     Tx0, Tx1 = fp2.mul(*L,*H)
     Ty0, Ty1 = fp2.sub(*G,*H)
     Ty0, Ty1 = fp2.mul(Ty0,Ty1,*O)
@@ -72,7 +71,6 @@ def point_addition_and_line_evaluation(Xq0, Xq1, Yq0, Yq1, Xt0, Xt1, Yt0, Yt1, Z
     J = fp2.mul(Xq0,Xq1,*O) 
     J = fp2.sub(*J, *temp)
     
-    # Line evaluation
     l0 = L
     l1 = fp2.neg(*O)
     l2 = J
@@ -129,32 +127,32 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, xp, yp):
     for i in range(len(utils.S_NAF) - 2, -1, -1):
         f = fp12.square(*f)
 
-        line_eval, double_step = point_doubling_and_line_evaluation(*T)
+        line_eval, point_double = double_step(*T)
         aux = list(line_eval)
         aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
         aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
         line_eval = tuple(aux)
         f = fp12.mul(*f,*line_eval)
-        T = double_step
+        T = point_double
 
         if pairing_utils.S_NAF[i] == -1:
             minus_Q = g2.neg(*Q)
-            line_eval, add_step = point_addition_and_line_evaluation(*minus_Q, *T)
+            line_eval, point_adding = mixed_addition_step(*minus_Q, *T)
             aux = list(line_eval)
             aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
             aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
             line_eval = tuple(aux)
             f = fp12.mul(*f, *line_eval)
-            T = add_step
+            T = point_adding
 
         elif pairing_utils.S_NAF[i] == 1:
-            line_eval, add_step = point_addition_and_line_evaluation(*Q,*T)
+            line_eval, point_adding = mixed_addition_step(*Q,*T)
             aux = list(line_eval)
             aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
             aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
             line_eval = tuple(aux)
             f = fp12.mul(*f,*line_eval)
-            T = add_step
+            T = point_adding
 
     # Q1 <- pi_p(Q)
     X_q0, X_q1 = fp2.conjugate(Xq0, Xq1)
@@ -169,21 +167,21 @@ def miller_loop(Xq0, Xq1, Yq0, Yq1, xp, yp):
     Y_q20, Y_q21 = fp2.neg(Y_q20, Y_q21)
     Q2 = X_q20, X_q21, Y_q20, Y_q21
     
-    line_eval, add_step = point_addition_and_line_evaluation(*Q1,*T)
+    line_eval, point_adding = mixed_addition_step(*Q1,*T)
     aux = list(line_eval)
     aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
     aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
     line_eval = tuple(aux)
     f = fp12.mul(*f,*line_eval)
-    T = add_step
+    T = point_adding
 
-    line_eval, add_step = point_addition_and_line_evaluation(*Q2,*T)
+    line_eval, point_adding = mixed_addition_step(*Q2,*T)
     aux = list(line_eval)
     aux[0], aux[1] = fp2.scalar_mul(aux[0], aux[1], yp)
     aux[6], aux[7] = fp2.scalar_mul(aux[6], aux[7], xp)
     line_eval = tuple(aux)
     f = fp12.mul(*f,*line_eval)
-    T = add_step
+    T = point_adding
 
     return f
 
