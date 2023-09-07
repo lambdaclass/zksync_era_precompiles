@@ -1,6 +1,5 @@
 import fp2
 import montgomery as monty
-import fp12
 
 def frobenius(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110, a_111, a_120, a_121):
     t1 = fp2.conjugate(a_000, a_001)
@@ -54,7 +53,6 @@ def frobenius_cube(a_000, a_001, a_010, a_011, a_020, a_021, a_100, a_101, a_110
     return c0 + c1
 
 # Implement the precomputed constant multiplications for utilizing the Frobenius Operator.
-# TODO: Verify the precomputed numbers. 
 
 # GAMMA_1_i
 
