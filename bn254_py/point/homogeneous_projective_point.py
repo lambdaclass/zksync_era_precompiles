@@ -1,4 +1,4 @@
-import montgomery as monty
+import bn254_py.montgomery as monty
 
 INFINITY = (0, monty.ONE, 0)
 
@@ -11,6 +11,9 @@ def into_affine(x, y, z):
     if z == 0:
         return 0, 0
     return monty.div(x, z), monty.div(y, z)
+
+def is_infinity(_x, _y, z):
+    return z == 0
 
 def double(x, y, z):
     x_squared = monty.mul(x, x)
