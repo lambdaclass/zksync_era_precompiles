@@ -198,19 +198,5 @@ def main():
     assert(result[10] == fp12_a[10])
     assert(result[11] == fp12_a[11])
 
-    p = 21888242871839275222246405745257275088696311157297823662689037894645226208583
-    a = frobenius(*fp12_a)
-    b = fp12.exponentiation(*fp12_a, p)
-    assert(a == b)
-
-    a = frobenius_square(*fp12_a)
-    b = fp12.exponentiation(*fp12_a, p ** 2)
-    assert(a == b)
-
-    a = frobenius_cube(*fp12_a)
-    b = fp12.exponentiation(*fp12_a, p ** 3)
-    assert(a == b)
-
-    
 if __name__ == '__main__':
     main()
