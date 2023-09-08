@@ -535,7 +535,7 @@ object "Playground" {
                 let tmp8, tmp9 := fp2Sub(a00, a01, a10, a11)
                 tmp0, tmp1 := fp2Add(tmp8, tmp9, a20, a21)
             
-                let tmp10, tmp11 := fp2Mul(a00, a01, a20, a21)
+                let tmp10, tmp11 := fp2Mul(a10, a11, a20, a21)
                 tmp2, tmp3 := fp2Add(tmp10, tmp11, tmp10, tmp11)
                 tmp0, tmp1 := fp2Mul(tmp0, tmp1, tmp0, tmp1)
 
