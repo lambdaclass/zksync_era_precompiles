@@ -73,6 +73,15 @@ object "Playground" {
                 z21 := 0
             }
 
+            function G2_INFINITY() -> z00, z01, z02, z10, z11, z12 {
+                z00 := 0
+                z01 := 0
+                z02 := 0
+                z10 := 0
+                z11 := 0
+                z12 := 0
+            }
+
             function FP12_ONE() -> z000, z001, z010, z011, z100, z101, z110, z111, z200, z201, z210, z211 {
                 z000 := MONTGOMERY_ONE()
                 z001 := 0
@@ -1089,11 +1098,13 @@ object "Playground" {
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
                 let naf := NAF_REPRESENTATIVE()
                 let n_iter := 65
+                let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := FP12_ONE()
+                let t00, t01, t10, t11, t20, t21 := G2_INFINITY()
 
                 for {let i := 0} lt(i, n_iter) {add(i, 1)} {
                     f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 
-                    let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
+                    l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
                     l00, l01 := fp2ScalarMul(l00, l01, yp)
                     l30, l31 := fp2ScalarMul(l30, l31, xp)
                     f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
