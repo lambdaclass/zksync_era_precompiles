@@ -442,6 +442,11 @@ object "Playground" {
                 c01 := montgomeryAdd(montgomeryAdd(t1, a00), a01)
             }
 
+            function fp2Conjugate(a00, a01) -> c00, c01 {
+                c00 := a00
+                c01 := montgomerySub(ZERO(), a01)
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FP6 ARITHMETHICS
             ////////////////////////////////////////////////////////////////
@@ -623,6 +628,178 @@ object "Playground" {
                 c100, c101, c110, c111, c120, c121 := fp6Sub(z00, z01, z10, z11, z20, z21, c100, c101, c110, c111, c120, c121)
             }
 
+            // FROBENIUS
+
+            function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t10, t11 := fp2Conjugate(a000, a001)
+                let t20, t21 := fp2Conjugate(a100, a101)
+                let t30, t31 := fp2Conjugate(a010, a011)
+                let t40, t41 := fp2Conjugate(a110, a111)
+                let t50, t51 := fp2Conjugate(a020, a021)
+                let t60, t61 := fp2Conjugate(a120, a121)
+
+                t20, t21 := mulByGamma11(t20, t21)
+                t30, t31 := mulByGamma12(t30, t31)
+                t40, t41 := mulByGamma13(t40, t41)
+                t50, t51 := mulByGamma14(t50, t51)
+                t60, t61 := mulByGamma15(t60, t61)
+
+                c00 := t10
+                c01 := t11
+                c10 := t30
+                c11 := t31
+                c20 := t50
+                c21 := t51
+                c30 := t20
+                c31 := t21
+                c40 := t40
+                c41 := t41
+                c50 := t60
+                c51 := t61
+            }
+
+            function frobeniusSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t10 := a000 
+                let t11 := a001
+                let t20, t21 := mulByGamma21(a100, a101)
+                let t30, t31 := mulByGamma22(a010, a011)
+                let t40, t41 := mulByGamma23(a110, a111)
+                let t50, t51 := mulByGamma24(a020, a021)
+                let t60, t61 := mulByGamma25(a120, a121)
+
+                c00 := t10
+                c01 := t11
+                c10 := t30
+                c11 := t31
+                c20 := t50
+                c21 := t51
+                c30 := t20
+                c31 := t21
+                c40 := t40
+                c41 := t41
+                c50 := t60
+                c51 := t61
+            }
+
+            function frobeniusCube(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t10, t11 := fp2Conjugate(a000, a001)
+                let t20, t21 := fp2Conjugate(a100, a101)
+                let t30, t31 := fp2Conjugate(a010, a011)
+                let t40, t41 := fp2Conjugate(a110, a111)
+                let t50, t51 := fp2Conjugate(a020, a021)
+                let t60, t61 := fp2Conjugate(a120, a121)
+
+                t20, t21 := mulByGamma31(t20, t21)
+                t30, t31 := mulByGamma32(t30, t31)
+                t40, t41 := mulByGamma33(t40, t41)
+                t50, t51 := mulByGamma34(t50, t51)
+                t60, t61 := mulByGamma35(t60, t61)
+
+                c00 := t10
+                c01 := t11
+                c10 := t30
+                c11 := t31
+                c20 := t50
+                c21 := t51
+                c30 := t20
+                c31 := t21
+                c40 := t40
+                c41 := t41
+                c50 := t60
+                c51 := t61
+            }
+
+            // GAMMA_1_i
+
+            function mulByGamma11(a00, a01) -> c00, c01 {
+                let g00 := 1334504125441109323775816677333762124980877086439557453392802825656291576071
+                let g01 := 7532670101108748540749979597679923402841328813027773483599019704565791010162
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma12(a00, a01) -> c00, c01 {
+                let g00 := 11461073415658098971834280704587444395456423268720245247603935854280982113072
+                let g01 := 17373957475705492831721812124331982823197004514106338927670775596783233550167
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma13(a00, a01) -> c00, c01 {
+                let g00 := 16829996427371746075450799880956928810557034522864196246648550205375670302249
+                let g01 := 20140510615310063345578764457068708762835443761990824243702724480509675468743
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma14(a00, a01) -> c00, c01 {
+                let g00 := 9893659366031634526915473325149983243417508801286144596494093251884139331218
+                let g01 := 16514792769865828027011044701859348114858257981779976519405133026725453154633
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma15(a00, a01) -> c00, c01 {
+                let g00 := 8443299194457421137480282511969901974227997168695360756777672575877693116391
+                let g01 := 21318636632361225103955470331868462398471880609949088574192481281746934874025
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            // GAMMA_2_i
+
+            function mulByGamma21(a00, a01) -> c00, c01 {
+                let g0 := 1881798392815877688876180778159931906057091683336018750908411925848733129714
+                c00, c01 := fp2ScalarMul(a00, a01, g0)
+            }
+
+            function mulByGamma22(a00, a01) -> c00, c01 {
+                let g0 := 17419166386535333598783630241015674584964973961482396687585055285806960741276
+                c00, c01 := fp2ScalarMul(a00, a01, g0)
+            }
+
+            function mulByGamma23(a00, a01) -> c00, c01 {
+                let g0 := 15537367993719455909907449462855742678907882278146377936676643359958227611562
+                c00, c01 := fp2ScalarMul(a00, a01, g0)
+            }
+
+            function mulByGamma24(a00, a01) -> c00, c01 {
+                let g0 := 20006444479023397533370224967097343182639219473961804911780625968796493078869
+                c00, c01 := fp2ScalarMul(a00, a01, g0)
+            }
+
+            function mulByGamma25(a00, a01) -> c00, c01 {
+                let g0 := 4469076485303941623462775504241600503731337195815426975103982608838265467307
+                c00, c01 := fp2ScalarMul(a00, a01, g0)
+            }
+
+            // GAMMA_3_i
+
+            function mulByGamma31(a00, a01) -> c00, c01 {
+                let g00 := 3649295186494431467217240962842301358951278585756714214031945394966344685949
+                let g01 := 17372117152826387298350653207345606612066102743297871578090761045572893546809
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma32(a00, a01) -> c00, c01 {
+                let g00 := 14543349330631744552586812320441124107441202078168618766450326117520897829805
+                let g01 := 4646831431411403714092965637071058625728899792817054432901795759277546050476
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma33(a00, a01) -> c00, c01 {
+                let g00 := 5058246444467529146795605864300346278139276634433627416040487689269555906334
+                let g01 := 1747732256529211876667641288188566325860867395306999418986313414135550739840
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma34(a00, a01) -> c00, c01 {
+                let g00 := 3025265262868802913511075437173590487338001780554453930995247874855578067679
+                let g01 := 10425289180741305073643362413949631488281652900778689227251281048515799234257
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
+            function mulByGamma35(a00, a01) -> c00, c01 {
+                let g00 := 9862576063628467829192720579684130652367741026604221989510773554027227469215
+                let g01 := 16681752610922605480353377694363181135019829138759259603037557916788351015335
+                c00, c01 := fp2Mul(a00, a01, g00, g01)
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
@@ -756,8 +933,8 @@ object "Playground" {
 
             // // FP12 TESTS:
 
-            let one := MONTGOMERY_ONE()
-            let two := MONTGOMERY_TWO()
+            // let one := MONTGOMERY_ONE()
+            // let two := MONTGOMERY_TWO()
 
             // // ADD
 
@@ -1110,6 +1287,88 @@ object "Playground" {
             // console_log(outOfMontgomeryForm(t111)) // 0
             // console_log(outOfMontgomeryForm(t120)) // 0
             // console_log(outOfMontgomeryForm(t121)) // 0
+
+            // FROBENIUS TESTS:
+
+            let one := MONTGOMERY_ONE()
+            let two := MONTGOMERY_TWO()
+
+            let fp12_a000 := one
+            let fp12_a001 := two
+            let fp12_a010 := one
+            let fp12_a011 := two
+            let fp12_a020 := one
+            let fp12_a021 := two
+            let fp12_a100 := one
+            let fp12_a101 := two
+            let fp12_a110 := one
+            let fp12_a111 := two
+            let fp12_a120 := one
+            let fp12_a121 := two
+
+            let result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
+
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
+
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+
+            console_log(result000)
+            console_log(result001)
+            console_log(result010)
+            console_log(result011)
+            console_log(result020)
+            console_log(result021)
+            console_log(result100)
+            console_log(result101)
+            console_log(result110)
+            console_log(result111)
+            console_log(result120)
+            console_log(result121)
         }
     }
 }
