@@ -1173,9 +1173,9 @@ object "Playground" {
                 if and(eq(xp0, ZERO()), eq(xp1, ZERO())) {
                     if and(eq(yp0, ZERO()), eq(yp1, ZERO())) {
                         xr0 := MONTGOMERY_ONE()
-                        xr1 := ZERO()
+                        // xr1 is already ZERO()
                         yr0 := MONTGOMERY_ONE()
-                        yr1 := ZERO()
+                        // yr1 is already ZERO()
                         zr0 := ZERO()
                         // zr1 is already ZERO()
                     }
