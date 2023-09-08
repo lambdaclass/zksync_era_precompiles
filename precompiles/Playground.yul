@@ -628,7 +628,7 @@ object "Playground" {
             ////////////////////////////////////////////////////////////////
 
             // Neg function for G2 in affine coordinates
-            function neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
+            function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
                 nx0, nx1 := x0, x1
                 ny0, ny1 := fp2Neg(y0, y1)
             }
