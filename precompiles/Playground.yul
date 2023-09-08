@@ -647,28 +647,28 @@ object "Playground" {
             function cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t00, t01 := fp2Mul(a110, a111, a110, a111)
                 let t10, t11 := fp2Mul(a000, a001, a000, a001)
-                let t20, t21 := fp2Add(a_110, a_111, a_000, a_001)  // t6
+                let t20, t21 := fp2Add(a110, a111, a000, a001)
                 t20, t21 := fp2Mul(t20, t21, t20, t21)
                 t20, t21 := fp2Sub(t20, t21, t00, t01)
                 t20, t21 := fp2Sub(t20, t21, t10, t11)
-                let t30, t31 := fp2Mul(a020, a021, a020, a021) // t2
-                let t40, t41 := fp2Muul(a100, a101, a100, a101)  // t3
-                let t50, t51 := fp2Add(a_020, a_021, a_100, a_101) // t7
+                let t30, t31 := fp2Mul(a020, a021, a020, a021)
+                let t40, t41 := fp2Mul(a100, a101, a100, a101)
+                let t50, t51 := fp2Add(a020, a021, a100, a101)
                 t50, t51 := fp2Mul(t50, t51, t50, t51)
                 t50, t51 := fp2Sub(t50, t51, t30, t31)
                 t50, t51 := fp2Sub(t50, t51, t40, t41)
-                let t60, t61 := fp2Mul(a120, a121, a120, a121) // t4
-                let t70, t71 := fp2Mul(a010, a011, a010, a011) // t5
+                let t60, t61 := fp2Mul(a120, a121, a120, a121)
+                let t70, t71 := fp2Mul(a010, a011, a010, a011)
                 let t80, t81 := fp2Add(a120, a121, a010, a011)
                 t80, t81 := fp2Mul(t80, t81, t80, t81)
                 t80, t81 := fp2Sub(t80, t81, t60, t61)
                 t80, t81 := fp2Sub(t80, t81, t70, t71)
-                t80, t81 := fp2Mul_by_xi(t80, t81)
-                t00, t01 := fp2Mul_by_xi(t00, t01)
+                t80, t81 := mulByXi(t80, t81)
+                t00, t01 := mulByXi(t00, t01)
                 t00, t01 := fp2Add(t00, t01, t10, t11)
-                t30, t31 := fp2Mul_by_xi(t30, t31)
+                t30, t31 := mulByXi(t30, t31)
                 t30, t31 := fp2Add(t30, t31, t40, t41)
-                t60, t61 := fp2Mul_by_xi(t60, t61)
+                t60, t61 := mulByXi(t60, t61)
                 t60, t61 := fp2Add(t60, t61, t70, t71)
 
                 c000, c001 := fp2Sub(t00, t01, a000, a001)
@@ -695,7 +695,25 @@ object "Playground" {
                 c120, c121 := fp2Add(c120, c121, c120, c121)
                 c120, c121 := fp2Add(c120, c121, t50, t51)
             }
-                
+
+
+            function nSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, n) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
+                c000 := a000
+                c001 := a001
+                c010 := a010
+                c011 := a011
+                c020 := a020
+                c021 := a021
+                c100 := a100
+                c101 := a101
+                c110 := a110
+                c111 := a111
+                c120 := a120
+                c121 := a121
+                for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
+                    c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
+                }
+            }
 
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
