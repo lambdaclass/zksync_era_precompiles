@@ -94,6 +94,15 @@ def main():
     # (1 + 2i) * 3 = 3 + 6i
     fp2_three = scalar_mul(*fp2_a, monty.THREE)
     assert(fp2_three == (monty.THREE, monty.SIX))
+
+    # (1 + 2i) + (1 - 2i) = 2 + 0i
+    conjugated_fp2_a = conjugate(*fp2_a)
+    result = add(*fp2_a, *conjugated_fp2_a)
+    assert(result == (monty.TWO, 0))
+
+    # conj(conj((1 + 2i))) = 1 + 2i
+    fp2_a_aux = conjugate(*conjugated_fp2_a)
+    assert(fp2_a_aux == (monty.ONE, monty.TWO))
  
 if __name__ == '__main__':
     main()

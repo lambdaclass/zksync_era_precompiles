@@ -196,6 +196,6 @@ def main():
     assert(result[9] == fp12_a[9])
     assert(result[10] == fp12_a[10])
     assert(result[11] == fp12_a[11])
-    
+
 if __name__ == '__main__':
     main()
