@@ -427,8 +427,7 @@ object "Playground" {
             }
 
             function fp2Neg(a00, a01) -> c00, c01 {
-                c00 := montgomerySub(ZERO(), a00)
-                c01 := montgomerySub(ZERO(), a01)
+                c00, c01 := fp2Sub(ZERO(), ZERO(), a00, a01)
             }
 
             function fp2Inv(a00, a01) -> c00, c01 {
