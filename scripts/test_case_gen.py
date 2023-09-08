@@ -5,10 +5,10 @@ import enum
 import re
 
 TEST_DIRS = [
-    '/Users/ivanlitteri/Lambda/tests/GeneralStateTests/stZeroKnowledge', 
-    '/Users/ivanlitteri/Lambda/tests/GeneralStateTests/stZeroKnowledge2', 
-    '/Users/ivanlitteri/Lambda/tests/GeneralStateTests/stPreCompiledContracts', 
-    '/Users/ivanlitteri/Lambda/tests/GeneralStateTests/stPreCompiledContracts2'
+    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stZeroKnowledge', 
+    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stZeroKnowledge2', 
+    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stPreCompiledContracts', 
+    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stPreCompiledContracts2'
 ]
 
 ParserState = enum.Enum('ParserState', ['INPUT', 'NOT_INPUT'])
@@ -93,7 +93,8 @@ def main():
                             })
                     continue
                 elif precompile == "ecpairing":
-                    continue
+                    # Skips "0x" and the first 136 bytes
+                    calldata = calldata[0][138:]
 
                 if precompile not in tests_data:
                     tests_data[precompile] = []
@@ -105,8 +106,9 @@ def main():
                 })
 
     for precompile, precompile_test_data in tests_data.items():
-        with open(f'/Users/ivanlitteri/Lambda/zksync_era_precompiles/tests/tests/{precompile}_tests.rs', 'w') as test_file:
-            write_test_suit(precompile, precompile_test_data, test_file)
+        if precompile == "ecpairing":
+            with open(f'/Users/ivanlitteri/Lambda/zksync_era_precompiles/tests/tests/{precompile}_tests.rs', 'w') as test_file:
+                write_test_suit(precompile, precompile_test_data, test_file)
 
 if __name__ == '__main__':
     main()
