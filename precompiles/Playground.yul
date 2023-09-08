@@ -1083,6 +1083,58 @@ object "Playground" {
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121, t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
             }
 
+            function millerLoop(xq0, xq1, yq0, yq1, xp, yp) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
+                let t00, t01, t10, t11, t20, t21 := g2FromAffine(xq0, xq1, yq0, yq1)
+                let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
+                let naf := NAF_REPRESENTATIVE()
+                let n_iter := 65
+
+                for {let i := 0} lt(i, n_iter) {add(i, 1)} {
+                    f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
+
+                    let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
+                    l00, l01 := fp2ScalarMul(l00, l01, yp)
+                    l30, l31 := fp2ScalarMul(l30, l31, xp)
+                    f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+
+                    if and(naf, 2) {
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                        l00, l01 := fp2ScalarMul(l00, l01, yp)
+                        l30, l31 := fp2ScalarMul(l30, l31, xp)
+                        f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                    }
+
+                    if and(naf, 4) {
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
+                        l00, l01 := fp2ScalarMul(l00, l01, yp)
+                        l30, l31 := fp2ScalarMul(l30, l31, xp)
+                        f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                    }
+
+                    naf := shr(naf, 3)
+                }
+
+                let r00, r01 := fp2Conjugate(xq0, xq1)
+                let r10, r11 := fp2Conjugate(yq0, yq1)
+                r00, r01 := mulByGamma12(r00, r01)
+                r10, r11 := mulByGamma12(r10, r11)
+                
+                let r20, r21 := mulByGamma22(xq0, xq1)
+                let r30, r31 := mulByGamma23(yq0, yq1)
+                r30, r31 := fp2Neg(r30, r31)
+
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r00, r01, r10, r11, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r20, r21, r30, r31, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      G2 TWIST
             ////////////////////////////////////////////////////////////////
