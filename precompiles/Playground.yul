@@ -1101,7 +1101,7 @@ object "Playground" {
                 let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := FP12_ONE()
                 let t00, t01, t10, t11, t20, t21 := G2_INFINITY()
 
-                for {let i := 0} lt(i, n_iter) {add(i, 1)} {
+                for {let i := 0} lt(i, n_iter) { i := add(i, 1) } {
                     f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 
                     l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
