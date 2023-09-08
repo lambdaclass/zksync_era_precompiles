@@ -509,6 +509,12 @@ object "Playground" {
                 c20, c21 := fp2Add(tmp8, tmp9, t10, t11)
             }
 
+            function fp6Neg(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
+                c00, c01 := fp2Neg(a00, a01)
+                c10, c11 := fp2Neg(a10, a11)
+                c20, c21 := fp2Neg(a20, a21)
+            }
+
             function fp6MulByIndependentTerm(a00, a01, a10, a11, a20, a21, b00, b01) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Mul(a00, a01, b00, b01)
                 c10, c11 := fp2Mul(a01, a10, b00, b01)
@@ -637,6 +643,85 @@ object "Playground" {
                 c100, c101, c110, c111, c120, c121 := fp6Sub(z00, z01, z10, z11, z20, z21, c100, c101, c110, c111, c120, c121)
             }
 
+            function fp12Conjugate(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
+                c000 := a000
+                c001 := a001
+                c010 := a010
+                c011 := a011
+                c020 := a020
+                c021 := a021
+                c100, c101, c110, c111, c120, c121 := fp6Neg(a100, a101, a110, a111, a120, a121)
+            }
+
+            function cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
+                let t00, t01 := fp2Mul(a110, a111, a110, a111)
+                let t10, t11 := fp2Mul(a000, a001, a000, a001)
+                let t20, t21 := fp2Add(a110, a111, a000, a001)
+                t20, t21 := fp2Mul(t20, t21, t20, t21)
+                t20, t21 := fp2Sub(t20, t21, t00, t01)
+                t20, t21 := fp2Sub(t20, t21, t10, t11)
+                let t30, t31 := fp2Mul(a020, a021, a020, a021)
+                let t40, t41 := fp2Mul(a100, a101, a100, a101)
+                let t50, t51 := fp2Add(a020, a021, a100, a101)
+                t50, t51 := fp2Mul(t50, t51, t50, t51)
+                t50, t51 := fp2Sub(t50, t51, t30, t31)
+                t50, t51 := fp2Sub(t50, t51, t40, t41)
+                let t60, t61 := fp2Mul(a120, a121, a120, a121)
+                let t70, t71 := fp2Mul(a010, a011, a010, a011)
+                let t80, t81 := fp2Add(a120, a121, a010, a011)
+                t80, t81 := fp2Mul(t80, t81, t80, t81)
+                t80, t81 := fp2Sub(t80, t81, t60, t61)
+                t80, t81 := fp2Sub(t80, t81, t70, t71)
+                t80, t81 := mulByXi(t80, t81)
+                t00, t01 := mulByXi(t00, t01)
+                t00, t01 := fp2Add(t00, t01, t10, t11)
+                t30, t31 := mulByXi(t30, t31)
+                t30, t31 := fp2Add(t30, t31, t40, t41)
+                t60, t61 := mulByXi(t60, t61)
+                t60, t61 := fp2Add(t60, t61, t70, t71)
+
+                c000, c001 := fp2Sub(t00, t01, a000, a001)
+                c000, c001 := fp2Add(c000, c001, c000, c001)
+                c000, c001 := fp2Add(c000, c001, t00, t01)
+            
+                c010, c011 := fp2Sub(t30, t31, a010, a011)
+                c010, c011 := fp2Add(c010, c011, c010, c011)
+                c010, c011 := fp2Add(c010, c011, t30, t31)
+            
+                c020, c021 := fp2Sub(t60, t61, a020, a021)
+                c020, c021 := fp2Add(c020, c021, c020, c021)
+                c020, c021 := fp2Add(c020, c021, t60, t61)
+            
+                c100, c101 := fp2Add(t80, t81, a100, a101)
+                c100, c101 := fp2Add(c100, c101, c100, c101)
+                c100, c101 := fp2Add(c100, c101, t80, t81)
+            
+                c110, c111 := fp2Add(t20, t21, a110, a111)
+                c110, c111 := fp2Add(c110, c111, c110, c111)
+                c110, c111 := fp2Add(c110, c111, t20, t21)
+            
+                c120, c121 := fp2Add(t50, t51, a120, a121)
+                c120, c121 := fp2Add(c120, c121, c120, c121)
+                c120, c121 := fp2Add(c120, c121, t50, t51)
+            }
+
+
+            function nSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, n) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
+                c000 := a000
+                c001 := a001
+                c010 := a010
+                c011 := a011
+                c020 := a020
+                c021 := a021
+                c100 := a100
+                c101 := a101
+                c110 := a110
+                c111 := a111
+                c120 := a120
+                c121 := a121
+                for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
+                    c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
+                }
             // FROBENIUS
 
             function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
