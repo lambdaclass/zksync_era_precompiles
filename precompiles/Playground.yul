@@ -1062,6 +1062,42 @@ object "Playground" {
             }
 
             ////////////////////////////////////////////////////////////////
+            //                      G2 TWIST
+            ////////////////////////////////////////////////////////////////
+
+            // Neg function for G2 in affine coordinates
+            function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
+                nx0, nx1 := x0, x1
+                ny0, ny1 := fp2Neg(y0, y1)
+            }
+
+            function g2IntoAffine(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1 {
+                let z0, z1 := fp2Inv(zp0, zp1)
+                xr0, xr1 = fp2Mul(xp0, xp1, zp0, zp1)
+                yr0, yr1 = fp2Mul(yp0, yp1, zp0, zp1)
+            }
+
+            // G2 function to go back and forth between affine and projective coordinates
+            function g2FromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
+                xr0 := xp0
+                xr1 := xp1
+                yr0 := yp0
+                yr1 := yp1
+                zr0 := MONTGOMERY_ONE()
+                zr1 := ZERO()
+                if and(eq(xp0, ZERO()), eq(xp1, ZERO())) {
+                    if and(eq(yp0, ZERO()), eq(yp1, ZERO())) {
+                        xr0 := MONTGOMERY_ONE()
+                        xr1 := ZERO()
+                        yr0 := MONTGOMERY_ONE()
+                        yr1 := ZERO()
+                        zr0 := ZERO()
+                        // zr1 is already ZERO()
+                    }
+                }
+            }
+
+            ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
