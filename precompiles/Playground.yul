@@ -34,6 +34,10 @@ object "Playground" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            function MONTGOMERY_TWO_INV() -> two_inv {
+                two_inv := 14119558874979547267292681013829403749242370018224634694350716214666112402802
+            }
+
             function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
                 z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
                 z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
@@ -930,7 +934,7 @@ object "Playground" {
             
             function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero, zero, c30, c31, c40, c41, c50, c51 {
                 let zero := ZERO()
-                let twoInv := montgomeryModularInverse(MONTGOMERY_TWO())
+                let twoInv := MONTGOMERY_TWO_INV()
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
                 let t10, t11 := fp2ScalarMul(t00, t01, twoInv)
                 let t20, t21 := fp2Mul(yq0, yq1, yq0, yq1)
