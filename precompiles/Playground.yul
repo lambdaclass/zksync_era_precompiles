@@ -73,6 +73,21 @@ object "Playground" {
                 z21 := 0
             }
 
+            function FP12_ONE() -> z000, z001, z010, z011, z100, z101, z110, z111, z200, z201, z210, z211 {
+                z000 := MONTGOMERY_ONE()
+                z001 := 0
+                z010 := 0
+                z011 := 0
+                z100 := 0
+                z101 := 0
+                z110 := 0
+                z111 := 0
+                z200 := 0
+                z201 := 0
+                z210 := 0
+                z211 := 0
+            }
+
             // CONSOLE.LOG Caller
             // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
             function console_log(val) -> {
