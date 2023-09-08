@@ -34,6 +34,15 @@ object "Playground" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            function MONTGOMERY_TWO_INV() -> two_inv {
+                two_inv := 14119558874979547267292681013829403749242370018224634694350716214666112402802
+            }
+
+            function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
+                z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
+                z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
+            }
+
             // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
@@ -749,45 +758,6 @@ object "Playground" {
                 for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
                     c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := cyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
                 }
-
-            // MIXED ADDITION STEP  
-
-            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, zer0, zero, zero, zero, l10, l11, l20, l21, zero, zero, xc0, xc1, yc0, yc1, zc0, zc1 {
-                let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
-                let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
-                t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
-                let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
-                let t30, t31 := fp2Mul(t10, t11, t10, t11)
-                let t40, t41 := fp2Mul(t20, t21, t20, t21)
-                let t50, t51 := fp2Mul(t20, t21, t40, t41)
-                let t60, t61 := fp2Mul(zt0, zt1, t30, t31)
-                let t70, t71 := fp2Mul(xt0, xt1, t40, t41)
-                t00, t01 := fp2Add(t70, t71, t70, t71)
-                let t80, t81 := fp2Add(t50, t51, t60, t61)
-                t80, t81 := fp2Sub(t80, t81, t00, t01)
-                t00, t01 := fp2Mul(yt0, yt1, t50, t51)
-                // Xc0
-                xc0, xc1 := fp2Mul(t20, t21, t80, t81)
-                // Yc0
-                yc0, yc1 := fp2Sub(t70, t71, t80, t81)
-                yc0, yc1 := fp2Mul(yc0, yc1, t10, t11)
-                yc0, yc1 := fp2Sub(yc0, yc1, t00, t01)
-                // Zc0
-                zc0, zc1 := fp2Mul(t50, t51, zt0, zt1)
-
-                t00, t01 := fp2Mul(t20, t21, yq0, yq1)
-                let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
-                t90, t91 := fp2Sub(t90, t91, t00, t01)
-                // L
-                l00 := t20
-                l01 := t21
-                l10, l11 := fp2Neg(t00, t01)
-                l20 := t90
-                l21 := t91
-                // zero
-                zero := ZERO()
-            }
-
             // FROBENIUS
 
             function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
@@ -960,7 +930,91 @@ object "Playground" {
                 c00, c01 := fp2Mul(a00, a01, g00, g01)
             }
 
-            // FINAL EXPONENTIATION
+            // PAIRING FUNCTIONS
+            
+            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero, zero, c30, c31, c40, c41, c50, c51 {
+                let zero := ZERO()
+                let twoInv := MONTGOMERY_TWO_INV()
+                let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
+                let t10, t11 := fp2ScalarMul(t00, t01, twoInv)
+                let t20, t21 := fp2Mul(yq0, yq1, yq0, yq1)
+                let t30, t31 := fp2Mul(zq0, zq1, zq0, zq1)
+                let t40, t41 := fp2Add(t30, t31, t30, t31)
+                t40, t41 := fp2Add(t40, t41, t30, t31)
+                let t50, t51 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                t50, t51 := fp2Mul(t40, t41, t50, t51)
+                let t60, t61 :=fp2Add(t50, t51, t50, t51)
+                t60, t61 := fp2Add(t60, t61, t50, t51)
+                let t70, t71 := fp2Add(t20, t21, t60, t61)
+                t70, t71 := fp2ScalarMul(t70, t71, twoInv)
+                let t80, t81 := fp2Add(yq0, yq1, zq0, zq1)
+                t80, t81 := fp2Mul(t80, t81, t80, t81)
+                let t90, t91 := fp2Add(t30, t31, t20, t21)
+                t80, t81 := fp2Sub(t80, t81, t90, t91)
+                let t100, t101 := fp2Sub(t50, t51, t20, t21)
+                let t110, t111 := fp2Mul(xq0, xq1, xq0, xq1)
+                let t120, t121 := fp2Mul(t50, t51, t50, t51)
+                let t130, t131 := fp2Add(t120, t121, t120, t121)
+                t130, t131 := fp2Add(t130, t131, t120, t121)
+
+                // l0
+                let c00, c01 := fp2Neg(t80, t81)
+
+                // l1
+                let c10, c11 := fp2Add(t110, t111, t110, t111)
+                c10, c11 := fp2Add(c10, c11, t110, t111)
+                
+                // l2
+                let c20 := t100
+                let c21 := t101
+
+                // Tx
+                let c30, c31 := fp2Sub(t20, t21, t40, t41)
+                c30, c31 := fp2Mul(c30, c31, t10, t11)
+
+                // Ty
+                let c40, c41 := fp2Mul(t70, t71, t70, t71)
+                c40, c41 := fp2Sub(c40, c41, t130, t131)
+
+                // Tz
+                let c50, c51 := fp2Mul(t20, t21, t80, t81)
+            }
+
+
+            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, zer0, zero, zero, zero, l10, l11, l20, l21, zero, zero, xc0, xc1, yc0, yc1, zc0, zc1 {
+                let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
+                let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
+                t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
+                let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
+                let t30, t31 := fp2Mul(t10, t11, t10, t11)
+                let t40, t41 := fp2Mul(t20, t21, t20, t21)
+                let t50, t51 := fp2Mul(t20, t21, t40, t41)
+                let t60, t61 := fp2Mul(zt0, zt1, t30, t31)
+                let t70, t71 := fp2Mul(xt0, xt1, t40, t41)
+                t00, t01 := fp2Add(t70, t71, t70, t71)
+                let t80, t81 := fp2Add(t50, t51, t60, t61)
+                t80, t81 := fp2Sub(t80, t81, t00, t01)
+                t00, t01 := fp2Mul(yt0, yt1, t50, t51)
+                // Xc0
+                xc0, xc1 := fp2Mul(t20, t21, t80, t81)
+                // Yc0
+                yc0, yc1 := fp2Sub(t70, t71, t80, t81)
+                yc0, yc1 := fp2Mul(yc0, yc1, t10, t11)
+                yc0, yc1 := fp2Sub(yc0, yc1, t00, t01)
+                // Zc0
+                zc0, zc1 := fp2Mul(t50, t51, zt0, zt1)
+
+                t00, t01 := fp2Mul(t20, t21, yq0, yq1)
+                let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
+                t90, t91 := fp2Sub(t90, t91, t00, t01)
+                // L
+                l00 := t20
+                l01 := t21
+                l10, l11 := fp2Neg(t00, t01)
+                l20 := t90
+                l21 := t91
+                // zero
+                zero := ZERO()
 
             function finalExponentiation(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
                 f000 := a000
