@@ -988,26 +988,26 @@ object "Playground" {
                 t130, t131 := fp2Add(t130, t131, t120, t121)
 
                 // l0
-                let c00, c01 := fp2Neg(t80, t81)
+                c00, c01 := fp2Neg(t80, t81)
 
                 // l1
-                let c10, c11 := fp2Add(t110, t111, t110, t111)
+                c10, c11 := fp2Add(t110, t111, t110, t111)
                 c10, c11 := fp2Add(c10, c11, t110, t111)
                 
                 // l2
-                let c20 := t100
-                let c21 := t101
+                c20 := t100
+                c21 := t101
 
                 // Tx
-                let c30, c31 := fp2Sub(t20, t21, t40, t41)
+                c30, c31 := fp2Sub(t20, t21, t40, t41)
                 c30, c31 := fp2Mul(c30, c31, t10, t11)
 
                 // Ty
-                let c40, c41 := fp2Mul(t70, t71, t70, t71)
+                c40, c41 := fp2Mul(t70, t71, t70, t71)
                 c40, c41 := fp2Sub(c40, c41, t130, t131)
 
                 // Tz
-                let c50, c51 := fp2Mul(t20, t21, t80, t81)
+                c50, c51 := fp2Mul(t20, t21, t80, t81)
             }
 
 
