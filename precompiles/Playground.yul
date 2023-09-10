@@ -1202,18 +1202,13 @@ object "Playground" {
             let g4_iy := calldataload(320)
             let g4_y := calldataload(352)
 
-            console_log(0)
             let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121  := millerLoop(g2_x, g2_ix, g2_y, g2_iy, g1_x, g1_y)
-            console_log(1)
             t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121  := finalExponentiation(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121)
-            console_log(2)
             let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321  := millerLoop(g4_x, g4_ix, g4_y, g4_iy, g3_x, g3_y)
-            console_log(3)
             t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321  := finalExponentiation(t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
-            console_log(4)
-
             let c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12Mul(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121, t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
-            console_log(outOfMontgomeryForm(c000))
+            console_log(0xa)
+            console_log(c000)
             console_log(c001)
             console_log(c010)
             console_log(c011)
@@ -1225,6 +1220,7 @@ object "Playground" {
             console_log(c111)
             console_log(c120)
             console_log(c121)
+            console_log(0xa)
 
             // if iszero(pointIsOnG1(g1_x, g1_y)) {
             //     // burnGas()
