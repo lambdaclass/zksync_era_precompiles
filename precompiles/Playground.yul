@@ -60,6 +60,10 @@ object "Playground" {
                 ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
             }
 
+            function NAF_REPRESENTATIVE() ->  ret {
+                ret := 7186291078002685655833716264194454051281486193901198152801
+            }
+
             function FP6_ZERO() -> z00, z01, z10, z11, z20, z21 {
                 z00 := 0
                 z01 := 0
@@ -67,6 +71,30 @@ object "Playground" {
                 z11 := 0
                 z20 := 0
                 z21 := 0
+            }
+
+            function G2_INFINITY() -> z00, z01, z02, z10, z11, z12 {
+                z00 := 0
+                z01 := 0
+                z02 := 0
+                z10 := 0
+                z11 := 0
+                z12 := 0
+            }
+
+            function FP12_ONE() -> z000, z001, z010, z011, z100, z101, z110, z111, z200, z201, z210, z211 {
+                z000 := MONTGOMERY_ONE()
+                z001 := 0
+                z010 := 0
+                z011 := 0
+                z100 := 0
+                z101 := 0
+                z110 := 0
+                z111 := 0
+                z200 := 0
+                z201 := 0
+                z210 := 0
+                z211 := 0
             }
 
             // CONSOLE.LOG Caller
@@ -650,8 +678,9 @@ object "Playground" {
             function fp12Expt(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12CyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
                 let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321 := fp12CyclotomicSquare(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121)
-                let c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
+                c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
                 let t400, t401, t410, t411, t420, t421, t500, t501, t510, t511, t520, t521 := fp12CyclotomicSquare(c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121)
+
                 let t600, t601, t610, t611, t620, t621, t700, t701, t710, t711, t720, t721 := fp12Mul(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, t400, t401, t410, t411, t420, t421, t500, t501, t510, t511, t520, t521)
                 t400, t401, t410, t411, t420, t421, t500, t501, t510, t511, t520, t521 := fp12Mul(t600, t601, t610, t611, t620, t621, t700, t701, t710, t711, t720, t721, t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121)
                 let t800, t801, t810, t811, t820, t821, t900, t901, t910, t911, t920, t921 := fp12Mul(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, t400, t401, t410, t411, t420, t421, t500, t501, t510, t511, t520, t521)
@@ -756,7 +785,7 @@ object "Playground" {
                 c120 := a120
                 c121 := a121
                 for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
-                    c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
+                    c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121)
                 }
             }
 
@@ -933,8 +962,7 @@ object "Playground" {
             }
 
             // PAIRING FUNCTIONS
-            
-            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero, zero, c30, c31, c40, c41, c50, c51 {
+            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
                 let zero := ZERO()
                 let twoInv := MONTGOMERY_TWO_INV()
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
@@ -960,30 +988,38 @@ object "Playground" {
                 t130, t131 := fp2Add(t130, t131, t120, t121)
 
                 // l0
-                let c00, c01 := fp2Neg(t80, t81)
+                l00, l01 := fp2Neg(t80, t81)
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
 
                 // l1
-                let c10, c11 := fp2Add(t110, t111, t110, t111)
-                c10, c11 := fp2Add(c10, c11, t110, t111)
+                l30, l31 := fp2Add(t110, t111, t110, t111)
+                l30, l31 := fp2Add(l30, l31, t110, t111)
                 
                 // l2
-                let c20 := t100
-                let c21 := t101
+                l40 := t100
+                l41 := t101
+
+                l50 := zero
+                l51 := zero
 
                 // Tx
-                let c30, c31 := fp2Sub(t20, t21, t40, t41)
-                c30, c31 := fp2Mul(c30, c31, t10, t11)
+                xt0, xt1 := fp2Sub(t20, t21, t60, t61)
+                xt0, xt1 := fp2Mul(xt0, xt1, t10, t11)
 
                 // Ty
-                let c40, c41 := fp2Mul(t70, t71, t70, t71)
-                c40, c41 := fp2Sub(c40, c41, t130, t131)
+                yt0, yt1 := fp2Mul(t70, t71, t70, t71)
+                yt0, yt1 := fp2Sub(yt0, yt1, t130, t131)
 
                 // Tz
-                let c50, c51 := fp2Mul(t20, t21, t80, t81)
+                zt0, zt1 := fp2Mul(t20, t21, t80, t81)
             }
 
 
-            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, zer0, zero, zero, zero, l10, l11, l20, l21, zero, zero, xc0, xc1, yc0, yc1, zc0, zc1 {
+            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
+                let zero := ZERO()
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
@@ -997,26 +1033,37 @@ object "Playground" {
                 let t80, t81 := fp2Add(t50, t51, t60, t61)
                 t80, t81 := fp2Sub(t80, t81, t00, t01)
                 t00, t01 := fp2Mul(yt0, yt1, t50, t51)
+
                 // Xc0
                 xc0, xc1 := fp2Mul(t20, t21, t80, t81)
+
                 // Yc0
                 yc0, yc1 := fp2Sub(t70, t71, t80, t81)
                 yc0, yc1 := fp2Mul(yc0, yc1, t10, t11)
                 yc0, yc1 := fp2Sub(yc0, yc1, t00, t01)
+
                 // Zc0
                 zc0, zc1 := fp2Mul(t50, t51, zt0, zt1)
-
                 t00, t01 := fp2Mul(t20, t21, yq0, yq1)
                 let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
                 t90, t91 := fp2Sub(t90, t91, t00, t01)
-                // L
+
+                // l0
                 l00 := t20
                 l01 := t21
-                l10, l11 := fp2Neg(t00, t01)
-                l20 := t90
-                l21 := t91
-                // zero
-                zero := ZERO()
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
+
+                // l1
+                l30, l31 := fp2Neg(t10, t11)
+
+                // l2
+                l40 := t90
+                l41 := t91
+                l50 := zero
+                l51 := zero
             }
 
             function finalExponentiation(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
@@ -1033,12 +1080,14 @@ object "Playground" {
                 f120 := a120
                 f121 := a121
 
+                // Easy Part
                 let t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Conjugate(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Inv(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Mul(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 let t1000, t1001, t1010, t1011, t1020, t1021, t1100, t1101, t1110, t1111, t1120, t1121 := frobeniusSquare(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(t1000, t1001, t1010, t1011, t1020, t1021, t1100, t1101, t1110, t1111, t1120, t1121, t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
 
+                // Hard Part
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Expt(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Conjugate(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12CyclotomicSquare(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
@@ -1062,6 +1111,61 @@ object "Playground" {
                 t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121 := fp12Mul(t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121, t3000, t3001, t3010, t3011, t3020, t3021, t3100, t3101, t3110, t3111, t3120, t3121)
                 t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121 := frobeniusCube(t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121, t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
+            }
+
+            function millerLoop(xq0, xq1, yq0, yq1, xp, yp) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
+                let t00, t01, t10, t11, t20, t21 := g2FromAffine(xq0, xq1, yq0, yq1)
+                let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
+                let naf := NAF_REPRESENTATIVE()
+                let n_iter := 65
+                let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := FP12_ONE()
+
+                for {let i := 0} lt(i, n_iter) { i := add(i, 1) } {
+                    f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
+
+                    l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
+                    l00, l01 := fp2ScalarMul(l00, l01, yp)
+                    l30, l31 := fp2ScalarMul(l30, l31, xp)
+                    f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+
+                    // naf digit = 1
+                    if and(naf, 2) {
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                        l00, l01 := fp2ScalarMul(l00, l01, yp)
+                        l30, l31 := fp2ScalarMul(l30, l31, xp)
+                        f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                    }
+
+                    // naf digit = -1
+                    if and(naf, 4) {
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
+                        l00, l01 := fp2ScalarMul(l00, l01, yp)
+                        l30, l31 := fp2ScalarMul(l30, l31, xp)
+                        f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                    }
+
+                    naf := shr(3, naf)
+                }
+
+                let r00, r01 := fp2Conjugate(xq0, xq1)
+                let r10, r11 := fp2Conjugate(yq0, yq1)
+                r00, r01 := mulByGamma12(r00, r01)
+                r10, r11 := mulByGamma13(r10, r11)
+                
+                let r20, r21 := mulByGamma22(xq0, xq1)
+                let r30, r31 := mulByGamma23(yq0, yq1)
+                r30, r31 := fp2Neg(r30, r31)
+
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r00, r01, r10, r11, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r20, r21, r30, r31, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
             }
 
             ////////////////////////////////////////////////////////////////
@@ -1092,9 +1196,9 @@ object "Playground" {
                 if and(eq(xp0, ZERO()), eq(xp1, ZERO())) {
                     if and(eq(yp0, ZERO()), eq(yp1, ZERO())) {
                         xr0 := MONTGOMERY_ONE()
-                        xr1 := ZERO()
+                        // xr1 is already ZERO()
                         yr0 := MONTGOMERY_ONE()
-                        yr1 := ZERO()
+                        // yr1 is already ZERO()
                         zr0 := ZERO()
                         // zr1 is already ZERO()
                     }
@@ -1105,12 +1209,40 @@ object "Playground" {
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
-            // let g1_x := calldataload(0)
-            // let g1_y := calldataload(32)
-            // let g2_ix := calldataload(64)
-            // let g2_x := calldataload(96)
-            // let g2_iy := calldataload(128)
-            // let g2_y := calldataload(160)
+            let g1_xp := intoMontgomeryForm(calldataload(0))
+            let g1_yp := intoMontgomeryForm(calldataload(32))
+            let g2_ixq := intoMontgomeryForm(calldataload(64))
+            let g2_xq := intoMontgomeryForm(calldataload(96))
+            let g2_iyq := intoMontgomeryForm(calldataload(128))
+            let g2_yq := intoMontgomeryForm(calldataload(160))
+
+            let g1_xr := intoMontgomeryForm(calldataload(192))
+            let g1_yr := intoMontgomeryForm(calldataload(224))
+            let g2_ixs := intoMontgomeryForm(calldataload(256))
+            let g2_xs := intoMontgomeryForm(calldataload(288))
+            let g2_iys := intoMontgomeryForm(calldataload(320))
+            let g2_ys := intoMontgomeryForm(calldataload(352))
+
+            let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121  := millerLoop(g2_xq, g2_ixq, g2_yq, g2_iyq, g1_xp, g1_yp)
+            t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121  := finalExponentiation(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121)
+
+            let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321  := millerLoop(g2_xs, g2_ixs, g2_ys, g2_iys, g1_xr, g1_yr)
+            t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321  := finalExponentiation(t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
+
+            let c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12Mul(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121, t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321)
+
+            console_log(c000)
+            console_log(c001)
+            console_log(c010)
+            console_log(c011)
+            console_log(c020)
+            console_log(c021)
+            console_log(c100)
+            console_log(c101)
+            console_log(c110)
+            console_log(c111)
+            console_log(c120)
+            console_log(c121)
 
             // if iszero(pointIsOnG1(g1_x, g1_y)) {
             //     // burnGas()
@@ -1591,85 +1723,85 @@ object "Playground" {
 
             // FROBENIUS TESTS:
 
-            let one := MONTGOMERY_ONE()
-            let two := MONTGOMERY_TWO()
+            // let one := MONTGOMERY_ONE()
+            // let two := MONTGOMERY_TWO()
 
-            let fp12_a000 := one
-            let fp12_a001 := two
-            let fp12_a010 := one
-            let fp12_a011 := two
-            let fp12_a020 := one
-            let fp12_a021 := two
-            let fp12_a100 := one
-            let fp12_a101 := two
-            let fp12_a110 := one
-            let fp12_a111 := two
-            let fp12_a120 := one
-            let fp12_a121 := two
+            // let fp12_a000 := one
+            // let fp12_a001 := two
+            // let fp12_a010 := one
+            // let fp12_a011 := two
+            // let fp12_a020 := one
+            // let fp12_a021 := two
+            // let fp12_a100 := one
+            // let fp12_a101 := two
+            // let fp12_a110 := one
+            // let fp12_a111 := two
+            // let fp12_a120 := one
+            // let fp12_a121 := two
 
-            let result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // let result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobenius(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
 
-            console_log(result000)
-            console_log(result001)
-            console_log(result010)
-            console_log(result011)
-            console_log(result020)
-            console_log(result021)
-            console_log(result100)
-            console_log(result101)
-            console_log(result110)
-            console_log(result111)
-            console_log(result120)
-            console_log(result121)
+            // console_log(result000)
+            // console_log(result001)
+            // console_log(result010)
+            // console_log(result011)
+            // console_log(result020)
+            // console_log(result021)
+            // console_log(result100)
+            // console_log(result101)
+            // console_log(result110)
+            // console_log(result111)
+            // console_log(result120)
+            // console_log(result121)
 
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusSquare(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
 
-            console_log(result000)
-            console_log(result001)
-            console_log(result010)
-            console_log(result011)
-            console_log(result020)
-            console_log(result021)
-            console_log(result100)
-            console_log(result101)
-            console_log(result110)
-            console_log(result111)
-            console_log(result120)
-            console_log(result121)
+            // console_log(result000)
+            // console_log(result001)
+            // console_log(result010)
+            // console_log(result011)
+            // console_log(result020)
+            // console_log(result021)
+            // console_log(result100)
+            // console_log(result101)
+            // console_log(result110)
+            // console_log(result111)
+            // console_log(result120)
+            // console_log(result121)
 
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
-            result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(fp12_a000, fp12_a001, fp12_a010, fp12_a011, fp12_a020, fp12_a021, fp12_a100, fp12_a101, fp12_a110, fp12_a111, fp12_a120, fp12_a121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
+            // result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121 := frobeniusCube(result000, result001, result010, result011, result020, result021, result100, result101, result110, result111, result120, result121)
 
-            console_log(result000)
-            console_log(result001)
-            console_log(result010)
-            console_log(result011)
-            console_log(result020)
-            console_log(result021)
-            console_log(result100)
-            console_log(result101)
-            console_log(result110)
-            console_log(result111)
-            console_log(result120)
-            console_log(result121)
+            // console_log(result000)
+            // console_log(result001)
+            // console_log(result010)
+            // console_log(result011)
+            // console_log(result020)
+            // console_log(result021)
+            // console_log(result100)
+            // console_log(result101)
+            // console_log(result110)
+            // console_log(result111)
+            // console_log(result120)
+            // console_log(result121)
         }
     }
 }
