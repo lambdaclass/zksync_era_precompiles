@@ -326,41 +326,13 @@ object "EcPairing" {
 			}
 
             // G2 -> Y^2 = X^3 + 3/(i+9)
-			//    -> (iya + yb)^2 = (ixa + xb)^3 + 3/(i+9)
-            //    -> i(2*ay*by) + (yb^2 - ya^2) = i(3*bx^2*ax - ax^3 - 3/82) + (xb - 3*bx*ax^2 + 27/82)
-			function pointIsOnG2(ax, bx, ay, by) -> ret {
-                let axSquared := montgomeryMul(ax, ax)
-                let bxSquared := montgomeryMul(bx, bx)
-                let aySquared := montgomeryMul(ay, ay)
-                let bySquared := montgomeryMul(bx, bx)
-                let ayby := montgomeryMul(ay, by)
-
-                // Precomputation of 27/82 = 27*82^-1
-                let twentySevenOverEightyTwo := 0x00
-                // Precomputation of 3/82 = 3*82^-1
-                let threeOverEightyTwo := 0x00
-
-                // 2*ay*by
-                let aLeft := addmod(ayby, ayby, P())
-                // by^2 - ay^2
-                let bLeft := submod(bySquared, aySquared, P())
-
-                let tripledBxSquared := addmod(bxSquared, addmod(bxSquared, bxSquared, P()), P())
-                // aRight = 3*bx^2*ax - ax^3 - 3/82
-                //        = ax*(3*bx*bx - ax*ax - 3/82)
-                //        = ax*((bx*bx + bx*bx + bx*bx) - ax*ax - 3/82)
-                //        = ax*((bxSquared + bxSquared + bxSquared) - aSquared) - 3/82
-                let aRight := submod(montgomeryMul(ax, submod(tripledBxSquared, axSquared, P())), threeOverEightyTwo, P())
-                let tripledAxSquared := addmod(axSquared, addmod(axSquared, axSquared, P()), P())
-                // bRight = bx^3 - 3*bx*ax^2 + 27/82
-                //        = bx*(bx*bx - 3*ax*ax + 27/82)
-                //        = bx*(bSquared - (aSquared + aSquared + aSquared)) + 27/82
-                let bRight := addmod(montgomeryMul(bx, submod(bxSquared, tripledAxSquared, P())), twentySevenOverEightyTwo, P())
-
-                let left := eq(aLeft, bLeft)
-                let right := eq(aRight, bRight)
-
-                ret := and(left, right)
+			function pointIsOnG2(x0, x1, y0, y1) -> ret {
+                let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                let b0, b1 := fp2Mul(x0, x1, x0, x1)
+                b0, b1 := fp2Mul(b0, b1, x0, x1)
+                b0, b1 := fp2Add(b0, b1, a0, a1)
+                let c0, c1 := fp2Mul(y0, y1, y0, y1)
+                ret := and(eq(b0, c0), eq(b1, c1))
 			}
 
 			// Neg function for G2 in affine coordinates
@@ -1305,16 +1277,16 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-				// if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
-				// 	burnGas()
-				// }
-
                 g1_x := intoMontgomeryForm(g1_x)
                 g1_y := intoMontgomeryForm(g1_y)
                 g2_x0 := intoMontgomeryForm(g2_x0)
                 g2_x1 := intoMontgomeryForm(g2_x1)
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
+
+                if iszero(pointIsOnG2(g2_x0, g2_x1, g2_y0, g2_y1)) {
+					burnGas()
+				}
 
                 let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
 
