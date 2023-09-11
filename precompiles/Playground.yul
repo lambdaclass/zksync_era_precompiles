@@ -1130,7 +1130,7 @@ object "Playground" {
                 let r00, r01 := fp2Conjugate(xq0, xq1)
                 let r10, r11 := fp2Conjugate(yq0, yq1)
                 r00, r01 := mulByGamma12(r00, r01)
-                r10, r11 := mulByGamma12(r10, r11)
+                r10, r11 := mulByGamma13(r10, r11)
                 
                 let r20, r21 := mulByGamma22(xq0, xq1)
                 let r30, r31 := mulByGamma23(yq0, yq1)
