@@ -97,6 +97,30 @@ object "EcPairing" {
                 z211 := 0
             }
 
+            function PAIR_LENGTH() -> ret {
+                ret := 0xc0
+            }
+
+            function RESULT_LENGTH() -> ret {
+                ret := 0x180
+            }
+
+            //////////////////////////////////////////////////////////////////
+			//                      HELPER FUNCTIONS
+			//////////////////////////////////////////////////////////////////
+
+			/// @dev Executes the `precompileCall` opcode.
+			function precompileCall(precompileParams, gasToBurn) -> ret {
+				// Compiler simulation for calling `precompileCall` opcode
+				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
+			}
+
+			function burnGas() {
+				// Precompiles that do not have a circuit counterpart
+				// will burn the provided gas by calling this function.
+				precompileCall(0, gas())
+		  	}
+
 			////////////////////////////////////////////////////////////////
             //                      MONTGOMERY
             ////////////////////////////////////////////////////////////////
@@ -1196,21 +1220,10 @@ object "EcPairing" {
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
             }
 
-			//////////////////////////////////////////////////////////////////
-			//                      HELPER FUNCTIONS
-			//////////////////////////////////////////////////////////////////
-
-			/// @dev Executes the `precompileCall` opcode.
-			function precompileCall(precompileParams, gasToBurn) -> ret {
-				// Compiler simulation for calling `precompileCall` opcode
-				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
-			}
-
-			function burnGas() {
-				// Precompiles that do not have a circuit counterpart
-				// will burn the provided gas by calling this function.
-				precompileCall(0, gas())
-		  	}
+            function pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1) -> f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 {
+                f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := millerLoop(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
+                f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := finalExponentiation(f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211)
+            }
 
 			////////////////////////////////////////////////////////////////
             //                      FALLBACK
@@ -1230,6 +1243,8 @@ object "EcPairing" {
 				burnGas()
             }
 
+            let r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := FP12_ONE()
+
 			// Calldata "parsing"
 			for { let i := 0 } lt(i, inputSize) { i := add(i, PAIR_LENGTH()) } {
 				/* G1 */
@@ -1244,36 +1259,58 @@ object "EcPairing" {
 				}
 
 				/* G2 */
-				let g2_ix_offset := add(i, 64)
-				let g2_x_offset := add(i, 96)
-				let g2_iy_offset := add(i, 128)
-				let g2_y_offset := add(i, 160)
+				let g2_x1_offset := add(i, 64)
+				let g2_x0_offset := add(i, 96)
+				let g2_y1_offset := add(i, 128)
+				let g2_y0_offset := add(i, 160)
 
-				calldatacopy(g2_ix_offset, g2_ix_offset, 32)
-				calldatacopy(g2_x_offset, g2_x_offset, 32)
-				calldatacopy(g2_iy_offset, g2_iy_offset, 32)
-				calldatacopy(g2_y_offset, g2_y_offset, 32)
+				calldatacopy(g2_x1_offset, g2_x1_offset, 32)
+				calldatacopy(g2_x0_offset, g2_x0_offset, 32)
+				calldatacopy(g2_y1_offset, g2_y1_offset, 32)
+				calldatacopy(g2_y0_offset, g2_y0_offset, 32)
 
-				let g2_ix := mload(g2_ix_offset)
-				let g2_x := mload(g2_x_offset)
-				let g2_iy := mload(g2_iy_offset)
-				let g2_y := mload(g2_y_offset)
+				let g2_x1 := mload(g2_x1_offset)
+				let g2_x0 := mload(g2_x0_offset)
+				let g2_y1 := mload(g2_y1_offset)
+				let g2_y0 := mload(g2_y0_offset)
 
-				if iszero(pointIsOnG2(g2_ix, g2_x, g2_iy, g2_y)) {
+				if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
 					burnGas()
 				}
+
+                let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
+
+                r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := fp12Mul(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 			}
 
-			let k := div(inputSize, PAIR_LENGTH())
+            if eq(r000, ONE()) {
+                if eq(r001, ZERO()) {
+                    if eq(r010, ZERO()) {
+                        if eq(r011, ZERO()) {
+                            if eq(r020, ZERO()) {
+                                if eq(r021, ZERO()) {
+                                    if eq(r100, ZERO()) {
+                                        if eq(r101, ZERO()) {
+                                            if eq(r110, ZERO()) {
+                                                if eq(r111, ZERO()) {
+                                                    if eq(r120, ZERO()) {
+                                                        if eq(r121, ZERO()) {
+                                                            mstore(0, ONE())
+				                                            return(0, 32)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-			// Return one if log_P1(a1) * log_P2(b1) + ... + log_P1(ak) * log_P2(bk) = 0
-			if checkPairing(k) {
-				mstore(0, ONE())
-				return(0, 32)
-			}
-
-			// Return zero otherwise
-			mstore(0, ZERO())
+            mstore(0, ZERO())
 			return(0, 32)
 		}
 	}
