@@ -315,6 +315,14 @@ object "EcPairing" {
 			//                      CURVE ARITHMETICS
 			//////////////////////////////////////////////////////////////////
 
+            /// @notice Checks if a coordinate is on the curve group order.
+            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @param coordinate The coordinate to check.
+            /// @return ret True if the coordinate is in the range, false otherwise.
+            function coordinateIsOnGroupOrder(coordinate) -> ret {
+                ret := lt(coordinate, P())
+            }
+
 			// G1 -> Y^2 = X^3 + 3
 			function pointIsOnG1(x, y) -> ret {
 				let ySquared := mulmod(y, y, P())
@@ -1257,6 +1265,14 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
+                if iszero(and(coordinateIsOnGroupOrder(g1_x), coordinateIsOnGroupOrder(g1_y))) {
+                    burnGas()
+                }
+
+                if affinePointIsInfinity(g1_x, g1_y) {
+                    continue
+                }
+
 				if iszero(pointIsOnG1(g1_x, g1_y)) {
 					burnGas()
 				}
@@ -1276,6 +1292,18 @@ object "EcPairing" {
 				let g2_x0 := mload(g2_x0_offset)
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
+
+                if iszero(and(coordinateIsOnGroupOrder(g2_x0), coordinateIsOnGroupOrder(g2_x1))) {
+                    burnGas()
+                }
+
+                if iszero(and(coordinateIsOnGroupOrder(g2_y0), coordinateIsOnGroupOrder(g2_y1))) {
+                    burnGas()
+                }
+
+                if or(affinePointIsInfinity(g2_x0, g2_x1), affinePointIsInfinity(g2_y0, g2_y1)) {
+                    continue
+                }
 
                 g1_x := intoMontgomeryForm(g1_x)
                 g1_y := intoMontgomeryForm(g1_y)
