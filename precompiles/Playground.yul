@@ -989,7 +989,6 @@ object "Playground" {
 
                 // l0
                 l00, l01 := fp2Neg(t80, t81)
-
                 l10 := zero
                 l11 := zero
                 l20 := zero
@@ -1022,43 +1021,36 @@ object "Playground" {
             function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
                 let zero := ZERO()
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
-                // O
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
-                // L
                 let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
-                // C
                 let t30, t31 := fp2Mul(t10, t11, t10, t11)
-                // D
                 let t40, t41 := fp2Mul(t20, t21, t20, t21)
-                // E
                 let t50, t51 := fp2Mul(t20, t21, t40, t41)
-                // F
                 let t60, t61 := fp2Mul(zt0, zt1, t30, t31)
-                // G
                 let t70, t71 := fp2Mul(xt0, xt1, t40, t41)
                 t00, t01 := fp2Add(t70, t71, t70, t71)
-                // H
                 let t80, t81 := fp2Add(t50, t51, t60, t61)
                 t80, t81 := fp2Sub(t80, t81, t00, t01)
                 t00, t01 := fp2Mul(yt0, yt1, t50, t51)
+
                 // Xc0
                 xc0, xc1 := fp2Mul(t20, t21, t80, t81)
+
                 // Yc0
                 yc0, yc1 := fp2Sub(t70, t71, t80, t81)
                 yc0, yc1 := fp2Mul(yc0, yc1, t10, t11)
                 yc0, yc1 := fp2Sub(yc0, yc1, t00, t01)
+
                 // Zc0
                 zc0, zc1 := fp2Mul(t50, t51, zt0, zt1)
-
                 t00, t01 := fp2Mul(t20, t21, yq0, yq1)
                 let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
                 t90, t91 := fp2Sub(t90, t91, t00, t01)
-                
+
                 // l0
                 l00 := t20
                 l01 := t21
-
                 l10 := zero
                 l11 := zero
                 l20 := zero
@@ -1070,7 +1062,6 @@ object "Playground" {
                 // l2
                 l40 := t90
                 l41 := t91
-
                 l50 := zero
                 l51 := zero
             }
@@ -1089,12 +1080,14 @@ object "Playground" {
                 f120 := a120
                 f121 := a121
 
+                // Easy Part
                 let t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Conjugate(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Inv(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Mul(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 let t1000, t1001, t1010, t1011, t1020, t1021, t1100, t1101, t1110, t1111, t1120, t1121 := frobeniusSquare(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(t1000, t1001, t1010, t1011, t1020, t1021, t1100, t1101, t1110, t1111, t1120, t1121, t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
 
+                // Hard Part
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Expt(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12Conjugate(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
                 t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121 := fp12CyclotomicSquare(t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
