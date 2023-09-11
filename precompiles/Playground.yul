@@ -1018,17 +1018,26 @@ object "Playground" {
             }
 
 
-            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, zero, zero, zero, zero, l10, l11, l20, l21, zero, zero, xc0, xc1, yc0, yc1, zc0, zc1 {
+            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
+                let zero := ZERO()
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
+                // O
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
+                // L
                 let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
+                // C
                 let t30, t31 := fp2Mul(t10, t11, t10, t11)
+                // D
                 let t40, t41 := fp2Mul(t20, t21, t20, t21)
+                // E
                 let t50, t51 := fp2Mul(t20, t21, t40, t41)
+                // F
                 let t60, t61 := fp2Mul(zt0, zt1, t30, t31)
+                // G
                 let t70, t71 := fp2Mul(xt0, xt1, t40, t41)
                 t00, t01 := fp2Add(t70, t71, t70, t71)
+                // H
                 let t80, t81 := fp2Add(t50, t51, t60, t61)
                 t80, t81 := fp2Sub(t80, t81, t00, t01)
                 t00, t01 := fp2Mul(yt0, yt1, t50, t51)
@@ -1044,14 +1053,25 @@ object "Playground" {
                 t00, t01 := fp2Mul(t20, t21, yq0, yq1)
                 let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
                 t90, t91 := fp2Sub(t90, t91, t00, t01)
-                // L
+                
+                // l0
                 l00 := t20
                 l01 := t21
-                l10, l11 := fp2Neg(t00, t01)
-                l20 := t90
-                l21 := t91
-                // zero
-                zero := ZERO()
+
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
+
+                // l1
+                l30, l31 := fp2Neg(t10, t11)
+
+                // l2
+                l40 := t90
+                l41 := t91
+
+                l50 := zero
+                l51 := zero
             }
 
             function finalExponentiation(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
