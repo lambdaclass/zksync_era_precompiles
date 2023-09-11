@@ -1317,6 +1317,13 @@ object "EcPairing" {
 				// 	burnGas()
 				// }
 
+                g1_x := intoMontgomeryForm(g1_x)
+                g1_y := intoMontgomeryForm(g1_y)
+                g2_x0 := intoMontgomeryForm(g2_x0)
+                g2_x1 := intoMontgomeryForm(g2_x1)
+                g2_y0 := intoMontgomeryForm(g2_y0)
+                g2_y1 := intoMontgomeryForm(g2_y1)
+
                 let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
 
                 r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := fp12Mul(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
