@@ -121,6 +121,37 @@ object "EcPairing" {
 				precompileCall(0, gas())
 		  	}
 
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := mload(0x600)
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
+            function console_log_fp12(a000, a001, a010, a011, a100, a101, a110, a111, a200, a201, a210, a211) {
+                console_log(a000)
+                console_log(a001)
+                console_log(a010)
+                console_log(a011)
+                console_log(a100)
+                console_log(a101)
+                console_log(a110)
+                console_log(a111)
+                console_log(a200)
+                console_log(a201)
+                console_log(a210)
+                console_log(a211)
+            }
+
 			////////////////////////////////////////////////////////////////
             //                      MONTGOMERY
             ////////////////////////////////////////////////////////////////
@@ -1221,7 +1252,7 @@ object "EcPairing" {
             }
 
             function pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1) -> f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 {
-                f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := millerLoop(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
+                f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := millerLoop(g2_x0, g2_x1, g2_y0, g2_y1, g1_x, g1_y)
                 f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := finalExponentiation(f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211)
             }
 
@@ -1254,6 +1285,9 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
+                console_log(g1_x)
+                console_log(g1_y)
+
 				if iszero(pointIsOnG1(g1_x, g1_y)) {
 					burnGas()
 				}
@@ -1274,38 +1308,28 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-				if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
-					burnGas()
-				}
+                console_log(g2_x0)
+                console_log(g2_x1)
+                console_log(g2_y0)
+                console_log(g2_y1)
+
+				// if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
+				// 	burnGas()
+				// }
 
                 let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
 
                 r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := fp12Mul(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 			}
 
-            if eq(r000, ONE()) {
-                if eq(r001, ZERO()) {
-                    if eq(r010, ZERO()) {
-                        if eq(r011, ZERO()) {
-                            if eq(r020, ZERO()) {
-                                if eq(r021, ZERO()) {
-                                    if eq(r100, ZERO()) {
-                                        if eq(r101, ZERO()) {
-                                            if eq(r110, ZERO()) {
-                                                if eq(r111, ZERO()) {
-                                                    if eq(r120, ZERO()) {
-                                                        if eq(r121, ZERO()) {
-                                                            mstore(0, ONE())
-				                                            return(0, 32)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            // console_log_fp12(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121)
+
+            // Pair check
+            if and(and(eq(r000, MONTGOMERY_ONE()), eq(r001, ZERO())), and(eq(r010, ZERO()), eq(r011, ZERO()))) {
+                if and(and(eq(r020, ZERO()), eq(r021, ZERO())), and(eq(r100, ZERO()), eq(r101, ZERO()))) {
+                    if and(and(eq(r110, ZERO()), eq(r111, ZERO())), and(eq(r120, ZERO()), eq(r121, ZERO()))) {
+                        mstore(0, ONE())
+                        return(0, 32)
                     }
                 }
             }
