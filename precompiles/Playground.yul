@@ -961,8 +961,7 @@ object "Playground" {
             }
 
             // PAIRING FUNCTIONS
-            
-            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> c00, c01, zero, zero, zero ,zero, c10, c11, c20, c21, zero, zero, c30, c31, c40, c41, c50, c51 {
+            function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
                 let zero := ZERO()
                 let twoInv := MONTGOMERY_TWO_INV()
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
@@ -988,26 +987,34 @@ object "Playground" {
                 t130, t131 := fp2Add(t130, t131, t120, t121)
 
                 // l0
-                c00, c01 := fp2Neg(t80, t81)
+                l00, l01 := fp2Neg(t80, t81)
+
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
 
                 // l1
-                c10, c11 := fp2Add(t110, t111, t110, t111)
-                c10, c11 := fp2Add(c10, c11, t110, t111)
+                l30, l31 := fp2Add(t110, t111, t110, t111)
+                l30, l31 := fp2Add(l30, l31, t110, t111)
                 
                 // l2
-                c20 := t100
-                c21 := t101
+                l40 := t100
+                l41 := t101
+
+                l50 := zero
+                l51 := zero
 
                 // Tx
-                c30, c31 := fp2Sub(t20, t21, t40, t41)
-                c30, c31 := fp2Mul(c30, c31, t10, t11)
+                xt0, xt1 := fp2Sub(t20, t21, t60, t61)
+                xt0, xt1 := fp2Mul(xt0, xt1, t10, t11)
 
                 // Ty
-                c40, c41 := fp2Mul(t70, t71, t70, t71)
-                c40, c41 := fp2Sub(c40, c41, t130, t131)
+                yt0, yt1 := fp2Mul(t70, t71, t70, t71)
+                yt0, yt1 := fp2Sub(yt0, yt1, t130, t131)
 
                 // Tz
-                c50, c51 := fp2Mul(t20, t21, t80, t81)
+                zt0, zt1 := fp2Mul(t20, t21, t80, t81)
             }
 
 
