@@ -1285,9 +1285,6 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
-                console_log(g1_x)
-                console_log(g1_y)
-
 				if iszero(pointIsOnG1(g1_x, g1_y)) {
 					burnGas()
 				}
@@ -1308,11 +1305,6 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-                console_log(g2_x0)
-                console_log(g2_x1)
-                console_log(g2_y0)
-                console_log(g2_y1)
-
 				// if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
 				// 	burnGas()
 				// }
@@ -1328,8 +1320,6 @@ object "EcPairing" {
 
                 r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := fp12Mul(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 			}
-
-            // console_log_fp12(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121)
 
             // Pair check
             if and(and(eq(r000, MONTGOMERY_ONE()), eq(r001, ZERO())), and(eq(r010, ZERO()), eq(r011, ZERO()))) {
