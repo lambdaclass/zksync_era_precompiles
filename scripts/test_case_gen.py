@@ -5,10 +5,10 @@ import enum
 import re
 
 TEST_DIRS = [
-    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stZeroKnowledge', 
-    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stZeroKnowledge2', 
-    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stPreCompiledContracts', 
-    '/Users/ivanlitteri/Lambda/zksync_era_precompiles/submodules/eth-tests/GeneralStateTests/stPreCompiledContracts2'
+    '../submodules/eth-tests/GeneralStateTests/stZeroKnowledge', 
+    '../submodules/eth-tests/GeneralStateTests/stZeroKnowledge2', 
+    '../submodules/eth-tests/GeneralStateTests/stPreCompiledContracts', 
+    '../submodules/eth-tests/GeneralStateTests/stPreCompiledContracts2'
 ]
 
 ParserState = enum.Enum('ParserState', ['INPUT', 'NOT_INPUT'])
@@ -107,7 +107,7 @@ def main():
 
     for precompile, precompile_test_data in tests_data.items():
         if precompile == "ecpairing":
-            with open(f'/Users/ivanlitteri/Lambda/zksync_era_precompiles/tests/tests/{precompile}_tests.rs', 'w') as test_file:
+            with open(f'../tests/tests/{precompile}_tests.rs', 'w') as test_file:
                 write_test_suit(precompile, precompile_test_data, test_file)
 
 if __name__ == '__main__':
