@@ -146,6 +146,13 @@ object "EcPairing" {
                 console_log(a211)
             }
 
+            /// @notice Checks if the LSB of a number is 1.
+            /// @param x The number to check.
+            /// @return ret True if the LSB is 1, false otherwise.
+            function lsbIsOne(x) -> ret {
+                ret := and(x, ONE())
+            }
+
             // MONTGOMERY
 
 			function submod(minuend, subtrahend, modulus) -> difference {
@@ -329,13 +336,19 @@ object "EcPairing" {
             }
 
 			function g1AffinePointIsOnCurve(x, y) -> ret {
-				let ySquared := mulmod(y, y, P())
-				let xSquared := mulmod(x, x, P())
-				let xQubed := mulmod(xSquared, x, P())
-				let xQubedPlusThree := addmod(xQubed, THREE(), P())
+				if g1AffinePointIsInfinity(x,y) {
+                    ret := 1
+                }
+                if iszero(g1AffinePointIsInfinity(x, y)) { 
+                    let ySquared := mulmod(y, y, P())
+                    let xSquared := mulmod(x, x, P())
+                    let xQubed := mulmod(xSquared, x, P())
+                    let xQubedPlusThree := addmod(xQubed, THREE(), P())
 
-				ret := eq(ySquared, xQubedPlusThree)
-			}
+                    ret := eq(ySquared, xQubedPlusThree)
+                }
+            }
+
 
             // G2
 
@@ -370,12 +383,17 @@ object "EcPairing" {
             }
 
 			function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
-                let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
-                let b0, b1 := fp2Mul(x0, x1, x0, x1)
-                b0, b1 := fp2Mul(b0, b1, x0, x1)
-                b0, b1 := fp2Add(b0, b1, a0, a1)
-                let c0, c1 := fp2Mul(y0, y1, y0, y1)
-                ret := and(eq(b0, c0), eq(b1, c1))
+                if g2AffinePointIsInfinity(x0, x1, y0, y1) {
+                    ret := 1
+                }
+                if iszero(g2AffinePointIsInfinity(x0, x1, y0, y1)) {
+                    let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                    let b0, b1 := fp2Mul(x0, x1, x0, x1)
+                    b0, b1 := fp2Mul(b0, b1, x0, x1)
+                    b0, b1 := fp2Add(b0, b1, a0, a1)
+                    let c0, c1 := fp2Mul(y0, y1, y0, y1)
+                    ret := and(eq(b0, c0), eq(b1, c1))
+                }
 			}
 
             function g2ProjectivePointIsInfinity(x0, x1, y0, y1, z0, z1) -> ret {
@@ -389,11 +407,17 @@ object "EcPairing" {
 				ny0, ny1 := fp2Neg(y0, y1)
 			}
 
+            function g2Eq(xp0, xp1, yp0, yp1, zp0, zp1, xq0, xq1, yq0, yq1, zq0, zq1) -> ret{
+                ret := and(eq(xp0, xq0), eq(xp1, xq1))
+                ret := and(eq(yp0, yq0), eq(yp1, yq1))
+                ret := and(eq(zp0, zq0), eq(zp1, zq1))
+            }
+
             function g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
                 let x_squared0, x_squared1 := fp2Mul(xp0, xp1, xp0, xp1)
                 let temp00, temp01 := fp2Add(x_squared0, x_squared1, x_squared0, x_squared1)
                 let t0, t1 := fp2Add(x_squared0, x_squared1, temp00, temp01)
-                let yz0, yz1 := fp2Mul(yp0, yp1, zp0 zp1)
+                let yz0, yz1 := fp2Mul(yp0, yp1, zp0, zp1)
                 let u0, u1 := fp2Add(yz0, yz1, yz0, yz1)
                 temp00, temp01 := fp2Mul(xp0, xp1, yp0, yp1)
                 let uxy0, uxy1 := fp2Mul(u0, u1, temp00, temp01)
@@ -407,14 +431,15 @@ object "EcPairing" {
                 let uy_squared0, uy_squared1 := fp2Mul(uy0, uy1, uy0, uy1)
                 temp00, temp01 := fp2Sub(v0, v1, w0, w1)
                 temp10, temp11 := fp2Mul(t0, t1, temp00, temp01)
-                temp20, temp21 := fp2Add(uy_squared0, uy_squared1, uy_squared0, uy_squared1)
+                let temp20, temp21 := fp2Add(uy_squared0, uy_squared1, uy_squared0, uy_squared1)
                 yr0, yr1 := fp2Sub(temp10, temp11, temp20, temp21)
-                zr0, zr1 := fp2Mul(u0, u1, fp2Mul(u0, u1, u0, u1))
+                let temp30, temp31 := fp2Mul(u0, u1, u0, u1)
+                zr0, zr1 := fp2Mul(u0, u1, temp30, temp31)
             }
 
             function g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, scalar) -> xr0, xr1, yr0, yr1, zr0, zr1 {
                 switch scalar
-                case TWO() {
+                case 0x02 {
                     xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, yp1)
                 }
                 default {
@@ -456,7 +481,7 @@ object "EcPairing" {
                                 // P + Infinity = P
                                 break
                             }
-                            if and(and(eq(xr, xq), eq(montgomerySub(ZERO(), yr), yq)), eq(zr, zq)) {
+                            if g2Eq(xr0, xr1, montgomerySub(ZERO(), yr0), montgomerySub(ZERO(), yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
                                 // P + (-P) = Infinity
                                 xr0 := ZERO()
                                 xr1 := ZERO()
@@ -471,7 +496,7 @@ object "EcPairing" {
                                 continue
                             }
                             // FIXME: This condition is not addapted for fp2
-                            if and(and(eq(xr, xq), eq(yr, yq)), eq(zr, zq)) {
+                            if g2Eq(xr0, xr1, xq0, xq1, yr0, yr1, yq0, yq1, zr0, zr1, zq0, zq1) {
                                 // P + P = 2P
                                 xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
         
@@ -504,7 +529,7 @@ object "EcPairing" {
                             let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
                             let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
             
-                            xr0, xr1 := fp2Mul(u, w)
+                            xr0, xr1 := fp2Mul(u0, u1, w0, w1)
                             
                             temp00, temp01 := fp2Mul(u00, u01, u20, u21)
                             temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
@@ -1284,10 +1309,6 @@ object "EcPairing" {
                     burnGas()
                 }
 
-                if g1AffinePointIsInfinity(g1_x, g1_y) {
-                    continue
-                }
-
 				if iszero(g1AffinePointIsOnCurve(g1_x, g1_y)) {
 					burnGas()
 				}
@@ -1332,6 +1353,10 @@ object "EcPairing" {
                 if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
 					burnGas()
 				}
+
+                if g1AffinePointIsInfinity(g1_x, g1_y) {
+                    continue
+                }
 
                 let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
 
