@@ -1,6 +1,6 @@
-object "EcMul" {
+object "P256VERIFY" {
     code { }
-    object "EcMul_deployed" {
+    object "P256VERIFY_deployed" {
         code {
             // Constants
 
