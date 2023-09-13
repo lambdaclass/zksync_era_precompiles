@@ -6,64 +6,114 @@ object "EcPairing" {
             //                      CONSTANTS
             ////////////////////////////////////////////////////////////////
 
+            /// @notice Constant function for value zero.
+            /// @return zero The value zero.
             function ZERO() -> zero {
                 zero := 0x00
             }
 
+            /// @notice Constant function for value one.
+            /// @return one The value one.
             function ONE() -> one {
                 one := 0x01
             }
 
+            /// @notice Constant function for value two.
+            /// @return two The value two.
             function TWO() -> two {
                 two := 0x02
             }
 
+            /// @notice Constant function for value three.
+            /// @return three The value three.
             function THREE() -> three {
                 three := 0x03
             }
 
+            /// @notice Constant function for value one in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE() -> m_one {
                 m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
             }
 
+            /// @notice Constant function for value two in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_two The value two in Montgomery form.
             function MONTGOMERY_TWO() -> m_two {
                 m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
             }
 
+            /// @notice Constant function for value three in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_three The value three in Montgomery form.
             function MONTGOMERY_THREE() -> m_three {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            /// @notice Constant function for the inverse of two on the alt_bn128 group in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return two_inv The value of the inverse of two on the alt_bn128 group in Montgomery form.
             function MONTGOMERY_TWO_INV() -> two_inv {
                 two_inv := 14119558874979547267292681013829403749242370018224634694350716214666112402802
             }
-
+            /// @notice constant function for the coeffitients of the sextic twist of the BN256 courve.
+            /// @dev E': y´** 2 = x´** 3 + 3 / (3 + u)
+            /// @dev the curve E' is defined over Fp2 elements.
+            /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
             function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
                 z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
                 z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
             }
 
-            // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
+            /// @notice Constant function for the alt_bn128 group order.
+            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
+            /// @return ret The alt_bn128 group order.
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
+            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @dev R^2 is the Montgomery residue of the value 2^512.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
+            /// @notice Constant function for the pre-computation of R^3 % N for the Montgomery REDC algorithm.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^3 modulus the curve group order.
             function R3_MOD_P() -> ret {
                 ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
             }
 
+            /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
+            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value N'.
             function N_PRIME() -> ret {
                 ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
             }
 
+            /// @notice Constant function for decimal representation of the NAF for the Millers Loop.
+            /// @dev Millers loop uses to iterate the NAF representation of the value t = 6x^2 + 1. Where x = 4965661367192848881 is a parameter of the BN 256 curve.
+            /// @dev For details of the x parameter: https://hackmd.io/@jpw/bn254#Barreto-Naehrig-curves.
+            /// @dev A NAF representation uses values: -1, 0 and 1. https://en.wikipedia.org/wiki/Non-adjacent_form.
+            /// @dev For iterating between this values we represent the 0 as 001, the 1 as 010 and the -1 as 100.
+            /// @dev Then we concatenate all and represent the result as a decimal. E.g. [0,-1,0,1] -> 001 100 001 010 -> 778
+            /// @dev In each step of the iteration we just need to compute the operation AND between the number and 1, 2 and 4 to check the original value.
+            /// @dev Finally we shift 3 bits to the right to get the next value.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
                 ret := 7186291078002685655833716264194454051281486193901198152801
             }
 
+            /// @notice Constant function for the zero element in Fp6 representation.
+            /// return z00, z01, z10, z11, z20, z21 The values of zero in Fp6.
             function FP6_ZERO() -> z00, z01, z10, z11, z20, z21 {
                 z00 := 0
                 z01 := 0
@@ -73,6 +123,8 @@ object "EcPairing" {
                 z21 := 0
             }
 
+            /// @notice Constant function for the zero element in the twisted cuve on affine representation.
+            /// return z00, z01, z10, z11, z20, z21 The values of infinity point on affine representation.
             function G2_INFINITY() -> z00, z01, z02, z10, z11, z12 {
                 z00 := 0
                 z01 := 0
@@ -82,6 +134,8 @@ object "EcPairing" {
                 z12 := 0
             }
 
+            /// @notice Constant function for element one in Fp12 representation.
+            /// return the values of one in Fp12.
             function FP12_ONE() -> z000, z001, z010, z011, z100, z101, z110, z111, z200, z201, z210, z211 {
                 z000 := MONTGOMERY_ONE()
                 z001 := 0
@@ -97,12 +151,10 @@ object "EcPairing" {
                 z211 := 0
             }
 
+            /// @notice Constant function for the lenght of the input of a single pair of points to compute the pairing.
+            /// return ret The lenght of a pair of points input.
             function PAIR_LENGTH() -> ret {
                 ret := 0xc0
-            }
-
-            function RESULT_LENGTH() -> ret {
-                ret := 0x180
             }
 
             //////////////////////////////////////////////////////////////////
@@ -120,37 +172,6 @@ object "EcPairing" {
 				// will burn the provided gas by calling this function.
 				precompileCall(0, gas())
 		  	}
-
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := mload(0x600)
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
-            function console_log_fp12(a000, a001, a010, a011, a100, a101, a110, a111, a200, a201, a210, a211) {
-                console_log(a000)
-                console_log(a001)
-                console_log(a010)
-                console_log(a011)
-                console_log(a100)
-                console_log(a101)
-                console_log(a110)
-                console_log(a111)
-                console_log(a200)
-                console_log(a201)
-                console_log(a210)
-                console_log(a211)
-            }
 
 			////////////////////////////////////////////////////////////////
             //                      MONTGOMERY
@@ -315,7 +336,9 @@ object "EcPairing" {
 			//                      CURVE ARITHMETICS
 			//////////////////////////////////////////////////////////////////
 
-			// G1 -> Y^2 = X^3 + 3
+            /// @notice Checks if a point in affine coordenates is on the G1 curve.
+            /// @dev The points on the curve satisfy: Y^2 = X^3 + 3
+            /// @return ret True if the point is in the curve, false otherwise.
 			function pointIsOnG1(x, y) -> ret {
 				let ySquared := mulmod(y, y, P())
 				let xSquared := mulmod(x, x, P())
@@ -324,10 +347,12 @@ object "EcPairing" {
 
 				ret := eq(ySquared, xQubedPlusThree)
 			}
-
-            // G2 -> Y^2 = X^3 + 3/(i+9)
-			//    -> (iya + yb)^2 = (ixa + xb)^3 + 3/(i+9)
-            //    -> i(2*ay*by) + (yb^2 - ya^2) = i(3*bx^2*ax - ax^3 - 3/82) + (xb - 3*bx*ax^2 + 27/82)
+             
+            /// @notice Checks if a point in affine coordenates is on the G2 curve.
+            /// @dev The points on the curve satisfy:  Y^2 = X^3 + 3/(i+9)
+			/// @dev => (iya + yb)^2 = (ixa + xb)^3 + 3/(i+9)
+            //  @dev => i(2*ay*by) + (yb^2 - ya^2) = i(3*bx^2*ax - ax^3 - 3/82) + (xb - 3*bx*ax^2 + 27/82)
+            /// @return ret True if the point is in the curve, false otherwise.
 			function pointIsOnG2(ax, bx, ay, by) -> ret {
                 let axSquared := montgomeryMul(ax, ax)
                 let bxSquared := montgomeryMul(bx, bx)
