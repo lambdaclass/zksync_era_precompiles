@@ -157,9 +157,7 @@ object "EcPairing" {
                 ret := 0xc0
             }
 
-            //////////////////////////////////////////////////////////////////
-			//                      HELPER FUNCTIONS
-			//////////////////////////////////////////////////////////////////
+			// HELPER FUNCTIONS
 
 			/// @dev Executes the `precompileCall` opcode.
 			function precompileCall(precompileParams, gasToBurn) -> ret {
@@ -173,9 +171,45 @@ object "EcPairing" {
 				precompileCall(0, gas())
 		  	}
 
-			////////////////////////////////////////////////////////////////
-            //                      MONTGOMERY
-            ////////////////////////////////////////////////////////////////
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := mload(0x600)
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
+            function console_log_fp12(a000, a001, a010, a011, a100, a101, a110, a111, a200, a201, a210, a211) {
+                console_log(a000)
+                console_log(a001)
+                console_log(a010)
+                console_log(a011)
+                console_log(a100)
+                console_log(a101)
+                console_log(a110)
+                console_log(a111)
+                console_log(a200)
+                console_log(a201)
+                console_log(a210)
+                console_log(a211)
+            }
+
+            /// @notice Checks if the LSB of a number is 1.
+            /// @param x The number to check.
+            /// @return ret True if the LSB is 1, false otherwise.
+            function lsbIsOne(x) -> ret {
+                ret := and(x, ONE())
+            }
+
+            // MONTGOMERY
 
 			function submod(minuend, subtrahend, modulus) -> difference {
                 difference := addmod(minuend, sub(modulus, subtrahend), modulus)
@@ -332,77 +366,56 @@ object "EcPairing" {
                 quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
             }
 
-			//////////////////////////////////////////////////////////////////
-			//                      CURVE ARITHMETICS
-			//////////////////////////////////////////////////////////////////
+			// CURVE ARITHMETICS
 
-            /// @notice Checks if a point in affine coordenates is on the G1 curve.
-            /// @dev The points on the curve satisfy: Y^2 = X^3 + 3
-            /// @return ret True if the point is in the curve, false otherwise.
-			function pointIsOnG1(x, y) -> ret {
-				let ySquared := mulmod(y, y, P())
-				let xSquared := mulmod(x, x, P())
-				let xQubed := mulmod(xSquared, x, P())
-				let xQubedPlusThree := addmod(xQubed, THREE(), P())
+            /// @notice Checks if a coordinate is on the curve group order.
+            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @param coordinate The coordinate to check.
+            /// @return ret True if the coordinate is in the range, false otherwise.
+            function coordinateIsOnGroupOrder(coordinate) -> ret {
+                ret := lt(coordinate, P())
+            }
+            
+            /// @notice Checks if affine coordinates are on the curve group order.
+            /// @dev Affine coordinates are on the curve group order if both coordinates are on the range [0, curveGroupOrder).
+            /// @param x The x coordinate to check.
+            /// @param y The y coordinate to check.
+            /// @return ret True if the coordinates are in the range, false otherwise.
+            function affinePointCoordinatesAreOnGroupOrder(x, y) -> ret {
+                ret := and(coordinateIsOnGroupOrder(x), coordinateIsOnGroupOrder(y))
+            }
 
-				ret := eq(ySquared, xQubedPlusThree)
-			}
-             
-            /// @notice Checks if a point in affine coordenates is on the G2 curve.
-            /// @dev The points on the curve satisfy:  Y^2 = X^3 + 3/(i+9)
-			/// @dev => (iya + yb)^2 = (ixa + xb)^3 + 3/(i+9)
-            //  @dev => i(2*ay*by) + (yb^2 - ya^2) = i(3*bx^2*ax - ax^3 - 3/82) + (xb - 3*bx*ax^2 + 27/82)
-            /// @return ret True if the point is in the curve, false otherwise.
-			function pointIsOnG2(ax, bx, ay, by) -> ret {
-                let axSquared := montgomeryMul(ax, ax)
-                let bxSquared := montgomeryMul(bx, bx)
-                let aySquared := montgomeryMul(ay, ay)
-                let bySquared := montgomeryMul(bx, bx)
-                let ayby := montgomeryMul(ay, by)
+            // G1
 
-                // Precomputation of 27/82 = 27*82^-1
-                let twentySevenOverEightyTwo := 0x00
-                // Precomputation of 3/82 = 3*82^-1
-                let threeOverEightyTwo := 0x00
+            function g1AffinePointIsInfinity(x, y) -> ret {
+                ret := and(iszero(x), iszero(y))
+            }
 
-                // 2*ay*by
-                let aLeft := addmod(ayby, ayby, P())
-                // by^2 - ay^2
-                let bLeft := submod(bySquared, aySquared, P())
+			function g1AffinePointIsOnCurve(x, y) -> ret {
+				if g1AffinePointIsInfinity(x,y) {
+                    ret := 1
+                }
+                if iszero(g1AffinePointIsInfinity(x, y)) { 
+                    let ySquared := mulmod(y, y, P())
+                    let xSquared := mulmod(x, x, P())
+                    let xQubed := mulmod(xSquared, x, P())
+                    let xQubedPlusThree := addmod(xQubed, THREE(), P())
 
-                let tripledBxSquared := addmod(bxSquared, addmod(bxSquared, bxSquared, P()), P())
-                // aRight = 3*bx^2*ax - ax^3 - 3/82
-                //        = ax*(3*bx*bx - ax*ax - 3/82)
-                //        = ax*((bx*bx + bx*bx + bx*bx) - ax*ax - 3/82)
-                //        = ax*((bxSquared + bxSquared + bxSquared) - aSquared) - 3/82
-                let aRight := submod(montgomeryMul(ax, submod(tripledBxSquared, axSquared, P())), threeOverEightyTwo, P())
-                let tripledAxSquared := addmod(axSquared, addmod(axSquared, axSquared, P()), P())
-                // bRight = bx^3 - 3*bx*ax^2 + 27/82
-                //        = bx*(bx*bx - 3*ax*ax + 27/82)
-                //        = bx*(bSquared - (aSquared + aSquared + aSquared)) + 27/82
-                let bRight := addmod(montgomeryMul(bx, submod(bxSquared, tripledAxSquared, P())), twentySevenOverEightyTwo, P())
+                    ret := eq(ySquared, xQubedPlusThree)
+                }
+            }
 
-                let left := eq(aLeft, bLeft)
-                let right := eq(aRight, bRight)
 
-                ret := and(left, right)
-			}
+            // G2
 
-			// Neg function for G2 in affine coordinates
-			function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
-				nx0 := x0
-				nx1 := x1
-				ny0, ny1 := fp2Neg(y0, y1)
-			}
-
-			function g2IntoAffine(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1 {
+            function g2ProjectiveIntoAffine(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1 {
 				let z0, z1 := fp2Inv(zp0, zp1)
 				xr0, xr1 := fp2Mul(xp0, xp1, zp0, zp1)
 				yr0, yr1 := fp2Mul(yp0, yp1, zp0, zp1)
 			}
 
 			// G2 function to go back and forth between affine and projective coordinates
-			function g2FromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
+			function g2ProjectiveFromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
 				xr0 := xp0
 				xr1 := xp1
 				yr0 := yp0
@@ -421,132 +434,176 @@ object "EcPairing" {
 				}
 			}
 
-            function affinePointIsInfinity(x, y) -> ret {
-                ret := and(iszero(x), iszero(y))
+            function g2AffinePointIsInfinity(x0, x1, y0, y1) -> ret {
+                ret := iszero(or(or(x0, x1), or(y0, y1)))
             }
 
-            function projectivePointIsInfinity(z) -> ret {
-                ret := iszero(z)
+			function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
+                if g2AffinePointIsInfinity(x0, x1, y0, y1) {
+                    ret := 1
+                }
+                if iszero(g2AffinePointIsInfinity(x0, x1, y0, y1)) {
+                    let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                    let b0, b1 := fp2Mul(x0, x1, x0, x1)
+                    b0, b1 := fp2Mul(b0, b1, x0, x1)
+                    b0, b1 := fp2Add(b0, b1, a0, a1)
+                    let c0, c1 := fp2Mul(y0, y1, y0, y1)
+                    ret := and(eq(b0, c0), eq(b1, c1))
+                }
+			}
+
+            function g2ProjectivePointIsInfinity(x0, x1, y0, y1, z0, z1) -> ret {
+                ret := iszero(or(z0, z1))
             }
 
-            function projectiveFromAffine(xp, yp) -> xr, yr, zr {
-                switch affinePointIsInfinity(xp, yp)
-                case 0 {
-                    xr := xp
-                    yr := yp
-                    zr := MONTGOMERY_ONE()
-                }
-                case 1 {
-                    xr := ZERO()
-                    yr := ZERO()
-                    zr := ZERO()
-                }
+			// Neg function for G2 in affine coordinates
+			function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
+				nx0 := x0
+				nx1 := x1
+				ny0, ny1 := fp2Neg(y0, y1)
+			}
+
+            function g2Eq(xp0, xp1, yp0, yp1, zp0, zp1, xq0, xq1, yq0, yq1, zq0, zq1) -> ret{
+                ret := and(eq(xp0, xq0), eq(xp1, xq1))
+                ret := and(eq(yp0, yq0), eq(yp1, yq1))
+                ret := and(eq(zp0, zq0), eq(zp1, zq1))
             }
 
-            function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
-                switch zp
-                case 0 {
-                    xr := ZERO()
-                    yr := ZERO()
-                }
-                // MONTGOMERY_ONE(), but compiler expects a literal.
-                case 6350874878119819312338956282401532409788428879151445726012394534686998597021 {
-                    xr := montgomeryDiv(xp, zp)
-                    yr := montgomeryDiv(yp, zp)
-                }
+            function g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
+                let x_squared0, x_squared1 := fp2Mul(xp0, xp1, xp0, xp1)
+                let temp00, temp01 := fp2Add(x_squared0, x_squared1, x_squared0, x_squared1)
+                let t0, t1 := fp2Add(x_squared0, x_squared1, temp00, temp01)
+                let yz0, yz1 := fp2Mul(yp0, yp1, zp0, zp1)
+                let u0, u1 := fp2Add(yz0, yz1, yz0, yz1)
+                temp00, temp01 := fp2Mul(xp0, xp1, yp0, yp1)
+                let uxy0, uxy1 := fp2Mul(u0, u1, temp00, temp01)
+                let v0, v1 := fp2Add(uxy0, uxy1, uxy0, uxy1)
+                temp00, temp01 := fp2Mul(t0, t1, t0, t1)
+                let temp10, temp11 := fp2Add(v0, v1, v0, v1)
+                let w0, w1 := fp2Sub(temp00, temp01, temp10, temp11)
+
+                xr0, xr1 := fp2Mul(u0, u1, w0, w1)
+                let uy0, uy1 := fp2Mul(u0, u1, yp0, yp1)
+                let uy_squared0, uy_squared1 := fp2Mul(uy0, uy1, uy0, uy1)
+                temp00, temp01 := fp2Sub(v0, v1, w0, w1)
+                temp10, temp11 := fp2Mul(t0, t1, temp00, temp01)
+                let temp20, temp21 := fp2Add(uy_squared0, uy_squared1, uy_squared0, uy_squared1)
+                yr0, yr1 := fp2Sub(temp10, temp11, temp20, temp21)
+                let temp30, temp31 := fp2Mul(u0, u1, u0, u1)
+                zr0, zr1 := fp2Mul(u0, u1, temp30, temp31)
             }
 
-            function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
-                let x_squared := montgomeryMul(xp, xp)
-                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
-                let yz := montgomeryMul(yp, zp)
-                let u := montgomeryAdd(yz, yz)
-                let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
-                let v := montgomeryAdd(uxy, uxy)
-                let w := montgomerySub(montgomeryMul(t, t), montgomeryAdd(v, v))
-
-                xr := montgomeryMul(u, w)
-                let uy := montgomeryMul(u, yp)
-                let uy_squared := montgomeryMul(uy, uy)
-                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w)), montgomeryAdd(uy_squared, uy_squared))
-                zr := montgomeryMul(u, montgomeryMul(u, u))
-            }
-
-            function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
-                let pIsInfinity := projectivePointIsInfinity(zp)
-                let qIsInfinity := projectivePointIsInfinity(zq)
-                if and(pIsInfinity, zq) {
-                    xr := xq
-                    yr := yq
-                    zr := zq
-                }
-                if and(zp, qIsInfinity) {
-                    xr := xp
-                    yr := yp
-                    zr := zp
-                }
-                switch and(eq(xp, xq), eq(yp, yq))
-                case 0 {
-                    let t0 := yp
-                    let t1 := yq
-                    let t := montgomerySub(t0, t1)
-                    let u0 := montgomeryMul(xp, zq)
-                    let u1 := xq
-                    let u := montgomerySub(u0, u1)
-                    let u2 := montgomeryMul(u, u)
-                    let u3 := montgomeryMul(u2, u)
-                    let w := montgomerySub(montgomeryMul(t, t), montgomeryMul(u2, montgomeryAdd(u0, u1)))
-    
-                    xr := montgomeryMul(u, w)
-                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
-                    zr := u3
-                }
-                case 1 {
-                    switch and(pIsInfinity, qIsInfinity) 
-                    case 0 {
-                        xr, yr, zr := projectiveDouble(xp, yp, zp)
-                    }
-                    case 1 {
-                        xr := ZERO()
-                        yr := ZERO()
-                        zr := ZERO()
-                    }
-                }            
-            }
-
-            function projectiveMul(xp, yp, zp, scalar) -> xr, yr, zr {
-                xr := ZERO()
-                yr := ZERO()
-                zr := ZERO()
-                let xq := xp
-                let yq := yp
-                let zq := zp
-                let s := scalar
-            
+            function g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, scalar) -> xr0, xr1, yr0, yr1, zr0, zr1 {
                 switch scalar
-                case 0 {}
-                case 1 {
-                    xr := xp
-                    yr := yp
-                    zr := zp
-                }
-                case 2 {
-                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                case 0x02 {
+                    xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, yp1)
                 }
                 default {
-                    for {} gt(s, ZERO()) {} {
-                        if and(s, ONE()) {
-                            xr, yr, zr := projectiveAdd(xr, yr, zr, xq, yq, zq)
+                    let xq0 := xp0
+                    let xq1 := xp1
+                    let yq0 := yp0
+                    let yq1 := yp1
+                    let zq0 := zp0
+                    let zq1 := zp1
+                    let xr0 := MONTGOMERY_ONE()
+                    let xr1 := ZERO()
+                    let yr0 := MONTGOMERY_ONE()
+                    let yr1 := ZERO()
+                    let zr0 := ZERO()
+                    let zr1 := ZERO()
+                    for {} scalar {} {
+                        if lsbIsOne(scalar) {
+                            let qIsInfinity := g2ProjectivePointIsInfinity(xq0, xq1, yq0, yq1, zq0, zq1)
+                            let rIsInfinity := g2ProjectivePointIsInfinity(xr0, xr1, yr0, yr1, zr0, zr1)
+                            if and(rIsInfinity, qIsInfinity) {
+                                // Infinity + Infinity = Infinity
+                                break
+                            }
+                            if and(rIsInfinity, iszero(qIsInfinity)) {
+                                // Infinity + P = P
+                                xr0 := xq0
+                                xr1 := xq1
+                                yr0 := yq0
+                                yr1 := yq1
+                                zr0 := zq0
+                                zr1 := zq1
+        
+                                xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
+                                // Check next bit
+                                scalar := shr(1, scalar)
+                                continue
+                            }
+                            if and(iszero(rIsInfinity), qIsInfinity) {
+                                // P + Infinity = P
+                                break
+                            }
+                            if g2Eq(xr0, xr1, montgomerySub(ZERO(), yr0), montgomerySub(ZERO(), yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
+                                // P + (-P) = Infinity
+                                xr0 := ZERO()
+                                xr1 := ZERO()
+                                yr0 := ZERO()
+                                yr1 := ZERO()
+                                zr0 := ZERO()
+                                zr1 := ZERO()
+        
+                                xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
+                                // Check next bit
+                                scalar := shr(1, scalar)
+                                continue
+                            }
+                            // FIXME: This condition is not addapted for fp2
+                            if g2Eq(xr0, xr1, xq0, xq1, yr0, yr1, yq0, yq1, zr0, zr1, zq0, zq1) {
+                                // P + P = 2P
+                                xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
+        
+                                xq0 := xr0
+                                xq1 := xr1
+                                yq0 := yr0
+                                yq1 := yr1
+                                zq0 := zr0
+                                zq1 := zr1
+                                // Check next bit
+                                scalar := shr(1, scalar)
+                                continue
+                            }
+        
+                            // P1 + P2 = P3
+        
+                            let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
+                            let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
+                            let t0, t1 := fp2Sub(t00, t01, t10, t11)
+                            let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
+                            let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
+                            let u0, u1 := fp2Sub(u00, u01, u10, u11)
+                            let u20, u21 := fp2Mul(u0, u1, u0, u1)
+                            let u30, u31 := fp2Mul(u20, u21, u0, u1)
+                            let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
+
+                            let temp00, temp01 := fp2Add(u00, u01, u10, u11)
+                            let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
+                            let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
+                            let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
+                            let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
+            
+                            xr0, xr1 := fp2Mul(u0, u1, w0, w1)
+                            
+                            temp00, temp01 := fp2Mul(u00, u01, u20, u21)
+                            temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
+                            temp20, temp21 := fp2Mul(t00, t01, u30, u31)
+                            temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
+                            yr0, yr1 := fp2Sub(temp30, temp31, temp20, temp21)
+
+                            zr0, zr1 := fp2Mul(u30, u31, v0, v1)
                         }
-                        xq, yq, zq := projectiveDouble(xq, yq, zq)
-                        s := shr(1, s)
+        
+                        xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
+                        // Check next bit
+                        scalar := shr(1, scalar)
                     }
                 }
             }
 
-			////////////////////////////////////////////////////////////////
-            //                      FP2 ARITHMETHICS
-            ////////////////////////////////////////////////////////////////
+            // FP2 ARITHMETHICS
 
             function fp2Add(a00, a01, b00, b01) -> c00, c01 {
                 c00 := montgomeryAdd(a00, b00)
@@ -593,9 +650,7 @@ object "EcPairing" {
                 c01 := montgomerySub(ZERO(), a01)
             }
 
-            ////////////////////////////////////////////////////////////////
-            //                      FP6 ARITHMETHICS
-            ////////////////////////////////////////////////////////////////
+            // FP6 ARITHMETHICS
 
             function fp6Add(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Add(a00, a01, b00, b01)
@@ -730,9 +785,7 @@ object "EcPairing" {
                 c20, c21 := fp2Mul(c20, c21, t60, t61)
             }
 
-            ////////////////////////////////////////////////////////////////
-            //                      FP12 ARITHMETHICS
-            ////////////////////////////////////////////////////////////////
+            // FP12 ARITHMETHICS
 
             function fp12Add(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 c000, c001, c010, c011, c020, c021 := fp6Add(a000, a001, a010, a011, a020, a021, b000, b001, b010, b011, b020, b021)
@@ -1066,9 +1119,7 @@ object "EcPairing" {
                 c00, c01 := fp2Mul(a00, a01, g00, g01)
             }
 
-			//////////////////////////////////////////////////////////////////
-			//                      PAIRING FUNCTIONS
-			//////////////////////////////////////////////////////////////////
+			// PAIRING FUNCTIONS
 
 			function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
                 let zero := ZERO()
@@ -1222,7 +1273,7 @@ object "EcPairing" {
             }
 
             function millerLoop(xq0, xq1, yq0, yq1, xp, yp) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
-                let t00, t01, t10, t11, t20, t21 := g2FromAffine(xq0, xq1, yq0, yq1)
+                let t00, t01, t10, t11, t20, t21 := g2ProjectiveFromAffine(xq0, xq1, yq0, yq1)
                 let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
                 let naf := NAF_REPRESENTATIVE()
@@ -1310,7 +1361,11 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
-				if iszero(pointIsOnG1(g1_x, g1_y)) {
+                if iszero(and(coordinateIsOnGroupOrder(g1_x), coordinateIsOnGroupOrder(g1_y))) {
+                    burnGas()
+                }
+
+				if iszero(g1AffinePointIsOnCurve(g1_x, g1_y)) {
 					burnGas()
 				}
 
@@ -1330,9 +1385,19 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-				// if iszero(pointIsOnG2(g2_x1, g2_x0, g2_y1, g2_y0)) {
-				// 	burnGas()
-				// }
+                // TODO: Double check if this is right
+                if iszero(and(coordinateIsOnGroupOrder(g2_x0), coordinateIsOnGroupOrder(g2_x1))) {
+                    burnGas()
+                }
+
+                // TODO: Double check if this is right
+                if iszero(and(coordinateIsOnGroupOrder(g2_y0), coordinateIsOnGroupOrder(g2_y1))) {
+                    burnGas()
+                }
+
+                if g2AffinePointIsInfinity(g2_x0, g2_x1, g2_y0, g2_y1) {
+                    continue
+                }
 
                 g1_x := intoMontgomeryForm(g1_x)
                 g1_y := intoMontgomeryForm(g1_y)
@@ -1341,15 +1406,24 @@ object "EcPairing" {
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
 
+                if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
+					burnGas()
+				}
+
+                if g1AffinePointIsInfinity(g1_x, g1_y) {
+                    continue
+                }
+
                 let f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1)
 
                 r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121 := fp12Mul(r000, r001, r010, r011, r020, r021, r100, r101, r110, r111, r120, r121, f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
 			}
 
             // Pair check
-            if and(and(eq(r000, MONTGOMERY_ONE()), eq(r001, ZERO())), and(eq(r010, ZERO()), eq(r011, ZERO()))) {
-                if and(and(eq(r020, ZERO()), eq(r021, ZERO())), and(eq(r100, ZERO()), eq(r101, ZERO()))) {
-                    if and(and(eq(r110, ZERO()), eq(r111, ZERO())), and(eq(r120, ZERO()), eq(r121, ZERO()))) {
+
+            if and(and(eq(r000, MONTGOMERY_ONE()), iszero(r001)), and(iszero(r010), iszero(r011))) {
+                if and(and(iszero(r020), iszero(r021)), and(iszero(r100), iszero(r101))) {
+                    if and(and(iszero(r110), iszero(r111)), and(iszero(r120), iszero(r121))) {
                         mstore(0, ONE())
                         return(0, 32)
                     }
