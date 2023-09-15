@@ -425,13 +425,9 @@ object "EcMul" {
             let zr := 0
             for {} scalar {} {
                 if lsbIsOne(scalar) {
-                    let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                     let rIsInfinity := projectivePointIsInfinity(xr, yr, zr)
-                    if and(rIsInfinity, qIsInfinity) {
-                        // Infinity + Infinity = Infinity
-                        break
-                    }
-                    if and(rIsInfinity, iszero(qIsInfinity)) {
+
+                    if rIsInfinity {
                         // Infinity + P = P
                         xr := xq
                         yr := yq
@@ -442,10 +438,7 @@ object "EcMul" {
                         scalar := shr(1, scalar)
                         continue
                     }
-                    if and(iszero(rIsInfinity), qIsInfinity) {
-                        // P + Infinity = P
-                        break
-                    }
+
                     if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
                         // P + (-P) = Infinity
                         xr := 0
