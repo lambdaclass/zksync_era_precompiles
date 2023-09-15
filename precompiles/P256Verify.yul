@@ -553,6 +553,7 @@ object "P256VERIFY" {
             let gx, gy := G()
             let gx, gy, gz := projectiveFromAffine(gx, gy)
 
+            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
             let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
