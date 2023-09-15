@@ -557,7 +557,8 @@ object "P256VERIFY" {
             let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
-            xr, yr := projectiveIntoAffine(xr, yr, zr)
+            // As we only need xr in affine form, we can skip transforming the `y` coordinate.
+            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
 
             mstore(0, eq(xr, r))
             return(0, 32)
