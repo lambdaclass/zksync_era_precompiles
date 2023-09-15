@@ -24,12 +24,6 @@ object "EcMul" {
                 two := 0x02
             }
 
-            /// @notice Constant function for value three.
-            /// @return three The value three.
-            function THREE() -> three {
-                three := 0x03
-            }
-
             /// @notice Constant function for value one in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
@@ -49,12 +43,6 @@ object "EcMul" {
             /// @return ret The alt_bn128 group order.
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
-            }
-
-            /// @notice Constant function for the alt_bn128 group order minus one.
-            /// @return ret The alt_bn128 group order minus one.
-            function P_MINUS_ONE() -> ret {
-                ret := 21888242871839275222246405745257275088696311157297823662689037894645226208582
             }
 
             /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
@@ -252,23 +240,6 @@ object "EcMul" {
                 ret := REDC(lo, hi)
             }
 
-            /// @notice Computes the Montgomery exponentiation using the Montgomery multiplication and reduction algorithms.
-            /// @dev See the functions `montgomeryMul` and `REDC` for further details on the Montgomery exponentiation.
-            /// @param base The base in Montgomery form.
-            /// @param exponent The exponent.
-            /// @return pow The result of the Montgomery exponentiation.
-            function montgomeryModExp(base, exponent) -> pow {
-                pow := MONTGOMERY_ONE()
-                let aux := exponent
-                for { } gt(aux, ZERO()) { } {
-                        if mod(aux, 2) {
-                            pow := montgomeryMul(pow, base)
-                        }
-                        aux := shr(1, aux)
-                        base := montgomeryMul(base, base)
-                }
-            }
-
             /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
             /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
@@ -319,18 +290,6 @@ object "EcMul" {
                 let xQubedPlusThree := montgomeryAdd(xQubed, MONTGOMERY_THREE())
 
                 ret := eq(ySquared, xQubedPlusThree)
-			}
-
-            // @notice Checks if a point in projective coordinates in Montgomery form is on the curve.
-            // @dev The curve in question is the alt_bn128 curve.
-            // @dev The Short Weierstrass equation of the curve is y^2 = x^3 + 3.
-            // @param x The x coordinate of the point in Montgomery form.
-            // @param y The y coordinate of the point in Montgomery form.
-            // @param z The z coordinate of the point in Montgomery form.
-            // @return ret True if the point is on the curve, false otherwise.
-            function projectivePointIsOnCurve(x, y, z) -> ret {
-                let _x, _y := projectiveIntoAffine(x, y, z)
-                ret := affinePointIsOnCurve(_x, _y)
 			}
 
             /// @notice Checks if a point in affine coordinates is the point at infinity.
