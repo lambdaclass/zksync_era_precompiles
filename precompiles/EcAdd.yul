@@ -25,9 +25,9 @@ object "EcAdd" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
-            /// @notice Constant function for the alt_bn128 group order.
+            /// @notice Constant function for the alt_bn128 field order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
-            /// @return ret The alt_bn128 group order.
+            /// @return ret The alt_bn128 field order.
             function ALT_BN128_GROUP_ORDER() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
@@ -36,13 +36,13 @@ object "EcAdd" {
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
-            /// @return ret The value R^2 modulus the curve group order.
+            /// @return ret The value R^2 modulus the curve field order.
             function R2_MOD_ALT_BN128_GROUP_ORDER() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
-            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
+            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve field order.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value N'.
@@ -120,12 +120,12 @@ object "EcAdd" {
                 ret := and(iszero(x), iszero(y))
             }
 
-            /// @notice Checks if a coordinate is on the curve group order.
-            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @notice Checks if a coordinate is on the curve field order.
+            /// @dev A coordinate is on the curve field order if it is on the range [0, curveFieldOrder).
             /// @dev This check is required in the precompile specification. See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
-            function isOnGroupOrder(coordinate) -> ret {
+            function isOnFieldOrder(coordinate) -> ret {
                 ret := lt(coordinate, ALT_BN128_GROUP_ORDER())
             }
 
@@ -295,8 +295,8 @@ object "EcAdd" {
             if and(p1IsInfinity, iszero(p2IsInfinity)) {
                 // Infinity + P = P
 
-                // Ensure that the coordinates are between 0 and the group order.
-                if or(iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
+                // Ensure that the coordinates are between 0 and the field order.
+                if or(iszero(isOnFieldOrder(x2)), iszero(isOnFieldOrder(y2))) {
                     burnGas()
                     revert(0, 0)
                 }
@@ -320,8 +320,8 @@ object "EcAdd" {
             if and(iszero(p1IsInfinity), p2IsInfinity) {
                 // P + Infinity = P
 
-                // Ensure that the coordinates are between 0 and the group order.
-                if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
+                // Ensure that the coordinates are between 0 and the field order.
+                if or(iszero(isOnFieldOrder(x1)), iszero(isOnFieldOrder(y1))) {
                     burnGas()
                     revert(0, 0)
                 }
@@ -343,13 +343,13 @@ object "EcAdd" {
                 return(0, 64)
             }
 
-            // Ensure that the coordinates are between 0 and the group order.
-            if or(iszero(isOnGroupOrder(x1)), iszero(isOnGroupOrder(y1))) {
+            // Ensure that the coordinates are between 0 and the field order.
+            if or(iszero(isOnFieldOrder(x1)), iszero(isOnFieldOrder(y1))) {
                 burnGas()
             }
 
-            // Ensure that the coordinates are between 0 and the group order.
-            if or(iszero(isOnGroupOrder(x2)), iszero(isOnGroupOrder(y2))) {
+            // Ensure that the coordinates are between 0 and the field order.
+            if or(iszero(isOnFieldOrder(x2)), iszero(isOnFieldOrder(y2))) {
                 burnGas()
             }
 
