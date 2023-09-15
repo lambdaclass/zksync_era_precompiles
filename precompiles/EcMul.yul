@@ -27,9 +27,9 @@ object "EcMul" {
                 m_b3 := 13381388159399823366557795051099241510703237597767364208733475022892534956023
             }
 
-            /// @notice Constant function for the alt_bn128 group order.
+            /// @notice Constant function for the alt_bn128 field order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
-            /// @return ret The alt_bn128 group order.
+            /// @return ret The alt_bn128 field order.
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
@@ -38,13 +38,13 @@ object "EcMul" {
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
-            /// @return ret The value R^2 modulus the curve group order.
+            /// @return ret The value R^2 modulus the curve field order.
             function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
-            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
+            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve field order.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value N'.
@@ -237,32 +237,32 @@ object "EcMul" {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
             }
 
-            /// @notice Checks if a coordinate is on the curve group order.
-            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @notice Checks if a coordinate is on the curve field order.
+            /// @dev A coordinate is on the curve field order if it is on the range [0, curveFieldOrder).
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
-            function coordinateIsOnGroupOrder(coordinate) -> ret {
+            function coordinateIsOnFieldOrder(coordinate) -> ret {
                 ret := lt(coordinate, P())
             }
 
-            /// @notice Checks if affine coordinates are on the curve group order.
-            /// @dev Affine coordinates are on the curve group order if both coordinates are on the range [0, curveGroupOrder).
+            /// @notice Checks if affine coordinates are on the curve field order.
+            /// @dev Affine coordinates are on the curve field order if both coordinates are on the range [0, curveFieldOrder).
             /// @param x The x coordinate to check.
             /// @param y The y coordinate to check.
             /// @return ret True if the coordinates are in the range, false otherwise.
-            function affinePointCoordinatesAreOnGroupOrder(x, y) -> ret {
-                ret := and(coordinateIsOnGroupOrder(x), coordinateIsOnGroupOrder(y))
+            function affinePointCoordinatesAreOnFieldOrder(x, y) -> ret {
+                ret := and(coordinateIsOnFieldOrder(x), coordinateIsOnFieldOrder(y))
             }
 
-            /// @notice Checks if projective coordinates are on the curve group order.
-            /// @dev Projective coordinates are on the curve group order if the coordinates are on the range [0, curveGroupOrder) and the z coordinate is not zero.
+            /// @notice Checks if projective coordinates are on the curve field order.
+            /// @dev Projective coordinates are on the curve field order if the coordinates are on the range [0, curveFieldOrder) and the z coordinate is not zero.
             /// @param x The x coordinate to check.
             /// @param y The y coordinate to check.
             /// @param z The z coordinate to check.
             /// @return ret True if the coordinates are in the range, false otherwise.
-            function projectivePointCoordinatesAreOnGroupOrder(x, y, z) -> ret {
+            function projectivePointCoordinatesAreOnFieldOrder(x, y, z) -> ret {
                 let _x, _y := projectiveIntoAffine(x, y, z)
-                ret := and(z, affinePointCoordinatesAreOnGroupOrder(_x, _y))
+                ret := and(z, affinePointCoordinatesAreOnFieldOrder(_x, _y))
             }
 
             // @notice Checks if a point in affine coordinates in Montgomery form is on the curve.
@@ -374,7 +374,7 @@ object "EcMul" {
             // Retrieve the coordinates from the calldata
             let x := calldataload(0)
             let y := calldataload(32)
-            if iszero(affinePointCoordinatesAreOnGroupOrder(x, y)) {
+            if iszero(affinePointCoordinatesAreOnFieldOrder(x, y)) {
                 burnGas()
             }
             let scalar := calldataload(64)
