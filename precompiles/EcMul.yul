@@ -205,9 +205,8 @@ object "EcMul" {
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
-                let temp := mod(a, P())
-                let hi := getHighestHalfOfMultiplication(temp, R2_MOD_P())
-                let lo := mul(temp, R2_MOD_P())
+                let hi := getHighestHalfOfMultiplication(a, R2_MOD_P())
+                let lo := mul(a, R2_MOD_P())
                 ret := REDC(lo, hi)
             }
 
