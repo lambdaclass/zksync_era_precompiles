@@ -449,7 +449,7 @@ object "EcMul" {
                     if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
                         // P + (-P) = Infinity
                         xr := 0
-                        yr := 0
+                        yr := MONTGOMERY_ONE()
                         zr := 0
 
                         xq, yq, zq := projectiveDouble(xq, yq, zq)
