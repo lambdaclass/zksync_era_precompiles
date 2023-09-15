@@ -38,6 +38,13 @@ object "EcMul" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            /// @notice Constant function for value 3*b (i.e. 9) in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_b3 The value 9 in Montgomery form.
+            function MONTGOMERY_B3() -> m_b3 {
+                m_b3 := 13381388159399823366557795051099241510703237597767364208733475022892534956023
+            }
+
             /// @notice Constant function for the alt_bn128 group order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @return ret The alt_bn128 group order.
@@ -348,9 +355,9 @@ object "EcMul" {
             }
 
             /// @notice Doubles a point in projective coordinates in Montgomery form.
-            /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
-            /// @dev For performance reasons, the point is assumed to be previously checked to be on the
-            /// @dev curve and not the point at infinity.
+            /// @dev See Algorithm 9 in https://eprint.iacr.org/2015/1060.pdf for further details.
+            /// @dev The point is assumed to be on the curve.
+            /// @dev It works correctly for the point at infinity.
             /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
             /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
             /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
@@ -358,19 +365,24 @@ object "EcMul" {
             /// @return yr The y coordinate of the point 2P in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the point 2P in projective coordinates in Montgomery form.
             function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
-                let x_squared := montgomeryMul(xp, xp)
-                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
-                let yz := montgomeryMul(yp, zp)
-                let u := montgomeryAdd(yz, yz)
-                let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
-                let v := montgomeryAdd(uxy, uxy)
-                let w := montgomerySub(montgomeryMul(t, t), montgomeryAdd(v, v))
-
-                xr := montgomeryMul(u, w)
-                let uy := montgomeryMul(u, yp)
-                let uy_squared := montgomeryMul(uy, uy)
-                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w)), montgomeryAdd(uy_squared, uy_squared))
-                zr := montgomeryMul(u, montgomeryMul(u, u))
+                let t0 := montgomeryMul(yp, yp)
+                zr := montgomeryAdd(t0, t0)
+                zr := montgomeryAdd(zr, zr)
+                zr := montgomeryAdd(zr, zr)
+                let t1 := montgomeryMul(yp, zp)
+                let t2 := montgomeryMul(zp, zp)
+                t2 := montgomeryMul(MONTGOMERY_B3(), t2)
+                xr := montgomeryMul(t2, zr)
+                yr := montgomeryAdd(t0, t2)
+                zr := montgomeryMul(t1, zr)
+                t1 := montgomeryAdd(t2, t2)
+                t2 := montgomeryAdd(t1, t2)
+                t0 := montgomerySub(t0, t2)
+                yr := montgomeryMul(t0, yr)
+                yr := montgomeryAdd(xr, yr)
+                t1 := montgomeryMul(xp, yp)
+                xr := montgomeryMul(t0, t1)
+                xr := montgomeryAdd(xr, xr)
             }
 
             ////////////////////////////////////////////////////////////////
