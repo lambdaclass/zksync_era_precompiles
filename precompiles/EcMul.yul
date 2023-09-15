@@ -6,24 +6,6 @@ object "EcMul" {
             //                      CONSTANTS
             ////////////////////////////////////////////////////////////////
 
-            /// @notice Constant function for value zero.
-            /// @return zero The value zero.
-            function ZERO() -> zero {
-                zero := 0x00
-            }
-
-            /// @notice Constant function for value one.
-            /// @return one The value one.
-            function ONE() -> one {
-                one := 0x01
-            }
-
-            /// @notice Constant function for value two.
-            /// @return two The value two.
-            function TWO() -> two {
-                two := 0x02
-            }
-
             /// @notice Constant function for value one in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
@@ -110,7 +92,7 @@ object "EcMul" {
             /// @param x The number to check.
             /// @return ret True if the LSB is 1, false otherwise.
             function lsbIsOne(x) -> ret {
-                ret := and(x, ONE())
+                ret := and(x, 1)
             }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
@@ -124,13 +106,13 @@ object "EcMul" {
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := ZERO()
+                let c := 0
 
-                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
-                    for {} iszero(and(u, ONE())) {} {
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
                         let current := b
-                        switch and(current, ONE())
+                        switch and(current, 1)
                         case 0 {
                             b := shr(1, b)
                         }
@@ -145,10 +127,10 @@ object "EcMul" {
                         }
                     }
 
-                    for {} iszero(and(v, ONE())) {} {
+                    for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
                         let current := c
-                        switch and(current, ONE())
+                        switch and(current, 1)
                         case 0 {
                             c := shr(1, c)
                         }
@@ -180,7 +162,7 @@ object "EcMul" {
                     }
                 }
 
-                switch eq(u, ONE())
+                switch eq(u, 1)
                 case 0 {
                     inv := c
                 }
@@ -199,7 +181,7 @@ object "EcMul" {
                 let hi := add(higherHalfOfT, getHighestHalfOfMultiplication(m, P()))
                 let lo, overflowed := overflowingAdd(lowestHalfOfT, mul(m, P()))
                 if overflowed {
-                    hi := add(hi, ONE())
+                    hi := add(hi, 1)
                 }
                 S := hi
                 if iszero(lt(hi, P())) {
@@ -222,7 +204,7 @@ object "EcMul" {
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
-                let hi := ZERO()
+                let hi := 0
                 let lo := m
                 ret := REDC(lo, hi)
             }
@@ -344,8 +326,8 @@ object "EcMul" {
             function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
                 switch zp
                 case 0 {
-                    xr := ZERO()
-                    yr := ZERO()
+                    xr := 0
+                    yr := 0
                 }
                 default {
                     let zp_inv := montgomeryModularInverse(zp)
@@ -410,11 +392,11 @@ object "EcMul" {
                 burnGas()
             }
 
-            if eq(scalar, ZERO()) {
+            if eq(scalar, 0) {
                 // P * 0 = Infinity
                 return(0x00, 0x40)
             }
-            if eq(scalar, ONE()) {
+            if eq(scalar, 1) {
                 // P * 1 = P
                 mstore(0x00, x)
                 mstore(0x20, y)
@@ -423,7 +405,7 @@ object "EcMul" {
 
             let xp, yp, zp := projectiveFromAffine(m_x, m_y)
 
-            if eq(scalar, TWO()) {
+            if eq(scalar, 2) {
                 let xr, yr, zr := projectiveDouble(xp, yp, zp)
                 
                 xr, yr := projectiveIntoAffine(xr, yr, zr)
@@ -438,9 +420,9 @@ object "EcMul" {
             let xq := xp
             let yq := yp
             let zq := zp
-            let xr := ZERO()
+            let xr := 0
             let yr := MONTGOMERY_ONE()
-            let zr := ZERO()
+            let zr := 0
             for {} scalar {} {
                 if lsbIsOne(scalar) {
                     let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
@@ -464,11 +446,11 @@ object "EcMul" {
                         // P + Infinity = P
                         break
                     }
-                    if and(and(eq(xr, xq), eq(montgomerySub(ZERO(), yr), yq)), eq(zr, zq)) {
+                    if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
                         // P + (-P) = Infinity
-                        xr := ZERO()
-                        yr := ZERO()
-                        zr := ZERO()
+                        xr := 0
+                        yr := 0
+                        zr := 0
 
                         xq, yq, zq := projectiveDouble(xq, yq, zq)
                         // Check next bit
