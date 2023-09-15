@@ -475,7 +475,16 @@ object "EcMul" {
                         scalar := shr(1, scalar)
                         continue
                     }
-                    if and(and(eq(xr, xq), eq(yr, yq)), eq(zr, zq)) {
+
+                    let t0 := montgomeryMul(yq, zr)
+                    let t1 := montgomeryMul(yr, zq)
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xq, zr)
+                    let u1 := montgomeryMul(xr, zq)
+                    let u := montgomerySub(u0, u1)
+
+                    // t = (yq*zr - yr*zq); u = (xq*zr - xr*zq)
+                    if iszero(or(t, u)) { 
                         // P + P = 2P
                         xr, yr, zr := projectiveDouble(xr, yr, zr)
 
@@ -488,13 +497,6 @@ object "EcMul" {
                     }
 
                     // P1 + P2 = P3
-
-                    let t0 := montgomeryMul(yq, zr)
-                    let t1 := montgomeryMul(yr, zq)
-                    let t := montgomerySub(t0, t1)
-                    let u0 := montgomeryMul(xq, zr)
-                    let u1 := montgomeryMul(xr, zq)
-                    let u := montgomerySub(u0, u1)
                     let u2 := montgomeryMul(u, u)
                     let u3 := montgomeryMul(u2, u)
                     let v := montgomeryMul(zq, zr)
