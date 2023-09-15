@@ -60,15 +60,15 @@ object "P256VERIFY" {
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE() -> m_one {
-                m_one := 
+                m_one := 26959946660873538059280334323183841250350249843923952699046031785985
             }
 
             function MONTGOMERY_A() -> m_a {
-                m_a := 
+                m_a := 115792089129476408780076832771566570560534619664239564663761773211729002495996
             }
 
             function MONTGOMERY_B() -> m_b {
-                m_b := 
+                m_b := 99593677540221402957765480916910020772520766868399186769503856397241456836063
             }
 
             /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
@@ -370,6 +370,10 @@ object "P256VERIFY" {
                 }
             }
 
+            function projectivePointIsInfinity(xp, yp, zp) -> ret {
+                ret := iszero(zp)
+            }
+
             /// @notice Doubles a point in projective coordinates in Montgomery form.
             /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
             /// @dev For performance reasons, the point is assumed to be previously checked to be on the
@@ -434,9 +438,9 @@ object "P256VERIFY" {
                     let xq := xp
                     let yq := yp
                     let zq := zp
-                    let xr := ZERO()
-                    let yr := MONTGOMERY_ONE()
-                    let zr := ZERO()
+                    xr := ZERO()
+                    yr := MONTGOMERY_ONE()
+                    zr := ZERO()
                     for {} scalar {} {
                         if lsbIsOne(scalar) {
                             let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
@@ -519,7 +523,7 @@ object "P256VERIFY" {
             let x := calldataload(96)
             let y := calldataload(128)
 
-            if or(iszero(fieldElementIsOnGroupOrder(r)), iszero(fieldElementIsOnGroupOrder())) {
+            if or(iszero(fieldElementIsOnGroupOrder(r)), iszero(fieldElementIsOnGroupOrder(s))) {
                 burnGas()
             }
 
@@ -550,7 +554,7 @@ object "P256VERIFY" {
             let gx, gy, gz := projectiveFromAffine(gx, gy)
 
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
-            let xq, yq, zp := projectiveScalarMul(x, y, z, t1)
+            let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
             xr, yr := projectiveIntoAffine(xr, yr, zr)
