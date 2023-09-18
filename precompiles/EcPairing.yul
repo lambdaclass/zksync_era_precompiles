@@ -170,49 +170,7 @@ object "EcPairing" {
 				precompileCall(0, gas())
 		  	}
 
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := mload(0x600)
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
-            function console_log_fp12(a000, a001, a010, a011, a100, a101, a110, a111, a200, a201, a210, a211) {
-                console_log(a000)
-                console_log(a001)
-                console_log(a010)
-                console_log(a011)
-                console_log(a100)
-                console_log(a101)
-                console_log(a110)
-                console_log(a111)
-                console_log(a200)
-                console_log(a201)
-                console_log(a210)
-                console_log(a211)
-            }
-
-            /// @notice Checks if the LSB of a number is 1.
-            /// @param x The number to check.
-            /// @return ret True if the LSB is 1, false otherwise.
-            function lsbIsOne(x) -> ret {
-                ret := and(x, ONE())
-            }
-
             // MONTGOMERY
-
-			function submod(minuend, subtrahend, modulus) -> difference {
-                difference := addmod(minuend, sub(modulus, subtrahend), modulus)
-            }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
                 // Precomputation of 1 << 255
@@ -342,27 +300,8 @@ object "EcPairing" {
                 ret := REDC(lowest_half_of_product, higher_half_of_product)
             }
 
-            function montgomeryModExp(
-                base,
-                exponent
-            ) -> pow {
-                pow := MONTGOMERY_ONE()
-                let aux_exponent := exponent
-                for { } gt(aux_exponent, ZERO()) { } {
-                    if mod(aux_exponent, TWO()) {
-                        pow := montgomeryMul(pow, base)
-                    }
-                    aux_exponent := shr(1, aux_exponent)
-                    base := montgomeryMul(base, base)
-                }
-            }
-
             function montgomeryModularInverse(a) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
-            }
-
-            function montgomeryDiv(dividend, divisor) -> quotient {
-                quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
             }
 
 			// CURVE ARITHMETICS
@@ -373,15 +312,6 @@ object "EcPairing" {
             /// @return ret True if the coordinate is in the range, false otherwise.
             function coordinateIsOnGroupOrder(coordinate) -> ret {
                 ret := lt(coordinate, P())
-            }
-            
-            /// @notice Checks if affine coordinates are on the curve group order.
-            /// @dev Affine coordinates are on the curve group order if both coordinates are on the range [0, curveGroupOrder).
-            /// @param x The x coordinate to check.
-            /// @param y The y coordinate to check.
-            /// @return ret True if the coordinates are in the range, false otherwise.
-            function affinePointCoordinatesAreOnGroupOrder(x, y) -> ret {
-                ret := and(coordinateIsOnGroupOrder(x), coordinateIsOnGroupOrder(y))
             }
 
             // G1
