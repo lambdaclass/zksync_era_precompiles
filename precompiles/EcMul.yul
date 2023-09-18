@@ -96,12 +96,7 @@ object "EcMul" {
             }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
-                // Precomputation of 1 << 255
-                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 let modulus := P()
-                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-                let modulusHasSpareBits := iszero(and(modulus, mask))
-
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
@@ -117,12 +112,7 @@ object "EcMul" {
                             b := shr(1, b)
                         }
                         case 1 {
-                            let newB, carry := overflowingAdd(b, modulus)
-                            b := shr(1, newB)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                b := or(b, mask)
-                            }
+                            b := shr(1, add(b, modulus))
                         }
                     }
 
@@ -134,12 +124,7 @@ object "EcMul" {
                             c := shr(1, c)
                         }
                         case 1 {
-                            let newC, carry := overflowingAdd(c, modulus)
-                            c := shr(1, newC)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                c := or(c, mask)
-                            }
+                            c := shr(1, add(c, modulus))
                         }
                     }
 
