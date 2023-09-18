@@ -442,10 +442,6 @@ object "EcMul" {
                         scalar := shr(1, scalar)
                         continue
                     }
-                    if and(iszero(rIsInfinity), qIsInfinity) {
-                        // P + Infinity = P
-                        break
-                    }
 
                     let t0 := montgomeryMul(yq, zr)
                     let t1 := montgomeryMul(yr, zq)
