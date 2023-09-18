@@ -437,18 +437,6 @@ object "EcMul" {
                         continue
                     }
 
-                    if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
-                        // P + (-P) = Infinity
-                        xr := 0
-                        yr := 0
-                        zr := 0
-
-                        xq, yq, zq := projectiveDouble(xq, yq, zq)
-                        // Check next bit
-                        scalar := shr(1, scalar)
-                        continue
-                    }
-
                     let t0 := montgomeryMul(yq, zr)
                     let t1 := montgomeryMul(yr, zq)
                     let t := montgomerySub(t0, t1)
