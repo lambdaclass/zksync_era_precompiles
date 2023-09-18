@@ -85,7 +85,7 @@ object "EcMul" {
             /// @return overflowed True if the addition overflowed, false otherwise.
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
+                overflowed := lt(sum, augend)
             }
 
             /// @notice Checks if the LSB of a number is 1.
@@ -117,8 +117,7 @@ object "EcMul" {
                             b := shr(1, b)
                         }
                         case 1 {
-                            let newB := add(b, modulus)
-                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            let newB, carry := overflowingAdd(b, modulus)
                             b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
@@ -135,8 +134,7 @@ object "EcMul" {
                             c := shr(1, c)
                         }
                         case 1 {
-                            let newC := add(c, modulus)
-                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            let newC, carry := overflowingAdd(c, modulus)
                             c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
@@ -425,13 +423,9 @@ object "EcMul" {
             let zr := 0
             for {} scalar {} {
                 if lsbIsOne(scalar) {
-                    let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                     let rIsInfinity := projectivePointIsInfinity(xr, yr, zr)
-                    if and(rIsInfinity, qIsInfinity) {
-                        // Infinity + Infinity = Infinity
-                        break
-                    }
-                    if and(rIsInfinity, iszero(qIsInfinity)) {
+
+                    if rIsInfinity {
                         // Infinity + P = P
                         xr := xq
                         yr := yq
