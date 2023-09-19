@@ -1216,7 +1216,7 @@ async fn modexp_tests_126() {
 }
 
 #[tokio::test]
-async fn modexpRandomInput_0() {
+async fn modexp_random_input_0() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000e300000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000e300000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     assert_eq!(eth_response, era_response);
@@ -1224,7 +1224,7 @@ async fn modexpRandomInput_0() {
 
 // This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
-async fn modexpRandomInput_1() {
+async fn modexp_random_input_1() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000008000000000000000000000000000000000000000000000000000000000000400000000000000000000000a").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000008000000000000000000000000000000000000000000000000000000000000400000000000000000000000a").unwrap()))).await.unwrap();
     assert_eq!(era_response, Bytes::from(&[]));
@@ -1232,7 +1232,7 @@ async fn modexpRandomInput_1() {
 
 // This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
-async fn modexpRandomInput_2() {
+async fn modexp_random_input_2() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001147000000000000000000000000000000000000000000000000000000000061660350000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001147000000000000000000000000000000000000000000000000000000000061660350000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     assert_eq!(era_response, Bytes::from(&[0]));
