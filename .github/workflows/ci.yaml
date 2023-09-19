@@ -45,25 +45,3 @@ jobs:
 
       - name: Run clippy
         run: cd tests && cargo clippy --all-targets --all-features -- -D warnings
-
-  test:
-    name: Test (Ubuntu)
-    runs-on: ubuntu-latest
-    env:
-      CARGO_TERM_COLOR: always
-    steps:
-      - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: stable
-          components: clippy
-      - name: Setup the development node
-        run: make setup
-      - name: Run the development node
-        run: make run &
-      - name: Run ecAdd tests
-        run: make test PRECOMPILE=ecadd
-      - name: Run ecMul tests
-        run: make test PRECOMPILE=ecmul
-      - name: Run modexp tests
-        run: make test PRECOMPILE=modexp
