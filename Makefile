@@ -1,3 +1,5 @@
+.PHONY: setup update run test docs
+
 setup:
 	git submodule update --init && \
 	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
@@ -16,3 +18,6 @@ run:
 test:
 	cd tests && \
 	cargo test ${PRECOMPILE}
+
+docs:
+	cd docs && mdbook serve --open
