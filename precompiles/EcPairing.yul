@@ -2,68 +2,117 @@ object "EcPairing" {
 	code { }
 	object "EcPairing_deployed" {
 		code {
-			////////////////////////////////////////////////////////////////
-            //                      CONSTANTS
-            ////////////////////////////////////////////////////////////////
+            // CONSTANTS
 
+            /// @notice Constant function for value zero.
+            /// @return zero The value zero.
             function ZERO() -> zero {
                 zero := 0x00
             }
 
+            /// @notice Constant function for value one.
+            /// @return one The value one.
             function ONE() -> one {
                 one := 0x01
             }
 
+            /// @notice Constant function for value two.
+            /// @return two The value two.
             function TWO() -> two {
                 two := 0x02
             }
 
+            /// @notice Constant function for value three.
+            /// @return three The value three.
             function THREE() -> three {
                 three := 0x03
             }
 
+            /// @notice Constant function for value one in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE() -> m_one {
                 m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
             }
 
+            /// @notice Constant function for value two in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_two The value two in Montgomery form.
             function MONTGOMERY_TWO() -> m_two {
                 m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
             }
 
+            /// @notice Constant function for value three in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_three The value three in Montgomery form.
             function MONTGOMERY_THREE() -> m_three {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            /// @notice Constant function for the inverse of two on the alt_bn128 group in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return two_inv The value of the inverse of two on the alt_bn128 group in Montgomery form.
             function MONTGOMERY_TWO_INV() -> two_inv {
                 two_inv := 14119558874979547267292681013829403749242370018224634694350716214666112402802
             }
-
+            /// @notice constant function for the coeffitients of the sextic twist of the BN256 curve.
+            /// @dev E': y' ** 2 = x' ** 3 + 3 / (3 + u)
+            /// @dev the curve E' is defined over Fp2 elements.
+            /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
+            /// @return coefficients of the sextic twist of the BN256 curve
             function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
                 z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
                 z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
             }
 
-            // Group order of alt_bn128, see https://eips.ethereum.org/EIPS/eip-196
+            /// @notice Constant function for the alt_bn128 group order.
+            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
+            /// @return ret The alt_bn128 group order.
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
+            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @dev R^2 is the Montgomery residue of the value 2^512.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
+            /// @notice Constant function for the pre-computation of R^3 % N for the Montgomery REDC algorithm.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^3 modulus the curve group order.
             function R3_MOD_P() -> ret {
                 ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
             }
 
+            /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
+            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value N'.
             function N_PRIME() -> ret {
                 ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
             }
 
+            /// @notice Constant function for decimal representation of the NAF for the Millers Loop.
+            /// @dev Millers loop uses to iterate the NAF representation of the value t = 6x^2 + 1. Where x = 4965661367192848881 is a parameter of the BN 256 curve.
+            /// @dev For details of the x parameter: https://hackmd.io/@jpw/bn254#Barreto-Naehrig-curves.
+            /// @dev A NAF representation uses values: -1, 0 and 1. https://en.wikipedia.org/wiki/Non-adjacent_form.
+            /// @dev For iterating between this values we represent the 0 as 001, the 1 as 010 and the -1 as 100.
+            /// @dev Then we concatenate all and represent the result as a decimal. E.g. [0,-1,0,1] -> 001 100 001 010 -> 778
+            /// @dev In each step of the iteration we just need to compute the operation AND between the number and 1, 2 and 4 to check the original value.
+            /// @dev Finally we shift 3 bits to the right to get the next value.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
                 ret := 7186291078002685655833716264194454051281486193901198152801
             }
 
+            /// @notice Constant function for the zero element in Fp6 representation.
+            /// @return z00, z01, z10, z11, z20, z21 The values of zero in Fp6.
             function FP6_ZERO() -> z00, z01, z10, z11, z20, z21 {
                 z00 := 0
                 z01 := 0
@@ -73,6 +122,8 @@ object "EcPairing" {
                 z21 := 0
             }
 
+            /// @notice Constant function for the zero element in the twisted cuve on affine representation.
+            /// @return z00, z01, z10, z11, z20, z21 The values of infinity point on affine representation.
             function G2_INFINITY() -> z00, z01, z02, z10, z11, z12 {
                 z00 := 0
                 z01 := 0
@@ -82,6 +133,8 @@ object "EcPairing" {
                 z12 := 0
             }
 
+            /// @notice Constant function for element one in Fp12 representation.
+            /// @return the values of one in Fp12.
             function FP12_ONE() -> z000, z001, z010, z011, z100, z101, z110, z111, z200, z201, z210, z211 {
                 z000 := MONTGOMERY_ONE()
                 z001 := 0
@@ -97,6 +150,8 @@ object "EcPairing" {
                 z211 := 0
             }
 
+            /// @notice Constant function for the lenght of the input of a single pair of points to compute the pairing.
+            /// @return ret The lenght of a pair of points input.
             function PAIR_LENGTH() -> ret {
                 ret := 0xc0
             }
@@ -261,10 +316,20 @@ object "EcPairing" {
 
             // G1
 
+            /// @notice Checks if a point of the G1 curve is infinity.
+            /// @dev In affine coordinates the infinity is represented by the point (0,0).
+            /// @param x The x coordinate to check.
+            /// @param y The y coordinate to check.
+            /// @return ret True if the point is infinity, false otherwise.
             function g1AffinePointIsInfinity(x, y) -> ret {
                 ret := and(iszero(x), iszero(y))
             }
 
+            /// @notice Checks if a point in affine coordinates belongs to the BN curve.
+            /// @dev in Affine coordinates the point belongs to the curve if satisfty the ecuaqution: y^3 = x^2 + 3.
+            /// @param x The x coordinate to check.
+            /// @param y The y coordinate to check.
+            /// @return ret True if the coordinates are in the range, false otherwise.
 			function g1AffinePointIsOnCurve(x, y) -> ret {
 				if g1AffinePointIsInfinity(x,y) {
                     ret := 1
@@ -281,8 +346,14 @@ object "EcPairing" {
 
 
             // G2
-
-			// Go back and forth between affine and projective coordinates
+            
+            /// @notice Converts a G2 point in affine coordinates to projective coordinates.
+			/// @dev Both input and output coordinates are encoded in Montgomery form.
+            /// @dev If x and y differ from 0, just add z = (1,0).
+            /// @dev If x and y are equal to 0, then P is the infinity point, and z = (0,0).
+            /// @param xp0, xp1 The x coordinate to trasnform.
+            /// @param yp0, yp1 The y coordinate to transform.
+            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The projectives coordinates of the given G2 point.
 			function g2ProjectiveFromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
 				xr0 := xp0
 				xr1 := xp1
@@ -302,10 +373,23 @@ object "EcPairing" {
 				}
 			}
 
+            /// @notice Checks if a G2 point in affine coordinates is the point at infinity.
+            /// @dev The coordinates are encoded in Montgomery form.
+            /// @dev in Affine coordinates the point represents the infinity if both coordinates are 0.
+            /// @param x0, x1 The x coordinate to check.
+            /// @param y0, y1 The y coordinate to check.
+            /// @return ret True if the point is the point at infinity, false otherwise.
             function g2AffinePointIsInfinity(x0, x1, y0, y1) -> ret {
                 ret := iszero(or(or(x0, x1), or(y0, y1)))
             }
 
+            /// @notice Checks if a G2 point in affine coordinates belongs to the twisted curve.
+            /// @dev The coordinates are encoded in Montgomery form.
+            /// @dev in Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
+            /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
+            /// @param x0, x1 The x coordinate to check.
+            /// @param y0, y1 The y coordinate to check.
+            /// @return ret True if the point is in the curve, false otherwise.
 			function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
                 if g2AffinePointIsInfinity(x0, x1, y0, y1) {
                     ret := 1
@@ -320,11 +404,22 @@ object "EcPairing" {
                 }
 			}
 
+            /// @notice Checks if a G2 point in projective coordinates is the point at infinity.
+            /// @dev The coordinates are encoded in Montgomery form.
+            /// @dev A projective point is at infinity if the z coordinate is (0, 0).
+            /// @param x0, x1 The x coordinate of the point.
+            /// @param y0, y1 The y coordinate of the point.
+            /// @param z0, z1 The z coordinate of the point.
+            /// @return ret True if the point is the point at infinity, false otherwise.
             function g2ProjectivePointIsInfinity(x0, x1, y0, y1, z0, z1) -> ret {
                 ret := iszero(or(z0, z1))
             }
 
-			// Neg function for G2 in affine coordinates
+			/// @notice Computes the negation of a point G2 affine point.
+            /// @dev Negating a point in G2 is negating the Y coordenate.
+            /// @param x0, x1 The X coordinate of the point.
+            /// @param y0, y1 The Y coordinate of the point.
+            /// @return nx0, nx1, ny0, ny1 The coordinates of the negated point.
 			function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
 				nx0 := x0
 				nx1 := x1
@@ -333,30 +428,57 @@ object "EcPairing" {
 
             // FP2 ARITHMETHICS
 
+            /// @notice Computes the sum of two Fp2 elements.
+            /// @dev Algorithm 5 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the A element to sum.
+            /// @param b00, b01 The coefficients of the B element to sum.
+            /// @return c00, c01 The coefficients of the element C = A + B.
             function fp2Add(a00, a01, b00, b01) -> c00, c01 {
                 c00 := montgomeryAdd(a00, b00)
                 c01 := montgomeryAdd(a01, b01)
             }
 
+            /// @notice Computes the subtraction of two Fp2 elements.
+            /// @dev Algorithm 6 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the minuend A.
+            /// @param b00, b01 The coefficients of the subtrahend B.
+            /// @return c00, c01 The coefficients of the element C = A - B.
             function fp2Sub(a00, a01, b00, b01) -> c00, c01 {
                 c00 := montgomerySub(a00, b00)
                 c01 := montgomerySub(a01, b01)
             }
 
+            /// @notice Computes the multiplication between a Fp2 element a Fp element.
+            /// @dev Algorithm 7 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @param scalar The value of the Fp element k.
+            /// @return c00, c01 The coefficients of the element C = k * A.
             function fp2ScalarMul(a00, a01, scalar) -> c00, c01 {
                 c00 := montgomeryMul(a00, scalar)
                 c01 := montgomeryMul(a01, scalar)
             }
 
+            /// @notice Computes the multiplication between two Fp2 elements.
+            /// @dev Algorithm 7 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @param a00, a01 The coefficients of the Fp2 element B.
+            /// @return c00, c01 The coefficients of the element C = A * B.
             function fp2Mul(a00, a01, b00, b01) -> c00, c01 {
                 c00 := montgomerySub(montgomeryMul(a00, b00), montgomeryMul(a01, b01))
                 c01 := montgomeryAdd(montgomeryMul(a00, b01), montgomeryMul(a01, b00))
             }
 
+            /// @notice Computes the negative of a Fp2 elements.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = -A.
             function fp2Neg(a00, a01) -> c00, c01 {
                 c00, c01 := fp2Sub(ZERO(), ZERO(), a00, a01)
             }
 
+            /// @notice Computes the inverse of a Fp2 element.
+            /// @dev Algorithm 8 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A^(-1).
             function fp2Inv(a00, a01) -> c00, c01 {
                 let t0 := montgomeryMul(a00, a00)
                 let t1 := montgomeryMul(a01, a01)
@@ -367,12 +489,20 @@ object "EcPairing" {
                 c01 := montgomerySub(ZERO(), montgomeryMul(a01, t1))
             }
 
+            /// @notice Computes the multiplication of a Fp2 element with xi.
+            /// @dev Where xi = u in Fp
+            /// @dev See https://hackmd.io/@jpw/bn254#Field-extension-towers for further details.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A * xi.
             function mulByXi(a00, a01) -> c00, c01 {
                 let t0, t1 := fp2ScalarMul(a00, a01, intoMontgomeryForm(8))
                 c00 := montgomerySub(montgomeryAdd(t0, a00), a01)
                 c01 := montgomeryAdd(montgomeryAdd(t1, a00), a01)
             }
 
+            /// @notice Computes the conjugation of a Fp2 element.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A'.
             function fp2Conjugate(a00, a01) -> c00, c01 {
                 c00 := a00
                 c01 := montgomerySub(ZERO(), a01)
@@ -380,18 +510,32 @@ object "EcPairing" {
 
             // FP6 ARITHMETHICS
 
+            /// @notice Computes the sum of two Fp6 elements.
+            /// @dev Algorithm 10 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the A element to sum.
+            /// @param b00, b01, b10, b11, b20, b21 The coefficients of the B element to sum.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A + B.
             function fp6Add(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Add(a00, a01, b00, b01)
                 c10, c11 := fp2Add(a10, a11, b10, b11)
                 c20, c21 := fp2Add(a20, a21, b20, b21)
             }
 
+            /// @notice Computes the subtraction of two Fp6 elements.
+            /// @dev Algorithm 11 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the minuend A.
+            /// @param b00, b01, b10, b11, b20, b21 The coefficients of the subtrahend B.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A - B.
             function fp6Sub(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Sub(a00, a01, b00, b01)
                 c10, c11 := fp2Sub(a10, a11, b10, b11)
                 c20, c21 := fp2Sub(a20, a21, b20, b21)
             }
 
+            /// @notice Computes the multiplication of a Fp6 element with g.
+            /// @dev Algorithm 12 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp6 element A.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A * g.
             function mulByGamma(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := mulByXi(a20, a21)
                 c10 := a00
@@ -400,6 +544,11 @@ object "EcPairing" {
                 c21 := a11
             }
 
+            /// @notice Computes the multiplication between two Fp6 elements.
+            /// @dev Algorithm 13 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp6 element A.
+            /// @param b00, b01, b10, b11, b20, b21 The coefficients of the Fp6 element B.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A * B.
             function fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
                 let t00, t01 := fp2Mul(a00, a01, b00, b01)
                 let t10, t11 := fp2Mul(a10, a11, b10, b11)
@@ -429,38 +578,19 @@ object "EcPairing" {
                 c20, c21 := fp2Add(tmp8, tmp9, t10, t11)
             }
 
+            /// @notice Computes the negative of a Fp6 element.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp2 element A.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = -A.
             function fp6Neg(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 c00, c01 := fp2Neg(a00, a01)
                 c10, c11 := fp2Neg(a10, a11)
                 c20, c21 := fp2Neg(a20, a21)
             }
 
-            function fp6MulByIndependentTerm(a00, a01, a10, a11, a20, a21, b00, b01) -> c00, c01, c10, c11, c20, c21 {
-                c00, c01 := fp2Mul(a00, a01, b00, b01)
-                c10, c11 := fp2Mul(a01, a10, b00, b01)
-                c20, c21 := fp2Mul(a10, a11, b00, b01)
-            }
-
-            function fp6MulByIndependentAndLinearTerm(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11) -> c00, c01, c10, c11, c20, c21 {
-                let t00, t01 := fp2Mul(a00, a01, b00, b01)
-                let t10, t11 := fp2Mul(a10, a11, b10, b11)
-
-                let tmp00, tmp01 := fp2Add(a10, a11, a20, a21)
-                tmp00, tmp01 := fp2Mul(tmp00, tmp01, b10, b11)
-                tmp00, tmp01 := fp2Sub(tmp00, tmp01, t10, t11)
-                tmp00, tmp01 := mulByXi(tmp00, tmp01)
-                c00, c01 := fp2Add(t00, t01, tmp00, tmp01)
-
-                tmp00, tmp01 := fp2Add(a00, a01, a10, a11)
-                let tmp10, tmp11 := fp2Add(b00, b01, b10, b11)
-                tmp00, tmp01 := fp2Mul(tmp00, tmp01, tmp10, tmp11)
-                tmp00, tmp01 := fp2Sub(tmp00, tmp01, t00, t01)
-                c10, c11 := fp2Sub(tmp00, tmp01, t10, t11)
-
-                tmp00, tmp01 := fp2Mul(a20, a21, b00, b01)
-                c20, c21 := fp2Add(tmp00, tmp01, t10, t11)
-            }
-
+            /// @notice Computes the square of a Fp6 element.
+            /// @dev Algorithm 16 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp6 element A.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A^2.
             function fp6Square(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 let tmp0, tmp1 := fp2Mul(a00, a01, a10, a11)
                 tmp0, tmp1 := fp2Add(tmp0, tmp1, tmp0, tmp1)
@@ -488,6 +618,10 @@ object "EcPairing" {
             
             }
 
+            /// @notice Computes the inverse of a Fp6 element.
+            /// @dev Algorithm 17 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp6 element A.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A^(-1).
             function fp6Inv(a00, a01, a10, a11, a20, a21) -> c00, c01, c10, c11, c20, c21 {
                 let t00, t01 := fp2Mul(a00, a01, a00, a01)
                 let t10, t11 := fp2Mul(a10, a11, a10, a11)
@@ -515,16 +649,31 @@ object "EcPairing" {
 
             // FP12 ARITHMETHICS
 
+            /// @notice Computes the sum of two Fp12 elements.
+            /// @dev Algorithm 18 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the A element to sum.
+            /// @param b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121 The coefficients of the B element to sum.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A + B.
             function fp12Add(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 c000, c001, c010, c011, c020, c021 := fp6Add(a000, a001, a010, a011, a020, a021, b000, b001, b010, b011, b020, b021)
                 c100, c101, c110, c111, c120, c121 := fp6Add(a100, a101, a110, a111, a120, a121, b100, b101, b110, b111, b120, b121)
             }
 
+            /// @notice Computes the subtraction of two Fp12 elements.
+            /// @dev Algorithm 19 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the minuend A.
+            /// @param b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121 The coefficients of the subtrahend B.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A - B.
             function fp12Sub(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 c000, c001, c010, c011, c020, c021 := fp6Sub(a000, a001, a010, a011, a020, a021, b000, b001, b010, b011, b020, b021)
                 c100, c101, c110, c111, c120, c121 := fp6Sub(a100, a101, a110, a111, a120, a121, b100, b101, b110, b111, b120, b121)
             }
 
+            /// @notice Computes the multiplication between two Fp12 elements.
+            /// @dev Algorithm 20 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @param b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121 The coefficients of the Fp12 element B.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A * B.
             function fp12Mul(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, b000, b001, b010, b011, b020, b021, b100, b101, b110, b111, b120, b121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t000, t001, t010, t011, t020, t021 := fp6Mul(a000, a001, a010, a011, a020, a021, b000, b001, b010, b011, b020, b021)
                 let t100, t101, t110, t111, t120, t121 := fp6Mul(a100, a101, a110, a111, a120, a121, b100, b101, b110, b111, b120, b121)
@@ -537,6 +686,10 @@ object "EcPairing" {
                 c100, c101, c110, c111, c120, c121 := fp6Sub(c100, c101, c110, c111, c120, c121, t100, t101, t110, t111, t120, t121)
             }
 
+            /// @notice Computes the square of a Fp12 element.
+            /// @dev Algorithm 22 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^2.
             function fp12Square(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t100, t101, t110, t111, t120, t121 := fp6Sub(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
                 let t200, t201, t210, t211, t220, t221 := mulByGamma(a100, a101, a110, a111, a120, a121)
@@ -549,6 +702,10 @@ object "EcPairing" {
                 c000, c001, c010, c011, c020, c021 := fp6Add(t600, t601, t610, t611, t620, t621, t700, t701, t710, t711, t720, t721)
             }
 
+            /// @notice Computes the inverse of a Fp12 element.
+            /// @dev Algorithm 23 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^(-1).
             function fp12Inv(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t000, t001, t010, t011, t020, t021 := fp6Square(a000, a001, a010, a011, a020, a021)
                 let t100, t101, t110, t111, t120, t121 := fp6Square(a100, a101, a110, a111, a120, a121)
@@ -561,6 +718,11 @@ object "EcPairing" {
                 c100, c101, c110, c111, c120, c121 := fp6Sub(z00, z01, z10, z11, z20, z21, c100, c101, c110, c111, c120, c121)
             }
 
+            /// @notice Computes the exponentiation of a Fp12 element in the cyclotomic subgroup to t = 6x^2 + 1.
+            /// @dev We make use of an addition chain to optimize the operation.
+            /// @dev See https://eprint.iacr.org/2015/192.pdf for further details.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^t.
             function fp12Expt(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121 := fp12CyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121)
                 let t200, t201, t210, t211, t220, t221, t300, t301, t310, t311, t320, t321 := fp12CyclotomicSquare(t000, t001, t010, t011, t020, t021, t100, t101, t110, t111, t120, t121)
@@ -595,6 +757,9 @@ object "EcPairing" {
                 c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12Mul(t400, t401, t410, t411, t420, t421, t500, t501, t510, t511, t520, t521, c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121)
             }
 
+            /// @notice Computes the conjugation of a Fp12 element.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A'.
             function fp12Conjugate(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 c000 := a000
                 c001 := a001
@@ -605,6 +770,10 @@ object "EcPairing" {
                 c100, c101, c110, c111, c120, c121 := fp6Neg(a100, a101, a110, a111, a120, a121)
             }
 
+            /// @notice Computes the square of a Fp12 element in the cyclotomic subgroup.
+            /// @dev See https://eprint.iacr.org/2010/542.pdf for further details.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^2.
             function fp12CyclotomicSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 let t00, t01 := fp2Mul(a110, a111, a110, a111)
                 let t10, t11 := fp2Mul(a000, a001, a000, a001)
@@ -657,6 +826,10 @@ object "EcPairing" {
                 c120, c121 := fp2Add(c120, c121, t50, t51)
             }
 
+            /// @notice Computes the exponentiation of a Fp12 element in the cyclotomic subgroup to 2n.
+            /// @dev We compute A^2n as n cyclotomic squares.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^2n.
             function nSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121, n) -> c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 {
                 c000 := a000
                 c001 := a001
@@ -677,6 +850,11 @@ object "EcPairing" {
 
             // FROBENIUS
 
+
+            /// @notice Computes the exponentiation of a Fp12 element to p.
+            /// @dev Algorithm 28 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^p.
             function frobenius(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
                 let t10, t11 := fp2Conjugate(a000, a001)
                 let t20, t21 := fp2Conjugate(a100, a101)
@@ -705,6 +883,10 @@ object "EcPairing" {
                 c51 := t61
             }
 
+            /// @notice Computes the exponentiation of a Fp12 element to p^2.
+            /// @dev Algorithm 29 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^(p^2).
             function frobeniusSquare(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
                 let t10 := a000 
                 let t11 := a001
@@ -728,6 +910,10 @@ object "EcPairing" {
                 c51 := t61
             }
 
+            /// @notice Computes the exponentiation of a Fp12 element to p^3.
+            /// @dev @dev Algorithm 29 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 The coefficients of the element C = A^(p^3).
             function frobeniusCube(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
                 let t10, t11 := fp2Conjugate(a000, a001)
                 let t20, t21 := fp2Conjugate(a100, a101)
@@ -757,6 +943,12 @@ object "EcPairing" {
             }
 
             // GAMMA_1_i
+            /// @notice Computes the multiplication between a fp2 element by the constants g_1,i.
+            /// @dev Where g_1,i = u^(i(p-1)/6) 
+            /// @dev This value was precomputed using Python. Already in montgomery form.
+            /// @dev See https://eprint.iacr.org/2010/354.pdf for further details.
+            /// @params a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A*g_1,i.
 
             function mulByGamma11(a00, a01) -> c00, c01 {
                 let g00 := 1334504125441109323775816677333762124980877086439557453392802825656291576071
@@ -789,6 +981,12 @@ object "EcPairing" {
             }
 
             // GAMMA_2_i
+            /// @notice Computes the multiplication between a fp2 element by the constants g_2,i.
+            /// @dev Where g_2,i = g_1,i * g'_1,i
+            /// @dev This value was precomputed using Python. Already in montgomery form.
+            /// @dev See https://eprint.iacr.org/2010/354.pdf for further details.
+            /// @params a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A*g_2,i.
 
             function mulByGamma21(a00, a01) -> c00, c01 {
                 let g0 := 1881798392815877688876180778159931906057091683336018750908411925848733129714
@@ -816,6 +1014,12 @@ object "EcPairing" {
             }
 
             // GAMMA_3_i
+            /// @notice Computes the multiplication between a fp2 element by the constants g_3,i.
+            /// @dev Where g_3,i = g_1,i * g_2,i
+            /// @dev This value was precomputed using Python. Already in montgomery form.
+            /// @dev See https://eprint.iacr.org/2010/354.pdf for further details.
+            /// @params a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A*g_3,i.
 
             function mulByGamma31(a00, a01) -> c00, c01 {
                 let g00 := 3649295186494431467217240962842301358951278585756714214031945394966344685949
@@ -849,6 +1053,16 @@ object "EcPairing" {
 
 			// PAIRING FUNCTIONS
 
+            /// @notice Computes the double of a G2 point and its tangent line.
+            /// @dev The point is in projective coordinates.
+            /// @dev See https://eprint.iacr.org/2013/722.pdf for further details.
+            /// @params xq0, xq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @params yq0, yq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @params zq0, zq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @return xt0, xt1 The coefficients of the Fp2 X coordinate of T = 2Q.
+            /// @return yt0, yt1 The coefficients of the Fp2 X coordinate of T = 2Q.
+            /// @return zt0, zt1 The coefficients of the Fp2 X coordinate of T = 2Q.
+            /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the tangent line to Q.
 			function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
                 let zero := ZERO()
                 let twoInv := MONTGOMERY_TWO_INV()
@@ -905,6 +1119,18 @@ object "EcPairing" {
             }
 
 
+            /// @notice Computes the addition of two G2 points and the line through them.
+            /// @dev It's called mixed addition because Q is in affine coordinates ands T in projective coordinates.
+            /// @dev See https://eprint.iacr.org/2013/722.pdf for further details.
+            /// @params xq0, xq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @params yq0, yq1 The coefficients of the Fp2 Y coordinate of the Q point.
+            /// @params xt0, xt1 The coefficients of the Fp2 X coordinate of the T point.
+            /// @params yt0, yt1 The coefficients of the Fp2 Y coordinate of the T point.
+            /// @params zt0, zt1 The coefficients of the Fp2 Z coordinate of the T point.
+            /// @return xc0, xc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return yc0, yc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return zc0, zc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
             function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
                 let zero := ZERO()
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
@@ -953,6 +1179,14 @@ object "EcPairing" {
                 l51 := zero
             }
 
+            /// @notice Computes the final exponentiation to the result given by the Millers Loop.
+            /// @dev It computes the exponentiation of a Fp12 elemento to e, with e = (p^12 -1)/r
+            /// @dev We can split this exponentitation in three parts: e = (p^6 - 1)(p^2 + 1)((p^4 - p^2 + 1)/r)
+            /// @dev The first 2 parts are easy to compute using the Frobenius operator.
+            /// @dev To calcualte this we use the first 5 lines of Algorithm 31 in: https://eprint.iacr.org/2010/354.pdf
+            /// @dev For the hard part we use the Fuentes et al. method. Algorithm 6 in: https://eprint.iacr.org/2015/192.pdf
+            /// @params a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
+            /// @return f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 The coefficients of A^((p^12 -1)/r)
             function finalExponentiation(a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
                 f000 := a000
                 f001 := a001
@@ -1000,6 +1234,14 @@ object "EcPairing" {
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(t2000, t2001, t2010, t2011, t2020, t2021, t2100, t2101, t2110, t2111, t2120, t2121, t0000, t0001, t0010, t0011, t0020, t0021, t0100, t0101, t0110, t0111, t0120, t0121)
             }
 
+            /// @notice Computes the Millers Loop for the optimal ate pairing.
+            /// @dev Algorithm 1 in: https://eprint.iacr.org/2010/354.pdf
+            /// @dev It takes two points: P that belongs to the curve G1, in affine coordinates (Fp elements)
+            /// @dev Point Q belongs to the twisted G2 curve, in affine coordinates (Fp2 elements)
+            /// @params xp, yp The coordinates of the point P.
+            /// @params xq0, xq1 The coefficients of the X coordinate of point Q.
+            /// @params yq0, yq1 The coefficients of the Y coordinate of point Q.
+            /// @return f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 The Fp12 element result of the Miller Loop
             function millerLoop(xq0, xq1, yq0, yq1, xp, yp) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
                 let t00, t01, t10, t11, t20, t21 := g2ProjectiveFromAffine(xq0, xq1, yq0, yq1)
                 let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
@@ -1055,14 +1297,18 @@ object "EcPairing" {
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
             }
 
+            /// @notice Computes the Pairing between two points P and Q.
+            /// @dev Applies the Millers Loop and the final exponentiation to return the result of the pairing.
+            /// @params g1x, g1y The coordinates of the point P of the curve G1.
+            /// @params g2_x0, g2_x1 The coefficients of the X coordinate of point Q on the twisted curve G2.
+            /// @params g2_y0, g2_y1 The coefficients of the Y coordinate of point Q on the twisted curve G2.
+            /// @return f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 The Fp12 element result of the pairing e(P,Q)
             function pair(g1_x, g1_y, g2_x0, g2_x1, g2_y0, g2_y1) -> f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 {
                 f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := millerLoop(g2_x0, g2_x1, g2_y0, g2_y1, g1_x, g1_y)
                 f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211 := finalExponentiation(f000, f001, f010, f011, f100, f101, f110, f111, f200, f201, f210, f211)
             }
 
-			////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
 		  	let inputSize := calldatasize()
 
@@ -1134,6 +1380,8 @@ object "EcPairing" {
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
 
+                // TODO: Add G2 subgroup check.
+
                 if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
 					burnGas()
 				}
@@ -1148,7 +1396,6 @@ object "EcPairing" {
 			}
 
             // Pair check
-
             if and(and(eq(r000, MONTGOMERY_ONE()), iszero(r001)), and(iszero(r010), iszero(r011))) {
                 if and(and(iszero(r020), iszero(r021)), and(iszero(r100), iszero(r101))) {
                     if and(and(iszero(r110), iszero(r111)), and(iszero(r120), iszero(r121))) {
