@@ -346,20 +346,6 @@ object "EcPairing" {
 
 
             // G2
-
-            /// @notice Converts a G2 point in projective coordinates to affine coordinates in Montgomery form.
-            /// @dev Both input and output coordinates are encoded in Montgomery form.
-            /// @dev Affine coordinate x is computed as x * z
-            /// @dev Affine coordinate y is computed as y * z
-            /// @param xp0, xp1 The x coordinate form to transform.
-            /// @param yp0, yp1 The y coordinate form to transform.
-            /// @param zp0, zp1 The z coordinate form to transform.
-            /// @return xr0, xr1, yr0, yr1 The affine coordinates of the given G2 point.
-            function g2ProjectiveIntoAffine(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1 {
-				let z0, z1 := fp2Inv(zp0, zp1)
-				xr0, xr1 := fp2Mul(xp0, xp1, zp0, zp1)
-				yr0, yr1 := fp2Mul(yp0, yp1, zp0, zp1)
-			}
             
             /// @notice Converts a G2 point in affine coordinates to projective coordinates.
 			/// @dev Both input and output coordinates are encoded in Montgomery form.
