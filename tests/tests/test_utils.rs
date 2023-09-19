@@ -63,6 +63,7 @@ pub async fn call(
     }
 }
 
+#[allow(unused)]
 pub async fn eth_raw_call(
     precompile_address: Address,
     data: Bytes,
@@ -70,6 +71,7 @@ pub async fn eth_raw_call(
     raw_call(precompile_address, data, &eth_provider()).await
 }
 
+#[allow(unused)]
 pub async fn era_raw_call(
     precompile_address: Address,
     data: Bytes,
@@ -77,6 +79,7 @@ pub async fn era_raw_call(
     raw_call(precompile_address, data, &era_provider()).await
 }
 
+#[allow(unused)]
 pub async fn raw_call(
     precompile_address: Address,
     data: Bytes,
