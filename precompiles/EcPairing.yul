@@ -1380,6 +1380,8 @@ object "EcPairing" {
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
 
+                // TODO: Add G2 subgroup check.
+
                 if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
 					burnGas()
 				}
