@@ -1,4 +1,3 @@
-use hex;
 use zksync_web3_rs::{types::Bytes, zks_utils::MODEXP_PRECOMPILE_ADDRESS};
 
 mod test_utils;
