@@ -385,23 +385,19 @@ object "EcPairing" {
 
             /// @notice Checks if a G2 point in affine coordinates belongs to the twisted curve.
             /// @dev The coordinates are encoded in Montgomery form.
-            /// @dev in Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
+            /// @dev In Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
+            /// @dev The point is assumed not to be the point at infinity.
             /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
             /// @param x0, x1 The x coordinate to check.
             /// @param y0, y1 The y coordinate to check.
             /// @return ret True if the point is in the curve, false otherwise.
 			function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
-                if g2AffinePointIsInfinity(x0, x1, y0, y1) {
-                    ret := 1
-                }
-                if iszero(g2AffinePointIsInfinity(x0, x1, y0, y1)) {
-                    let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
-                    let b0, b1 := fp2Mul(x0, x1, x0, x1)
-                    b0, b1 := fp2Mul(b0, b1, x0, x1)
-                    b0, b1 := fp2Add(b0, b1, a0, a1)
-                    let c0, c1 := fp2Mul(y0, y1, y0, y1)
-                    ret := and(eq(b0, c0), eq(b1, c1))
-                }
+                let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                let b0, b1 := fp2Mul(x0, x1, x0, x1)
+                b0, b1 := fp2Mul(b0, b1, x0, x1)
+                b0, b1 := fp2Add(b0, b1, a0, a1)
+                let c0, c1 := fp2Mul(y0, y1, y0, y1)
+                ret := and(eq(b0, c0), eq(b1, c1))
 			}
 
             /// @notice Checks if a G2 point in projective coordinates is the point at infinity.
