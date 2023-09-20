@@ -322,7 +322,7 @@ object "EcPairing" {
             /// @param y The y coordinate to check.
             /// @return ret True if the point is infinity, false otherwise.
             function g1AffinePointIsInfinity(x, y) -> ret {
-                ret := and(iszero(x), iszero(y))
+                ret := iszero(or(x, y))
             }
 
             /// @notice Checks if a point in affine coordinates in Montgomery form is on the curve.
