@@ -1390,9 +1390,9 @@ object "EcPairing" {
 			}
 
             // Pair check
-            if and(and(eq(r000, MONTGOMERY_ONE()), iszero(r001)), and(iszero(r010), iszero(r011))) {
-                if and(and(iszero(r020), iszero(r021)), and(iszero(r100), iszero(r101))) {
-                    if and(and(iszero(r110), iszero(r111)), and(iszero(r120), iszero(r121))) {
+            if and(eq(r000, MONTGOMERY_ONE()), iszero(or(r001, or(r010, r011)))) {
+                if iszero(or(or(r020, r021), or(r100, r101))) {
+                    if iszero(or(or(r110, r111), or(r120, r121))) {
                         mstore(0, ONE())
                         return(0, 32)
                     }
