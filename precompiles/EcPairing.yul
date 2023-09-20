@@ -326,24 +326,19 @@ object "EcPairing" {
             }
 
             /// @notice Checks if a point in affine coordinates belongs to the BN curve.
-            /// @dev in Affine coordinates the point belongs to the curve if satisfty the ecuaqution: y^3 = x^2 + 3.
+            /// @dev In Affine coordinates the point belongs to the curve if satisfty the ecuaqution: y^3 = x^2 + 3.
+            /// @dev The point is assumed not to be the point at infinity.
             /// @param x The x coordinate to check.
             /// @param y The y coordinate to check.
             /// @return ret True if the coordinates are in the range, false otherwise.
 			function g1AffinePointIsOnCurve(x, y) -> ret {
-				if g1AffinePointIsInfinity(x,y) {
-                    ret := 1
-                }
-                if iszero(g1AffinePointIsInfinity(x, y)) { 
-                    let ySquared := mulmod(y, y, P())
-                    let xSquared := mulmod(x, x, P())
-                    let xQubed := mulmod(xSquared, x, P())
-                    let xQubedPlusThree := addmod(xQubed, THREE(), P())
+                let ySquared := mulmod(y, y, P())
+                let xSquared := mulmod(x, x, P())
+                let xQubed := mulmod(xSquared, x, P())
+                let xQubedPlusThree := addmod(xQubed, THREE(), P())
 
-                    ret := eq(ySquared, xQubedPlusThree)
-                }
+                ret := eq(ySquared, xQubedPlusThree)
             }
-
 
             // G2
             
