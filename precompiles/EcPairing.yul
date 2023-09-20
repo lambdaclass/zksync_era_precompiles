@@ -4,42 +4,11 @@ object "EcPairing" {
 		code {
             // CONSTANTS
 
-            /// @notice Constant function for value zero.
-            /// @return zero The value zero.
-            function ZERO() -> zero {
-                zero := 0x00
-            }
-
-            /// @notice Constant function for value one.
-            /// @return one The value one.
-            function ONE() -> one {
-                one := 0x01
-            }
-
-            /// @notice Constant function for value two.
-            /// @return two The value two.
-            function TWO() -> two {
-                two := 0x02
-            }
-
-            /// @notice Constant function for value three.
-            /// @return three The value three.
-            function THREE() -> three {
-                three := 0x03
-            }
-
             /// @notice Constant function for value one in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE() -> m_one {
                 m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
-            }
-
-            /// @notice Constant function for value two in Montgomery form.
-            /// @dev This value was precomputed using Python.
-            /// @return m_two The value two in Montgomery form.
-            function MONTGOMERY_TWO() -> m_two {
-                m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
             }
 
             /// @notice Constant function for value three in Montgomery form.
@@ -79,13 +48,6 @@ object "EcPairing" {
             /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
-            }
-
-            /// @notice Constant function for the pre-computation of R^3 % N for the Montgomery REDC algorithm.
-            /// @dev This value was precomputed using Python.
-            /// @return ret The value R^3 modulus the curve group order.
-            function R3_MOD_P() -> ret {
-                ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
@@ -183,13 +145,13 @@ object "EcPairing" {
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := ZERO()
+                let c := 0
 
-                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
-                    for {} iszero(and(u, ONE())) {} {
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
                         let current_b := b
-                        let current_b_is_odd := and(current_b, ONE())
+                        let current_b_is_odd := and(current_b, 1)
                         if iszero(current_b_is_odd) {
                             b := shr(1, b)
                         }
@@ -204,10 +166,10 @@ object "EcPairing" {
                         }
                     }
 
-                    for {} iszero(and(v, ONE())) {} {
+                    for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
                         let current_c := c
-                        let current_c_is_odd := and(current_c, ONE())
+                        let current_c_is_odd := and(current_c, 1)
                         if iszero(current_c_is_odd) {
                             c := shr(1, c)
                         }
@@ -239,7 +201,7 @@ object "EcPairing" {
                     }
                 }
 
-                switch eq(u, ONE())
+                switch eq(u, 1)
                 case 0 {
                     inv := c
                 }
@@ -263,7 +225,7 @@ object "EcPairing" {
                 let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
                 let a_low, overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
                 if overflowed {
-                    a_high := add(a_high, ONE())
+                    a_high := add(a_high, 1)
                 }
                 S := a_high
                 if iszero(lt(a_high, P())) {
@@ -280,7 +242,7 @@ object "EcPairing" {
 
             // Transforming out of the Montgomery form -> REDC(a * R mod N)
             function outOfMontgomeryForm(m) -> ret {
-                    let higher_half_of_m := ZERO()
+                    let higher_half_of_m := 0
                     let lowest_half_of_m := m 
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
@@ -355,15 +317,15 @@ object "EcPairing" {
 				yr0 := yp0
 				yr1 := yp1
 				zr0 := MONTGOMERY_ONE()
-				zr1 := ZERO()
-				if and(eq(xp0, ZERO()), eq(xp1, ZERO())) {
-					if and(eq(yp0, ZERO()), eq(yp1, ZERO())) {
+				zr1 := 0
+				if and(eq(xp0, 0), eq(xp1, 0)) {
+					if and(eq(yp0, 0), eq(yp1, 0)) {
 						xr0 := MONTGOMERY_ONE()
-						// xr1 is already ZERO()
+						// xr1 is already 0
 						yr0 := MONTGOMERY_ONE()
-						// yr1 is already ZERO()
-						zr0 := ZERO()
-						// zr1 is already ZERO()
+						// yr1 is already 0
+						zr0 := 0
+						// zr1 is already 0
 					}
 				}
 			}
@@ -463,7 +425,7 @@ object "EcPairing" {
             /// @param a00, a01 The coefficients of the Fp2 element A.
             /// @return c00, c01 The coefficients of the element C = -A.
             function fp2Neg(a00, a01) -> c00, c01 {
-                c00, c01 := fp2Sub(ZERO(), ZERO(), a00, a01)
+                c00, c01 := fp2Sub(0, 0, a00, a01)
             }
 
             /// @notice Computes the inverse of a Fp2 element.
@@ -477,7 +439,7 @@ object "EcPairing" {
                 t1 := montgomeryModularInverse(t0)
 
                 c00 := montgomeryMul(a00, t1)
-                c01 := montgomerySub(ZERO(), montgomeryMul(a01, t1))
+                c01 := montgomerySub(0, montgomeryMul(a01, t1))
             }
 
             /// @notice Computes the multiplication of a Fp2 element with xi.
@@ -496,7 +458,7 @@ object "EcPairing" {
             /// @return c00, c01 The coefficients of the element C = A'.
             function fp2Conjugate(a00, a01) -> c00, c01 {
                 c00 := a00
-                c01 := montgomerySub(ZERO(), a01)
+                c01 := montgomerySub(0, a01)
             }
 
             // FP6 ARITHMETHICS
@@ -834,7 +796,7 @@ object "EcPairing" {
                 c111 := a111
                 c120 := a120
                 c121 := a121
-                for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
+                for { let i := 0 } lt(i, n) { i := add(i, 1) } {
                     c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121)
                 }
             }
@@ -1055,7 +1017,7 @@ object "EcPairing" {
             /// @return zt0, zt1 The coefficients of the Fp2 X coordinate of T = 2Q.
             /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the tangent line to Q.
 			function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
-                let zero := ZERO()
+                let zero := 0
                 let twoInv := MONTGOMERY_TWO_INV()
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
                 let t10, t11 := fp2ScalarMul(t00, t01, twoInv)
@@ -1123,7 +1085,7 @@ object "EcPairing" {
             /// @return zc0, zc1 The coefficients of the Fp2 X coordinate of C = Q + T.
             /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
             function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
-                let zero := ZERO()
+                let zero := 0
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
@@ -1304,8 +1266,8 @@ object "EcPairing" {
 		  	let inputSize := calldatasize()
 
 			// Empty input is valid and results in returning one.
-		  	if eq(inputSize, ZERO()) {
-				mstore(0, ONE())
+		  	if eq(inputSize, 0) {
+				mstore(0, 1)
 				return(0, 32)
 			}
 
@@ -1393,13 +1355,13 @@ object "EcPairing" {
             if and(eq(r000, MONTGOMERY_ONE()), iszero(or(r001, or(r010, r011)))) {
                 if iszero(or(or(r020, r021), or(r100, r101))) {
                     if iszero(or(or(r110, r111), or(r120, r121))) {
-                        mstore(0, ONE())
+                        mstore(0, 1)
                         return(0, 32)
                     }
                 }
             }
 
-            mstore(0, ZERO())
+            mstore(0, 0)
 			return(0, 32)
 		}
 	}
