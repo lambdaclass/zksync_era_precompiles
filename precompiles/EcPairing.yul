@@ -1071,7 +1071,6 @@ object "EcPairing" {
                 zt0, zt1 := fp2Mul(t20, t21, t80, t81)
             }
 
-
             /// @notice Computes the addition of two G2 points and the line through them.
             /// @dev It's called mixed addition because Q is in affine coordinates ands T in projective coordinates.
             /// @dev See https://eprint.iacr.org/2013/722.pdf for further details.
@@ -1342,6 +1341,8 @@ object "EcPairing" {
 					burnGas()
 				}
 
+                // We must continue if g1 is the point at infinity after validating both g1 and g2
+                // That's why although knowing this before parsing and validating g2 we check it later.
                 if g1IsInfinity {
                     continue
                 }
