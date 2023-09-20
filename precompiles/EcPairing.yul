@@ -1330,7 +1330,12 @@ object "EcPairing" {
                     burnGas()
                 }
 
-				if iszero(g1AffinePointIsOnCurve(g1_x, g1_y)) {
+                g1_x := intoMontgomeryForm(g1_x)
+                g1_y := intoMontgomeryForm(g1_y)
+
+                let g1IsInfinity := g1AffinePointIsInfinity(g1_x, g1_y)
+
+				if and(iszero(g1IsInfinity), iszero(g1AffinePointIsOnCurve(g1_x, g1_y))) {
 					burnGas()
 				}
 
@@ -1364,8 +1369,6 @@ object "EcPairing" {
                     continue
                 }
 
-                g1_x := intoMontgomeryForm(g1_x)
-                g1_y := intoMontgomeryForm(g1_y)
                 g2_x0 := intoMontgomeryForm(g2_x0)
                 g2_x1 := intoMontgomeryForm(g2_x1)
                 g2_y0 := intoMontgomeryForm(g2_y0)
@@ -1377,7 +1380,7 @@ object "EcPairing" {
 					burnGas()
 				}
 
-                if g1AffinePointIsInfinity(g1_x, g1_y) {
+                if g1IsInfinity {
                     continue
                 }
 
