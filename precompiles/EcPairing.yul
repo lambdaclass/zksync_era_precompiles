@@ -325,17 +325,17 @@ object "EcPairing" {
                 ret := and(iszero(x), iszero(y))
             }
 
-            /// @notice Checks if a point in affine coordinates belongs to the BN curve.
-            /// @dev In Affine coordinates the point belongs to the curve if satisfty the ecuaqution: y^3 = x^2 + 3.
-            /// @dev The point is assumed not to be the point at infinity.
-            /// @param x The x coordinate to check.
-            /// @param y The y coordinate to check.
-            /// @return ret True if the coordinates are in the range, false otherwise.
+            /// @notice Checks if a point in affine coordinates in Montgomery form is on the curve.
+            /// @dev The curve in question is the alt_bn128 curve.
+            /// @dev The Short Weierstrass equation of the curve is y^2 = x^3 + 3.
+            /// @param x The x coordinate of the point in Montgomery form.
+            /// @param y The y coordinate of the point in Montgomery form.
+            /// @return ret True if the point is on the curve, false otherwise.
 			function g1AffinePointIsOnCurve(x, y) -> ret {
-                let ySquared := mulmod(y, y, P())
-                let xSquared := mulmod(x, x, P())
-                let xQubed := mulmod(xSquared, x, P())
-                let xQubedPlusThree := addmod(xQubed, THREE(), P())
+                let ySquared := montgomeryMul(y, y)
+                let xSquared := montgomeryMul(x, x)
+                let xQubed := montgomeryMul(xSquared, x)
+                let xQubedPlusThree := montgomeryAdd(xQubed, MONTGOMERY_THREE())
 
                 ret := eq(ySquared, xQubedPlusThree)
             }
