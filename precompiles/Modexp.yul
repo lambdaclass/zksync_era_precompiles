@@ -40,9 +40,18 @@ object "ModExp" {
                 return(0, 0)
             }
 
+            // Workaround to handle the case when all inputs are 0
+            if eq(calldatasize(), 96) {
+                return(0, modulus_length)
+            }
+
             // Handle a special case when both the base and mod length is zero
             if and(iszero(base_length), iszero(modulus_length)) {
                 return(0, 0)
+            }
+
+            if and(iszero(base_length), iszero(exponent_length)) {
+                return(0, modulus_length)
             }
 
             let base_pointer := 96
