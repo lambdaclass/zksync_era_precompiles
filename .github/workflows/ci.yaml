@@ -71,8 +71,8 @@ jobs:
 
       - name: "era-test-node: start"
         working-directory: submodules/era-test-node
-        # The usage of `nohup ... &` guarantees that the server will keep on
-        # running after 
+        # The usage of `nohup ... &` guarantees that the server process will keep on
+        # running during the next steps. 
         run: nohup cargo run -- --show-calls=all --resolve-hashes run > era-test-node.log 2>&1 &
 
       - name: "era-test-node: Sleep before server is ready"
