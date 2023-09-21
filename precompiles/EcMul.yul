@@ -180,7 +180,7 @@ object "EcMul" {
 
             function montgomeryAdd(augend, addend) -> ret {
                 ret := add(augend, addend)
-                if gt(ret, P()) {
+                if iszero(lt(ret, P())) {
                     ret := sub(ret, P())
                 }
             }
