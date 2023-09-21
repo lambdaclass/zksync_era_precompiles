@@ -77,7 +77,6 @@ object "ModExp" {
             // calldata exponent pointer are outphased. That's why after
             // loading the exponent from the calldata, we still need to 
             // compute two pointers for the modulus.
-            console_log(2)
             let calldata_exponent_pointer := add(base_pointer, base_length)
             let memory_exponent_pointer := add(base_pointer, WORD_SIZE())
             let exponent_limbs := 0
