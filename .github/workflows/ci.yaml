@@ -83,5 +83,5 @@ jobs:
         # Yes, I'm aware that using `always()` will execute this step regardless of
         # whether the job was canceled. However, this is not an issue since it's
         # just a `cat` command.
-        if: allways()
+        if: always()
         run: cat era-test-node.log
