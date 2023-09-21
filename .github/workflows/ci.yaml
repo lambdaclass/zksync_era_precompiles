@@ -75,8 +75,12 @@ jobs:
         # running after 
         run: nohup cargo run -- --show-calls=all --resolve-hashes run > era-test-node.log 2>&1 &
 
-      - name: Run tests # FIXME run the tests for real
-        run: sleep 1m && false # Simulate a failure
+      - name: "era-test-node: Sleep before server is ready"
+        run: sleep 1m # Yes, this is a duck-tape solution.
+
+      - name: "Run tests"
+        working-directory: tests
+        run: cargo test
 
         # Make the Era logs available us.
       - name: "era-test-node: logs"
