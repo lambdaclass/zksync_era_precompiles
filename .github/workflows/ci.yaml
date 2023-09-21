@@ -59,17 +59,23 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Setup Era test node
+      - name: "era-test-node: setup"
         run: make setup
 
-      - name: Copy our precompiles to era-test-node system contracts
+      - name: "era-test-node: Copy our precompiles to the system-contracts"
         run: cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles
 
-      - name: Build precompiles
+      - name: "era-test-node: build precompiles"
         working-directory: submodules/era-test-node
         run: make build-precompiles
 
-      - name: Start era-test-node (Persistent)
+      - name: "era-test-node: Rust caches"
+        uses: Swatinem/rust-cache@v2
+        working-directory: submodules/era-test-node
+        with:
+          cache-on-failure: true
+
+      - name: "era-test-node: start"
         working-directory: submodules/era-test-node
         # The usage of `nohup ... &` guarantees that the server will keep on
         # running after 
@@ -79,7 +85,7 @@ jobs:
         run: sleep 1m && false # Simulate a failure
 
         # Make the Era logs available us.
-      - name: Print era-test-node logs
+      - name: "era-test-node: logs"
         # Yes, I'm aware that using `always()` will execute this step regardless of
         # whether the job was canceled. However, this is not an issue since it's
         # just a `cat` command.
