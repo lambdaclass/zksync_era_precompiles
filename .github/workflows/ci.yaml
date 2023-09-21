@@ -84,4 +84,5 @@ jobs:
         # whether the job was canceled. However, this is not an issue since it's
         # just a `cat` command.
         if: always()
+        working-directory: submodules/era-test-node
         run: cat era-test-node.log
