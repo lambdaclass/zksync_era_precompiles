@@ -69,8 +69,19 @@ jobs:
         working-directory: submodules/era-test-node
         run: make build-precompiles
 
-      - name: Start era-test-node
+      - name: Start era-test-node (Persistent)
         working-directory: submodules/era-test-node
+        # The usage of `nohup ... &` guarantees that the server will keep on
+        # running after 
         run: nohup cargo run -- --show-calls=all --resolve-hashes run > era-test-node.log 2>&1 &
 
-      # FIXME run tests, then kill the server.
+      - name: Run tests # FIXME run the tests for real
+        run: sleep 1m && false # Simulate a failure
+
+        # Make the Era logs available us.
+      - name: Print era-test-node logs
+        # Yes, I'm aware that using `always()` will execute this step regardless of
+        # whether the job was canceled. However, this is not an issue since it's
+        # just a `cat` command.
+        if: allways()
+        run: cat era-test-node.log
