@@ -71,6 +71,8 @@ object "EcPairing" {
             /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
                 ret := 7186291078002685655833716264194454051281486193901198152801
+                // ret := 898286384750335706979214533024306756410185774237649769100
+                // ret := 112285798093791963372401816628038344551273221779706221137
             }
 
             /// @notice Constant function for the zero element in Fp6 representation.
@@ -1157,6 +1159,42 @@ object "EcPairing" {
                 l51 := zero
             }
 
+            /// @notice Computes the line through two G2 points.
+            /// @dev Like in the mixed_addition_step, Q is in affine coordinates ands T in projective coordinates.
+            /// @params xq0, xq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @params yq0, yq1 The coefficients of the Fp2 Y coordinate of the Q point.
+            /// @params xt0, xt1 The coefficients of the Fp2 X coordinate of the T point.
+            /// @params yt0, yt1 The coefficients of the Fp2 Y coordinate of the T point.
+            /// @params zt0, zt1 The coefficients of the Fp2 Z coordinate of the T point.
+            /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
+            function computeLine(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 {
+                let zero := ZERO()
+                let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
+                let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
+                t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
+                let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
+                let t30, t31 := fp2Mul(t20, t21, yq0, yq1)
+                let t40, t41 := fp2Mul(xq0, xq1, t10, t11)
+                t40, t41 := fp2Sub(t40, t41, t30, t31)
+
+                // l0
+                l00 := t20
+                l01 := t21
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
+
+                // l1
+                l30, l31 := fp2Neg(t10, t11)
+
+                // l2
+                l40 := t40
+                l41 := t41
+                l50 := zero
+                l51 := zero
+            }
+
             /// @notice Computes the final exponentiation to the result given by the Millers Loop.
             /// @dev It computes the exponentiation of a Fp12 elemento to e, with e = (p^12 -1)/r
             /// @dev We can split this exponentitation in three parts: e = (p^6 - 1)(p^2 + 1)((p^4 - p^2 + 1)/r)
@@ -1227,6 +1265,27 @@ object "EcPairing" {
                 let naf := NAF_REPRESENTATIVE()
                 let n_iter := 65
                 let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := FP12_ONE()
+
+                // Computes the first iteration of Millers loop outside to avoid unecesariy square
+                // NAF[64] == 0
+                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
+                // l00, l01 := fp2ScalarMul(l00, l01, yp)
+                // l30, l31 := fp2ScalarMul(l30, l31, xp)
+                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+
+                // Computes the second iteration of Millers loop outside
+                // NAF[63] == -1.
+                // Here T = 2Q, so doing a dobule step and a mixed addition step with -Q looks like: (2(2Q)-Q) = 3Q.
+                // This is equivalent to a mixed addition step with Q: (2Q + Q) = 3Q
+                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
+                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                // l00, l01 := fp2ScalarMul(l00, l01, yp)
+                // l30, l31 := fp2ScalarMul(l30, l31, xp)
+                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                // l00, l01 := fp2ScalarMul(l00, l01, yp)
+                // l30, l31 := fp2ScalarMul(l30, l31, xp)
+                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
 
                 for {let i := 0} lt(i, n_iter) { i := add(i, 1) } {
                     f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
