@@ -2,19 +2,6 @@ object "EcPairing" {
 	code { }
 	object "EcPairing_deployed" {
 		code {
-            // function console_log(val) -> {
-            //     let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-            //     // load the free memory pointer
-            //     let freeMemPointer := mload(0x600)
-            //     // store the function selector of log(uint256) in memory
-            //     mstore(freeMemPointer, 0xf82c50f1)
-            //     // store the first argument of log(uint256) in the next memory slot
-            //     mstore(add(freeMemPointer, 0x20), val)
-            //     // call the console.log contract
-            //     if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-            //         revert(0,0)
-            //     }
-            // }
             // CONSTANTS
 
             /// @notice Constant function for value one in Montgomery form.
@@ -83,8 +70,6 @@ object "EcPairing" {
             /// @dev This value was precomputed using Python.
             /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
-                // ret := 7186291078002685655833716264194454051281486193901198152801
-                // ret := 898286384750335706979214533024306756410185774237649769100
                 ret := 112285798093791963372401816628038344551273221779706221137
             }
 
@@ -1291,10 +1276,11 @@ object "EcPairing" {
                 // Here T = 2Q, so doing a dobule step and a mixed addition step with -Q looks like: (2(2Q)-Q) = 3Q.
                 // This is equivalent to a mixed addition step with Q: (2Q + Q) = 3Q
 
-                // Use fp12Square cause: assembly-to-bytecode conversion error: assembly parse error Label DEFAULT_UNWIND was tried to be used for either PC or constant at offset 238030 that is more than `65535` addressable space
+                // FIX. This fp12Square cause: assembly-to-bytecode conversion error: assembly parse error Label DEFAULT_UNWIND was tried to be used for either PC or constant at offset 238030 that is more than `65535` addressable space
+                // We changed ir for a fp12Mul
                 // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121,f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
-                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
                 l00, l01 := fp2ScalarMul(l00, l01, yp)
                 l30, l31 := fp2ScalarMul(l30, l31, xp)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
