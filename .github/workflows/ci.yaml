@@ -45,3 +45,32 @@ jobs:
 
       - name: Run clippy
         run: cd tests && cargo clippy --all-targets --all-features -- -D warnings
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Setup Era test node
+        run: make setup
+
+      - name: Copy our precompiles to era-test-node system contracts
+        run: cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles
+
+      - name: Build precompiles
+        working-directory: submodules/era-test-node
+        run: make build-precompiles
+
+      - name: Start era-test-node
+        working-directory: submodules/era-test-node
+        run: nohup cargo run -- --show-calls=all --resolve-hashes run > era-test-node.log 2>&1 &
+
+      # FIXME run tests, then kill the server.
