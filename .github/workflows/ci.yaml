@@ -69,12 +69,6 @@ jobs:
         working-directory: submodules/era-test-node
         run: make build-precompiles
 
-      - name: "era-test-node: Rust caches"
-        uses: Swatinem/rust-cache@v2
-        working-directory: submodules/era-test-node
-        with:
-          cache-on-failure: true
-
       - name: "era-test-node: start"
         working-directory: submodules/era-test-node
         # The usage of `nohup ... &` guarantees that the server will keep on
