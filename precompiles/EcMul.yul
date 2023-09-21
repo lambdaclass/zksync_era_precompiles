@@ -178,10 +178,20 @@ object "EcMul" {
                 ret := REDC(lo, hi)
             }
 
+            /// @notice Computes the Montgomery addition.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param augend The augend in Montgomery form.
+            /// @param addend The addend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
                 ret := addmod(augend, addend, P())
             }
 
+            /// @notice Computes the Montgomery subtraction.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param minuend The minuend in Montgomery form.
+            /// @param subtrahend The subtrahend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
