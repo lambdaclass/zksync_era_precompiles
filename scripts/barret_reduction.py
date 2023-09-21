@@ -1,17 +1,4 @@
-import math, unittest, random, pdb
-
-
-# def modular_exponentiation(base: int, exponent: int, modulus: int) -> int:
-#     r, k = calculate_r_constant_for(modulus)
-#     result = 1
-#     base = base % modulus
-
-#     while exponent > 0:
-#         if exponent % 2 == 1:
-#             result = barrett_reduction(result * base, modulus)
-#         base = barrett_reduction(base * base, modulus)
-#         exponent >>= 1
-#     return result
+import math, unittest, random
 
 def log2_for_n(n: int) -> int:
     result = 0.
