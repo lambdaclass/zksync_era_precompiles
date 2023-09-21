@@ -184,7 +184,10 @@ object "EcMul" {
             /// @param addend The addend in Montgomery form.
             /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
-                ret := addmod(augend, addend, P())
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
             }
 
             /// @notice Computes the Montgomery subtraction.
@@ -303,16 +306,11 @@ object "EcMul" {
             /// @return xr The x coordinate of the point P in affine coordinates in Montgomery form.
             /// @return yr The y coordinate of the point P in affine coordinates in Montgomery form.
             function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
-                switch zp
-                case 0 {
-                    xr := 0
-                    yr := 0
-                }
-                default {
-                    let zp_inv := montgomeryModularInverse(zp)
-                    xr := montgomeryMul(xp, zp_inv)
-                    yr := montgomeryMul(yp, zp_inv)
-                }
+                if zp {
+                     let zp_inv := montgomeryModularInverse(zp)
+                     xr := montgomeryMul(xp, zp_inv)
+                     yr := montgomeryMul(yp, zp_inv)
+                 }
             }
 
             /// @notice Doubles a point in projective coordinates in Montgomery form.
