@@ -164,6 +164,8 @@ object "EcPairing" {
 				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
 			}
 
+            /// @notice Burns remaining gas until revert.
+            /// @dev This function is used to burn gas in the case of a failed precompile call.
 			function burnGas() {
 				// Precompiles that do not have a circuit counterpart
 				// will burn the provided gas by calling this function.
@@ -248,16 +250,29 @@ object "EcPairing" {
                 }
             }
 
+            /// @notice Computes an addition and checks for overflow.
+            /// @param augend The value to add to.
+            /// @param addend The value to add.
+            /// @return sum The sum of the two values.
+            /// @return overflowed True if the addition overflowed, false otherwise.
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
                 overflowed := or(lt(sum, augend), lt(sum, addend))
             }
 
+            /// @notice Retrieves the highest half of the multiplication result.
+            /// @param multiplicand The value to multiply.
+            /// @param multiplier The multiplier.
+            /// @return ret The highest half of the multiplication result.
             function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
 
-            // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+            /// @notice Implementation of the Montgomery reduction algorithm (a.k.a. REDC).
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+            /// @param lowestHalfOfT The lowest half of the value T.
+            /// @param higherHalfOfT The higher half of the value T.
+            /// @return S The result of the Montgomery reduction.
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
                 let q := mul(lowest_half_of_T, N_PRIME())
                 let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
@@ -271,35 +286,60 @@ object "EcPairing" {
                 }
             }
 
-            // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
+            /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
+            /// @param a The field element to encode.
+            /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
                     let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, P()), R2_MOD_P())
                     let lowest_half_of_a := mul(mod(a, P()), R2_MOD_P())
                     ret := REDC(lowest_half_of_a, higher_half_of_a)
             }
 
-            // Transforming out of the Montgomery form -> REDC(a * R mod N)
+            /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
+            /// @param m The field element in Montgomery form to decode.
+            /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
                     let higher_half_of_m := ZERO()
                     let lowest_half_of_m := m 
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
 
+            /// @notice Computes the Montgomery addition.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param augend The augend in Montgomery form.
+            /// @param addend The addend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
                 ret := addmod(augend, addend, P())
             }
 
+            /// @notice Computes the Montgomery subtraction.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param minuend The minuend in Montgomery form.
+            /// @param subtrahend The subtrahend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
-            // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
+            /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param multiplicand The multiplicand in Montgomery form.
+            /// @param multiplier The multiplier in Montgomery form.
+            /// @return ret The result of the Montgomery multiplication.
             function montgomeryMul(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
                 let lowest_half_of_product := mul(multiplicand, multiplier)
                 ret := REDC(lowest_half_of_product, higher_half_of_product)
             }
 
+            /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
+            /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
+            /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
+            /// @param a The field element in Montgomery form to compute the modular inverse of.
+            /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
             function montgomeryModularInverse(a) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
             }
