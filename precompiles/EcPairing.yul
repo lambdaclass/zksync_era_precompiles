@@ -173,52 +173,35 @@ object "EcPairing" {
             // MONTGOMERY
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
-                // Precomputation of 1 << 255
-                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 let modulus := P()
-                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-                let modulusHasSpareBits := iszero(and(modulus, mask))
-
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := ZERO()
+                let c := 0
 
-                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
-                    for {} iszero(and(u, ONE())) {} {
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, ONE())
-                        if iszero(current_b_is_odd) {
+                        let current := b
+                        switch and(current, 1)
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                b := or(b, mask)
-                            }
+                        case 1 {
+                            b := shr(1, add(b, modulus))
                         }
                     }
 
-                    for {} iszero(and(v, ONE())) {} {
+                    for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, ONE())
-                        if iszero(current_c_is_odd) {
+                        let current := c
+                        switch and(current, 1)
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                c := or(c, mask)
-                            }
+                        case 1 {
+                            c := shr(1, add(c, modulus))
                         }
                     }
 
@@ -239,7 +222,7 @@ object "EcPairing" {
                     }
                 }
 
-                switch eq(u, ONE())
+                switch eq(u, 1)
                 case 0 {
                     inv := c
                 }
@@ -250,7 +233,7 @@ object "EcPairing" {
 
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
+                overflowed := lt(sum, augend)
             }
 
             function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
@@ -273,9 +256,9 @@ object "EcPairing" {
 
             // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
             function intoMontgomeryForm(a) -> ret {
-                    let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, P()), R2_MOD_P())
-                    let lowest_half_of_a := mul(mod(a, P()), R2_MOD_P())
-                    ret := REDC(lowest_half_of_a, higher_half_of_a)
+                let hi := getHighestHalfOfMultiplication(a, R2_MOD_P())
+                let lo := mul(a, R2_MOD_P())
+                ret := REDC(lo, hi)
             }
 
             // Transforming out of the Montgomery form -> REDC(a * R mod N)
@@ -307,10 +290,10 @@ object "EcPairing" {
 			// CURVE ARITHMETICS
 
             /// @notice Checks if a coordinate is on the curve group order.
-            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
+            /// @dev A coordinate is on the curve group order if it is on the range [0, curveFieldOrder).
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
-            function coordinateIsOnGroupOrder(coordinate) -> ret {
+            function coordinateIsOnFieldOrder(coordinate) -> ret {
                 ret := lt(coordinate, P())
             }
 
@@ -1335,7 +1318,7 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
-                if iszero(and(coordinateIsOnGroupOrder(g1_x), coordinateIsOnGroupOrder(g1_y))) {
+                if iszero(and(coordinateIsOnFieldOrder(g1_x), coordinateIsOnFieldOrder(g1_y))) {
                     burnGas()
                 }
 
@@ -1360,12 +1343,12 @@ object "EcPairing" {
 				let g2_y0 := mload(g2_y0_offset)
 
                 // TODO: Double check if this is right
-                if iszero(and(coordinateIsOnGroupOrder(g2_x0), coordinateIsOnGroupOrder(g2_x1))) {
+                if iszero(and(coordinateIsOnFieldOrder(g2_x0), coordinateIsOnFieldOrder(g2_x1))) {
                     burnGas()
                 }
 
                 // TODO: Double check if this is right
-                if iszero(and(coordinateIsOnGroupOrder(g2_y0), coordinateIsOnGroupOrder(g2_y1))) {
+                if iszero(and(coordinateIsOnFieldOrder(g2_y0), coordinateIsOnFieldOrder(g2_y1))) {
                     burnGas()
                 }
 
