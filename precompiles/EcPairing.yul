@@ -136,6 +136,21 @@ object "EcPairing" {
 
             // MONTGOMERY
 
+            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
+            /// @dev Let `base` be a number `a` in Montgomery Form, then base = a*R mod P()
+            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
+            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
+            /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
+            /// @dev and a^(-1)*R mod P() respectively).
+            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod P(),
+            /// @dev but we want it to be a^(-1)*R mod P().
+            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod P()
+            /// @dev to get R^2*a^(-1)*R^(-1) mod P() = a^(-1)*R mod P() as the desired result in Montgomery Form.
+            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
+            /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
+            /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
+            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
                 let modulus := P()
                 let u := base
