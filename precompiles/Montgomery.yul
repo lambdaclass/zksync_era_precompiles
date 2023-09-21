@@ -150,7 +150,7 @@ object "Montgomery" {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
 
-            // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+            // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
                 let q := mul(lowest_half_of_T, N_PRIME())
                 let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, ALT_BN128_GROUP_ORDER()))
