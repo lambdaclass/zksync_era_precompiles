@@ -6,18 +6,6 @@ object "EcAdd" {
             //                      CONSTANTS
             ////////////////////////////////////////////////////////////////
 
-            /// @notice Constant function for value zero.
-            /// @return zero The value zero.
-            function ZERO() -> zero {
-                zero := 0x0
-            }
-
-            /// @notice Constant function for value one.
-            /// @return one The value one.
-            function ONE() -> one {
-                one := 0x1
-            }
-
             /// @notice Constant function for value three in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_three The value three in Montgomery form.
@@ -28,7 +16,7 @@ object "EcAdd" {
             /// @notice Constant function for the alt_bn128 field order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @return ret The alt_bn128 field order.
-            function ALT_BN128_FIELD_ORDER() -> ret {
+            function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
@@ -37,7 +25,7 @@ object "EcAdd" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value R^2 modulus the curve field order.
-            function R2_MOD_ALT_BN128_FIELD_ORDER() -> ret {
+            function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
             }
 
@@ -92,7 +80,7 @@ object "EcAdd" {
             /// @return overflowed True if the addition overflowed, false otherwise.
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
+                overflowed := lt(sum, augend)
             }
 
             // @notice Checks if a point is on the curve.
@@ -105,7 +93,7 @@ object "EcAdd" {
                 let ySquared := montgomeryMul(y, y)
                 let xSquared := montgomeryMul(x, x)
                 let xQubed := montgomeryMul(xSquared, x)
-                let xQubedPlusThree := addmod(xQubed, MONTGOMERY_THREE(), ALT_BN128_FIELD_ORDER())
+                let xQubedPlusThree := montgomeryAdd(xQubed, MONTGOMERY_THREE())
 
                 ret := eq(ySquared, xQubedPlusThree)
             }
@@ -117,7 +105,7 @@ object "EcAdd" {
             /// @param y The y coordinate of the point.
             /// @return ret True if the point is the point at infinity, false otherwise.
             function isInfinity(x, y) -> ret {
-                ret := and(iszero(x), iszero(y))
+                ret := iszero(or(x, y))
             }
 
             /// @notice Checks if a coordinate is on the curve field order.
@@ -126,56 +114,39 @@ object "EcAdd" {
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
             function isOnFieldOrder(coordinate) -> ret {
-                ret := lt(coordinate, ALT_BN128_FIELD_ORDER())
+                ret := lt(coordinate, P())
             }
 
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
-                // Precomputation of 1 << 255
-                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
-                let modulus := ALT_BN128_FIELD_ORDER()
-                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-                let modulusHasSpareBits := iszero(and(modulus, mask))
-
+                let modulus := P()
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
-                let b := R2_MOD_ALT_BN128_FIELD_ORDER()
-                let c := ZERO()
+                let b := R2_MOD_P()
+                let c := 0
 
-                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
-                    for {} iszero(and(u, ONE())) {} {
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
-                        let currentB := b
-                        switch and(currentB, ONE())
+                        let current := b
+                        switch and(current, 1)
                         case 0 {
                             b := shr(1, b)
                         }
                         case 1 {
-                            let newB := add(b, modulus)
-                            let carry := or(lt(newB, b), lt(newB, modulus))
-                            b := shr(1, newB)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                b := or(b, mask)
-                            }
+                            b := shr(1, add(b, modulus))
                         }
                     }
 
-                    for {} iszero(and(v, ONE())) {} {
+                    for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
-                        let currentC := c
-                        switch and(currentC, ONE())
+                        let current := c
+                        switch and(current, 1)
                         case 0 {
                             c := shr(1, c)
                         }
                         case 1 {
-                            let newC := add(c, modulus)
-                            let carry := or(lt(newC, c), lt(newC, modulus))
-                            c := shr(1, newC)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                c := or(c, mask)
-                            }
+                            c := shr(1, add(c, modulus))
                         }
                     }
 
@@ -196,7 +167,7 @@ object "EcAdd" {
                     }
                 }
 
-                switch eq(u, ONE())
+                switch eq(u, 1)
                 case 0 {
                     inv := c
                 }
@@ -211,15 +182,15 @@ object "EcAdd" {
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
             function REDC(lowestHalfOfT, higherHalfOfT) -> S {
-                let q := mul(lowestHalfOfT, N_PRIME())
-                let aHigh := add(higherHalfOfT, getHighestHalfOfMultiplication(q, ALT_BN128_FIELD_ORDER()))
-                let aLow, overflowed := overflowingAdd(lowestHalfOfT, mul(q, ALT_BN128_FIELD_ORDER()))
+                let m := mul(lowestHalfOfT, N_PRIME())
+                let hi := add(higherHalfOfT, getHighestHalfOfMultiplication(m, P()))
+                let lo, overflowed := overflowingAdd(lowestHalfOfT, mul(m, P()))
                 if overflowed {
-                    aHigh := add(aHigh, ONE())
+                    hi := add(hi, 1)
                 }
-                S := aHigh
-                if iszero(lt(aHigh, ALT_BN128_FIELD_ORDER())) {
-                    S := sub(aHigh, ALT_BN128_FIELD_ORDER())
+                S := hi
+                if iszero(lt(hi, P())) {
+                    S := sub(hi, P())
                 }
             }
 
@@ -228,10 +199,9 @@ object "EcAdd" {
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
-                let temp := mod(a, ALT_BN128_FIELD_ORDER())
-                let higherHalf := getHighestHalfOfMultiplication(temp, R2_MOD_ALT_BN128_FIELD_ORDER())
-                let lowestHalf := mul(temp, R2_MOD_ALT_BN128_FIELD_ORDER())
-                ret := REDC(lowestHalf, higherHalf)
+                let hi := getHighestHalfOfMultiplication(a, R2_MOD_P())
+                let lo := mul(a, R2_MOD_P())
+                ret := REDC(lo, hi)
             }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
@@ -239,9 +209,17 @@ object "EcAdd" {
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
-                let higherHalfOf := ZERO()
-                let lowestHalf := m
-                ret := REDC(lowestHalf, higherHalfOf)
+                let hi := 0
+                let lo := m
+                ret := REDC(lo, hi)
+            }
+
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := addmod(augend, addend, P())
+            }
+
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
@@ -288,8 +266,8 @@ object "EcAdd" {
 
             if and(p1IsInfinity, p2IsInfinity) {
                 // Infinity + Infinity = Infinity
-                mstore(0, ZERO())
-                mstore(32, ZERO())
+                mstore(0, 0)
+                mstore(32, 0)
                 return(0, 64)
             }
             if and(p1IsInfinity, iszero(p2IsInfinity)) {
@@ -298,7 +276,6 @@ object "EcAdd" {
                 // Ensure that the coordinates are between 0 and the field order.
                 if or(iszero(isOnFieldOrder(x2)), iszero(isOnFieldOrder(y2))) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 let m_x2 := intoMontgomeryForm(x2)
@@ -307,7 +284,6 @@ object "EcAdd" {
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(m_x2, m_y2)) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 // We just need to go into the Montgomery form to perform the
@@ -323,7 +299,6 @@ object "EcAdd" {
                 // Ensure that the coordinates are between 0 and the field order.
                 if or(iszero(isOnFieldOrder(x1)), iszero(isOnFieldOrder(y1))) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 let m_x1 := intoMontgomeryForm(x1)
@@ -332,7 +307,6 @@ object "EcAdd" {
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(m_x1, m_y1)) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 // We just need to go into the Montgomery form to perform the
@@ -355,7 +329,7 @@ object "EcAdd" {
 
             // There's no need for transforming into Montgomery form
             // for this case.
-            if and(eq(x1, x2), eq(submod(0, y1, ALT_BN128_FIELD_ORDER()), y2)) {
+            if and(eq(x1, x2), eq(submod(0, y1, P()), y2)) {
                 // P + (-P) = Infinity
 
                 let m_x1 := intoMontgomeryForm(x1)
@@ -366,18 +340,17 @@ object "EcAdd" {
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
                 if or(iszero(pointIsInCurve(m_x1, m_y1)), iszero(pointIsInCurve(m_x2, m_y2))) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 // We just need to go into the Montgomery form to perform the
                 // computations in pointIsInCurve, but we do not need to come back.
 
-                mstore(0, ZERO())
-                mstore(32, ZERO())
+                mstore(0, 0)
+                mstore(32, 0)
                 return(0, 64)
             }
 
-            if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, ALT_BN128_FIELD_ORDER()))))) {
+            if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, P()))))) {
                 burnGas()
             }
 
@@ -390,16 +363,15 @@ object "EcAdd" {
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(x, y)) {
                     burnGas()
-                    revert(0, 0)
                 }
 
                 // (3 * x1^2 + a) / (2 * y1)
                 let x1_squared := montgomeryMul(x, x)
-                let slope := montgomeryDiv(addmod(x1_squared, addmod(x1_squared, x1_squared, ALT_BN128_FIELD_ORDER()), ALT_BN128_FIELD_ORDER()), addmod(y, y, ALT_BN128_FIELD_ORDER()))
+                let slope := montgomeryDiv(addmod(x1_squared, addmod(x1_squared, x1_squared, P()), P()), addmod(y, y, P()))
                 // x3 = slope^2 - 2 * x1
-                let x3 := submod(montgomeryMul(slope, slope), addmod(x, x, ALT_BN128_FIELD_ORDER()), ALT_BN128_FIELD_ORDER())
+                let x3 := submod(montgomeryMul(slope, slope), addmod(x, x, P()), P())
                 // y3 = slope * (x1 - x3) - y1
-                let y3 := submod(montgomeryMul(slope, submod(x, x3, ALT_BN128_FIELD_ORDER())), y, ALT_BN128_FIELD_ORDER())
+                let y3 := submod(montgomeryMul(slope, submod(x, x3, P())), y, P())
 
                 x3 := outOfMontgomeryForm(x3)
                 y3 := outOfMontgomeryForm(y3)
@@ -422,11 +394,11 @@ object "EcAdd" {
             }
 
             // (y2 - y1) / (x2 - x1)
-            let slope := montgomeryDiv(submod(y2, y1, ALT_BN128_FIELD_ORDER()), submod(x2, x1, ALT_BN128_FIELD_ORDER()))
+            let slope := montgomeryDiv(submod(y2, y1, P()), submod(x2, x1, P()))
             // x3 = slope^2 - x1 - x2
-            let x3 := submod(montgomeryMul(slope, slope), addmod(x1, x2, ALT_BN128_FIELD_ORDER()), ALT_BN128_FIELD_ORDER())
+            let x3 := submod(montgomeryMul(slope, slope), addmod(x1, x2, P()), P())
             // y3 = slope * (x1 - x3) - y1
-            let y3 := submod(montgomeryMul(slope, submod(x1, x3, ALT_BN128_FIELD_ORDER())), y1, ALT_BN128_FIELD_ORDER())
+            let y3 := submod(montgomeryMul(slope, submod(x1, x3, P())), y1, P())
 
             x3 := outOfMontgomeryForm(x3)
             y3 := outOfMontgomeryForm(y3)
