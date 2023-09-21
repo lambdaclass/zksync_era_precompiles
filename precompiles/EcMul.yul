@@ -179,7 +179,10 @@ object "EcMul" {
             }
 
             function montgomeryAdd(augend, addend) -> ret {
-                ret := addmod(augend, addend, P())
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
             }
 
             function montgomerySub(minuend, subtrahend) -> ret {

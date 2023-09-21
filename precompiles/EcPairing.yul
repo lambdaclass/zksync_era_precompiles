@@ -257,7 +257,10 @@ object "EcPairing" {
             /// @param addend The addend in Montgomery form.
             /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
-                ret := addmod(augend, addend, P())
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
             }
 
             /// @notice Computes the Montgomery subtraction.
