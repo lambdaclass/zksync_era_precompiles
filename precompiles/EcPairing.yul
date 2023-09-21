@@ -1168,7 +1168,7 @@ object "EcPairing" {
             /// @params zt0, zt1 The coefficients of the Fp2 Z coordinate of the T point.
             /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
             function computeLine(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 {
-                let zero := ZERO()
+                let zero := 0
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
