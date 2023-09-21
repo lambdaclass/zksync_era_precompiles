@@ -214,7 +214,7 @@ object "EcPairing" {
             }
 
             /// @notice Implementation of the Montgomery reduction algorithm (a.k.a. REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
@@ -232,7 +232,7 @@ object "EcPairing" {
             }
 
             /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
@@ -242,7 +242,7 @@ object "EcPairing" {
             }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
@@ -252,7 +252,7 @@ object "EcPairing" {
             }
 
             /// @notice Computes the Montgomery addition.
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param augend The augend in Montgomery form.
             /// @param addend The addend in Montgomery form.
             /// @return ret The result of the Montgomery addition.
@@ -264,7 +264,7 @@ object "EcPairing" {
             }
 
             /// @notice Computes the Montgomery subtraction.
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
             /// @return ret The result of the Montgomery addition.
@@ -273,7 +273,7 @@ object "EcPairing" {
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param multiplicand The multiplicand in Montgomery form.
             /// @param multiplier The multiplier in Montgomery form.
             /// @return ret The result of the Montgomery multiplication.
