@@ -6,7 +6,7 @@ use zksync_web3_rs::{
 };
 
 static DEFAULT_L1_PROVIDER_URL: &str = "http://65.21.140.36:8545";
-static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
+static DEFAULT_L2_PROVIDER_URL: &str = "http://127.0.0.1:8011";
 
 pub fn eth_provider() -> Provider<Http> {
     let url: String =
