@@ -42,20 +42,6 @@ object "EcAdd" {
             //                      HELPER FUNCTIONS
             //////////////////////////////////////////////////////////////////
 
-            /// @dev Executes the `precompileCall` opcode.
-            function precompileCall(precompileParams, gasToBurn) -> ret {
-                // Compiler simulation for calling `precompileCall` opcode
-                ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
-            }
-
-            /// @notice Burns remaining gas until revert.
-            /// @dev This function is used to burn gas in the case of a failed precompile call.
-            function burnGas() {
-                // Precompiles that do not have a circuit counterpart
-                // will burn the provided gas by calling this function.
-                precompileCall(0, gas())
-            }
-
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
             /// @param multiplier The multiplier.
@@ -275,7 +261,7 @@ object "EcAdd" {
 
                 // Ensure that the coordinates are between 0 and the field order.
                 if or(iszero(isOnFieldOrder(x2)), iszero(isOnFieldOrder(y2))) {
-                    burnGas()
+                    invalid()
                 }
 
                 let m_x2 := intoMontgomeryForm(x2)
@@ -283,7 +269,7 @@ object "EcAdd" {
 
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(m_x2, m_y2)) {
-                    burnGas()
+                    invalid()
                 }
 
                 // We just need to go into the Montgomery form to perform the
@@ -298,7 +284,7 @@ object "EcAdd" {
 
                 // Ensure that the coordinates are between 0 and the field order.
                 if or(iszero(isOnFieldOrder(x1)), iszero(isOnFieldOrder(y1))) {
-                    burnGas()
+                    invalid()
                 }
 
                 let m_x1 := intoMontgomeryForm(x1)
@@ -306,7 +292,7 @@ object "EcAdd" {
 
                 // Ensure that the point is in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(m_x1, m_y1)) {
-                    burnGas()
+                    invalid()
                 }
 
                 // We just need to go into the Montgomery form to perform the
@@ -319,12 +305,12 @@ object "EcAdd" {
 
             // Ensure that the coordinates are between 0 and the field order.
             if or(iszero(isOnFieldOrder(x1)), iszero(isOnFieldOrder(y1))) {
-                burnGas()
+                invalid()
             }
 
             // Ensure that the coordinates are between 0 and the field order.
             if or(iszero(isOnFieldOrder(x2)), iszero(isOnFieldOrder(y2))) {
-                burnGas()
+                invalid()
             }
 
             // There's no need for transforming into Montgomery form
@@ -339,7 +325,7 @@ object "EcAdd" {
 
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
                 if or(iszero(pointIsInCurve(m_x1, m_y1)), iszero(pointIsInCurve(m_x2, m_y2))) {
-                    burnGas()
+                    invalid()
                 }
 
                 // We just need to go into the Montgomery form to perform the
@@ -351,7 +337,7 @@ object "EcAdd" {
             }
 
             if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, P()))))) {
-                burnGas()
+                invalid()
             }
 
             if and(eq(x1, x2), eq(y1, y2)) {
@@ -362,7 +348,7 @@ object "EcAdd" {
 
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
                 if iszero(pointIsInCurve(x, y)) {
-                    burnGas()
+                    invalid()
                 }
 
                 // (3 * x1^2 + a) / (2 * y1)
@@ -390,7 +376,7 @@ object "EcAdd" {
 
             // Ensure that the points are in the curve (Y^2 = X^3 + 3).
             if or(iszero(pointIsInCurve(x1, y1)), iszero(pointIsInCurve(x2, y2))) {
-                burnGas()
+                invalid()
             }
 
             // (y2 - y1) / (x2 - x1)
