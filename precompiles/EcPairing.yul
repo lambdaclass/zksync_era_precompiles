@@ -2,6 +2,19 @@ object "EcPairing" {
 	code { }
 	object "EcPairing_deployed" {
 		code {
+            // function console_log(val) -> {
+            //     let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+            //     // load the free memory pointer
+            //     let freeMemPointer := mload(0x600)
+            //     // store the function selector of log(uint256) in memory
+            //     mstore(freeMemPointer, 0xf82c50f1)
+            //     // store the first argument of log(uint256) in the next memory slot
+            //     mstore(add(freeMemPointer, 0x20), val)
+            //     // call the console.log contract
+            //     if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+            //         revert(0,0)
+            //     }
+            // }
             // CONSTANTS
 
             /// @notice Constant function for value one in Montgomery form.
@@ -70,9 +83,9 @@ object "EcPairing" {
             /// @dev This value was precomputed using Python.
             /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
-                ret := 7186291078002685655833716264194454051281486193901198152801
+                // ret := 7186291078002685655833716264194454051281486193901198152801
                 // ret := 898286384750335706979214533024306756410185774237649769100
-                // ret := 112285798093791963372401816628038344551273221779706221137
+                ret := 112285798093791963372401816628038344551273221779706221137
             }
 
             /// @notice Constant function for the zero element in Fp6 representation.
@@ -1263,29 +1276,32 @@ object "EcPairing" {
                 let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
                 let naf := NAF_REPRESENTATIVE()
-                let n_iter := 65
+                let n_iter := 63
                 let l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := FP12_ONE()
 
                 // Computes the first iteration of Millers loop outside to avoid unecesariy square
                 // NAF[64] == 0
-                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
-                // l00, l01 := fp2ScalarMul(l00, l01, yp)
-                // l30, l31 := fp2ScalarMul(l30, l31, xp)
-                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := doubleStep(t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
 
                 // Computes the second iteration of Millers loop outside
                 // NAF[63] == -1.
                 // Here T = 2Q, so doing a dobule step and a mixed addition step with -Q looks like: (2(2Q)-Q) = 3Q.
                 // This is equivalent to a mixed addition step with Q: (2Q + Q) = 3Q
+
+                // Use fp12Square cause: assembly-to-bytecode conversion error: assembly parse error Label DEFAULT_UNWIND was tried to be used for either PC or constant at offset 238030 that is more than `65535` addressable space
                 // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
-                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
-                // l00, l01 := fp2ScalarMul(l00, l01, yp)
-                // l30, l31 := fp2ScalarMul(l30, l31, xp)
-                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
-                // l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
-                // l00, l01 := fp2ScalarMul(l00, l01, yp)
-                // l30, l31 := fp2ScalarMul(l30, l31, xp)
-                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121,f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixedAdditionStep(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                l00, l01 := fp2ScalarMul(l00, l01, yp)
+                l30, l31 := fp2ScalarMul(l30, l31, xp)
+                f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
 
                 for {let i := 0} lt(i, n_iter) { i := add(i, 1) } {
                     f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
