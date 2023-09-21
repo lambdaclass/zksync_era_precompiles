@@ -138,7 +138,7 @@ object "EcPairing" {
 
             /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
-            /// @dev Let `base` be a number `a` in Montgomery Form, then base = a*R mod P()
+            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod P() being `a` the base number (not in Montgomery Form)
             /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
             /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
             /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
