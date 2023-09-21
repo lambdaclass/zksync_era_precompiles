@@ -218,7 +218,6 @@ object "EcAdd" {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
-
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param multiplicand The multiplicand in Montgomery form.
