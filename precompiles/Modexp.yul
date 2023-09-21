@@ -6,18 +6,6 @@ object "ModExp" {
             //                      CONSTANTS
             ////////////////////////////////////////////////////////////////
 
-            function ZERO() -> zero {
-                zero := 0x0
-            }
-
-            function ONE() -> one {
-                one := 0x1
-            }
-
-            function TWO() -> two {
-                two := 0x2
-            }
-
             function WORD_SIZE() -> word {
                 word := 0x20
             }
@@ -27,9 +15,9 @@ object "ModExp" {
             //////////////////////////////////////////////////////////////////
 
             function exponentIsZero(exponent_limbs, exponent_pointer) -> isZero {
-                isZero := ZERO()
+                isZero := 0
                 let next_limb_pointer := exponent_pointer
-                for { let limb_number := ZERO() } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, ONE()) } {
+                for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, 1) } {
                     let limb := mload(next_limb_pointer)
                     isZero := or(isZero, limb)
                     if isZero {
@@ -91,10 +79,10 @@ object "ModExp" {
             // compute two pointers for the modulus.
             let calldata_exponent_pointer := add(base_pointer, base_length)
             let memory_exponent_pointer := add(base_pointer, WORD_SIZE())
-            let exponent_limbs := ZERO()
+            let exponent_limbs := 0
             switch iszero(mod(exponent_length, WORD_SIZE()))
             case 0 {
-                exponent_limbs := add(div(exponent_length, WORD_SIZE()), ONE())
+                exponent_limbs := add(div(exponent_length, WORD_SIZE()), 1)
             }
             case 1 {
                 exponent_limbs := div(exponent_length, WORD_SIZE())
@@ -103,7 +91,7 @@ object "ModExp" {
             let adjusted_exponent_length := mul(WORD_SIZE(), exponent_limbs)
             let calldata_next_limb_pointer := calldata_exponent_pointer
             let memory_next_limb_pointer := memory_exponent_pointer
-            for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, ONE()) } {
+            for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, 1) } {
                 // The msb of the leftmost limb could be one.
                 // This left-pads with zeros the leftmost limbs to achieve 32 bytes.
                 if iszero(limb_number) {
@@ -129,32 +117,32 @@ object "ModExp" {
             let modulus := mload(memory_modulus_pointer)
 
             // 1^exponent % modulus = 1
-            if eq(base, ONE()) {
-                mstore(0, ONE())
+            if eq(base, 1) {
+                mstore(0, 1)
                 let unpadding := sub(WORD_SIZE(), modulus_length)
                 return(unpadding, modulus_length)
             }
 
             // base^exponent % 0 = 0
             if iszero(modulus) {
-                mstore(0, ZERO())
+                mstore(0, 0)
                 return(0, modulus_length)
             }
 
             // base^0 % modulus = 1
             if exponentIsZero(exponent_length, memory_exponent_pointer) {
-                mstore(0, ONE())
+                mstore(0, 1)
                 let unpadding := sub(WORD_SIZE(), modulus_length)
                 return(unpadding, modulus_length)
             }
 
             // 0^exponent % modulus = 0
             if iszero(base) {
-                mstore(0, ZERO())
+                mstore(0, 0)
                 return(0, modulus_length)
             }
 
-            switch eq(exponent_limbs, ONE())
+            switch eq(exponent_limbs, 1)
             // Special case of one limb, we load the hole word.
             case 1 {
                 let pow := 1
@@ -162,8 +150,8 @@ object "ModExp" {
                 // located in 0x
                 let exponent := mload(memory_exponent_pointer)
                 base := mod(base, modulus)
-                for { let i := 0 } gt(exponent, ZERO()) { i := add(i, 1) } {
-                    if eq(mod(exponent, TWO()), ONE()) {
+                for { let i := 0 } gt(exponent, 0) { i := add(i, 1) } {
+                    if eq(mod(exponent, 2), 1) {
                         pow := mulmod(pow, base, modulus)
                     }
                     exponent := shr(1, exponent)
@@ -178,10 +166,10 @@ object "ModExp" {
                 let pow := 1
                 base := mod(base, modulus)
                 let next_limb_pointer := memory_exponent_pointer
-                for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, ONE()) } {
+                for { let limb_number := 0 } lt(limb_number, exponent_limbs) { limb_number := add(limb_number, 1) } {
                     let current_limb := mload(next_limb_pointer)
-                    for { let i := 0 } gt(current_limb, ZERO()) { i := add(i, 1) } {
-                        if eq(mod(current_limb, TWO()), ONE()) {
+                    for { let i := 0 } gt(current_limb, 0) { i := add(i, 1) } {
+                        if eq(mod(current_limb, 2), 1) {
                             pow := mulmod(pow, base, modulus)
                         }
                         current_limb := shr(1, current_limb)
