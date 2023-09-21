@@ -1239,27 +1239,46 @@ async fn modexp_random_input_2() {
 
 #[tokio::test]
 async fn modexp_edge_cases_1() {
-    let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("").unwrap()))).await.unwrap();
-    let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("").unwrap()))).await.unwrap();
+    let eth_response = eth_call(
+        MODEXP_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("").unwrap())),
+    )
+    .await
+    .unwrap();
+    let era_response = era_call(
+        MODEXP_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("").unwrap())),
+    )
+    .await
+    .unwrap();
     assert_eq!(eth_response, era_response);
 }
 
 #[tokio::test]
 async fn modexp_edge_cases_2() {
+    let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
+    let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
+    assert_eq!(eth_response, era_response);
+}
+
+#[tokio::test]
+async fn modexp_edge_cases_3() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000100").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000100").unwrap()))).await.unwrap();
     assert_eq!(eth_response, era_response);
 }
 
 #[tokio::test]
-async fn modexp_edge_cases_3() {
+async fn modexp_edge_cases_4() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001010200").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001010200").unwrap()))).await.unwrap();
     assert_eq!(eth_response, era_response);
 }
 
 #[tokio::test]
-async fn modexp_edge_cases_4() {
+async fn modexp_edge_cases_5() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff02f1").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff02f1").unwrap()))).await.unwrap();
     assert_eq!(eth_response, era_response);
