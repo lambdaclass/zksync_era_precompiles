@@ -3,7 +3,30 @@ object "EcPairing" {
 	object "EcPairing_deployed" {
 		code {
             // CONSTANTS
-            
+
+            /// @notice Constant function for value zero.
+            /// @return zero The value zero.
+            function ZERO() -> zero {
+                zero := 0x00
+            }
+
+            /// @notice Constant function for value one.
+            /// @return one The value one.
+            function ONE() -> one {
+                one := 0x01
+            }
+
+            /// @notice Constant function for value two.
+            /// @return two The value two.
+            function TWO() -> two {
+                two := 0x02
+            }
+
+            /// @notice Constant function for value three.
+            /// @return three The value three.
+            function THREE() -> three {
+                three := 0x03
+            }
 
             function X_GEN() -> ret {
                 ret := 4965661367192848881
@@ -14,6 +37,13 @@ object "EcPairing" {
             /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE() -> m_one {
                 m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
+            }
+
+            /// @notice Constant function for value two in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_two The value two in Montgomery form.
+            function MONTGOMERY_TWO() -> m_two {
+                m_two := 12701749756239638624677912564803064819576857758302891452024789069373997194042
             }
 
             /// @notice Constant function for value three in Montgomery form.
@@ -53,6 +83,13 @@ object "EcPairing" {
             /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_P() -> ret {
                 ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
+            }
+
+            /// @notice Constant function for the pre-computation of R^3 % N for the Montgomery REDC algorithm.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^3 modulus the curve group order.
+            function R3_MOD_P() -> ret {
+                ret := 14921786541159648185948152738563080959093619838510245177710943249661917737183
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
@@ -138,8 +175,6 @@ object "EcPairing" {
 				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
 			}
 
-            /// @notice Burns remaining gas until revert.
-            /// @dev This function is used to burn gas in the case of a failed precompile call.
 			function burnGas() {
 				// Precompiles that do not have a circuit counterpart
 				// will burn the provided gas by calling this function.
@@ -150,56 +185,58 @@ object "EcPairing" {
             /// @param x The number to check.
             /// @return ret True if the LSB is 1, false otherwise.
             function lsbIsOne(x) -> ret {
-                ret := and(x, 1)
+                ret := and(x, ONE())
             }
 
             // MONTGOMERY
 
-            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
-            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
-            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod P() being `a` the base number (not in Montgomery Form)
-            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
-            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
-            /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
-            /// @dev and a^(-1)*R mod P() respectively).
-            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod P(),
-            /// @dev but we want it to be a^(-1)*R mod P().
-            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod P()
-            /// @dev to get R^2*a^(-1)*R^(-1) mod P() = a^(-1)*R mod P() as the desired result in Montgomery Form.
-            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
-            /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
-            /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
-            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
+                // Precomputation of 1 << 255
+                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 let modulus := P()
+                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
+                let modulusHasSpareBits := iszero(and(modulus, mask))
+
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := 0
+                let c := ZERO()
 
-                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
-                    for {} iszero(and(u, 1)) {} {
+                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
+                    for {} iszero(and(u, ONE())) {} {
                         u := shr(1, u)
-                        let current := b
-                        switch and(current, 1)
-                        case 0 {
+                        let current_b := b
+                        let current_b_is_odd := and(current_b, ONE())
+                        if iszero(current_b_is_odd) {
                             b := shr(1, b)
                         }
-                        case 1 {
-                            b := shr(1, add(b, modulus))
+                        if current_b_is_odd {
+                            let new_b := add(b, modulus)
+                            let carry := or(lt(new_b, b), lt(new_b, modulus))
+                            b := shr(1, new_b)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                b := or(b, mask)
+                            }
                         }
                     }
 
-                    for {} iszero(and(v, 1)) {} {
+                    for {} iszero(and(v, ONE())) {} {
                         v := shr(1, v)
-                        let current := c
-                        switch and(current, 1)
-                        case 0 {
+                        let current_c := c
+                        let current_c_is_odd := and(current_c, ONE())
+                        if iszero(current_c_is_odd) {
                             c := shr(1, c)
                         }
-                        case 1 {
-                            c := shr(1, add(c, modulus))
+                        if current_c_is_odd {
+                            let new_c := add(c, modulus)
+                            let carry := or(lt(new_c, c), lt(new_c, modulus))
+                            c := shr(1, new_c)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                c := or(c, mask)
+                            }
                         }
                     }
 
@@ -220,7 +257,7 @@ object "EcPairing" {
                     }
                 }
 
-                switch eq(u, 1)
+                switch eq(u, ONE())
                 case 0 {
                     inv := c
                 }
@@ -229,35 +266,22 @@ object "EcPairing" {
                 }
             }
 
-            /// @notice Computes an addition and checks for overflow.
-            /// @param augend The value to add to.
-            /// @param addend The value to add.
-            /// @return sum The sum of the two values.
-            /// @return overflowed True if the addition overflowed, false otherwise.
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
-                overflowed := lt(sum, augend)
+                overflowed := or(lt(sum, augend), lt(sum, addend))
             }
 
-            /// @notice Retrieves the highest half of the multiplication result.
-            /// @param multiplicand The value to multiply.
-            /// @param multiplier The multiplier.
-            /// @return ret The highest half of the multiplication result.
             function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
 
-            /// @notice Implementation of the Montgomery reduction algorithm (a.k.a. REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm
-            /// @param lowestHalfOfT The lowest half of the value T.
-            /// @param higherHalfOfT The higher half of the value T.
-            /// @return S The result of the Montgomery reduction.
+            // https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
                 let q := mul(lowest_half_of_T, N_PRIME())
                 let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
                 let a_low, overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
                 if overflowed {
-                    a_high := add(a_high, 1)
+                    a_high := add(a_high, ONE())
                 }
                 S := a_high
                 if iszero(lt(a_high, P())) {
@@ -265,63 +289,35 @@ object "EcPairing" {
                 }
             }
 
-            /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on transforming a field element into the Montgomery form.
-            /// @param a The field element to encode.
-            /// @return ret The field element in Montgomery form.
+            // Transforming into the Montgomery form -> REDC((a mod N)(R2 mod N))
             function intoMontgomeryForm(a) -> ret {
-                let hi := getHighestHalfOfMultiplication(a, R2_MOD_P())
-                let lo := mul(a, R2_MOD_P())
-                ret := REDC(lo, hi)
+                    let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, P()), R2_MOD_P())
+                    let lowest_half_of_a := mul(mod(a, P()), R2_MOD_P())
+                    ret := REDC(lowest_half_of_a, higher_half_of_a)
             }
 
-            /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
-            /// @param m The field element in Montgomery form to decode.
-            /// @return ret The decoded field element.
+            // Transforming out of the Montgomery form -> REDC(a * R mod N)
             function outOfMontgomeryForm(m) -> ret {
-                    let higher_half_of_m := 0
+                    let higher_half_of_m := ZERO()
                     let lowest_half_of_m := m 
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
 
-            /// @notice Computes the Montgomery addition.
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
-            /// @param augend The augend in Montgomery form.
-            /// @param addend The addend in Montgomery form.
-            /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
-                ret := add(augend, addend)
-                if iszero(lt(ret, P())) {
-                    ret := sub(ret, P())
-                }
+                ret := addmod(augend, addend, P())
             }
 
-            /// @notice Computes the Montgomery subtraction.
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
-            /// @param minuend The minuend in Montgomery form.
-            /// @param subtrahend The subtrahend in Montgomery form.
-            /// @return ret The result of the Montgomery addition.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
-            /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
-            /// @param multiplicand The multiplicand in Montgomery form.
-            /// @param multiplier The multiplier in Montgomery form.
-            /// @return ret The result of the Montgomery multiplication.
+            // Multipling field elements in Montgomery form -> REDC((a * R mod N)(b * R mod N))
             function montgomeryMul(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
                 let lowest_half_of_product := mul(multiplicand, multiplier)
                 ret := REDC(lowest_half_of_product, higher_half_of_product)
             }
 
-            /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
-            /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
-            /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
-            /// @param a The field element in Montgomery form to compute the modular inverse of.
-            /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
             function montgomeryModularInverse(a) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
             }
@@ -329,10 +325,10 @@ object "EcPairing" {
 			// CURVE ARITHMETICS
 
             /// @notice Checks if a coordinate is on the curve group order.
-            /// @dev A coordinate is on the curve group order if it is on the range [0, curveFieldOrder).
+            /// @dev A coordinate is on the curve group order if it is on the range [0, curveGroupOrder).
             /// @param coordinate The coordinate to check.
             /// @return ret True if the coordinate is in the range, false otherwise.
-            function coordinateIsOnFieldOrder(coordinate) -> ret {
+            function coordinateIsOnGroupOrder(coordinate) -> ret {
                 ret := lt(coordinate, P())
             }
 
@@ -344,7 +340,7 @@ object "EcPairing" {
             /// @param y The y coordinate to check.
             /// @return ret True if the point is infinity, false otherwise.
             function g1AffinePointIsInfinity(x, y) -> ret {
-                ret := iszero(or(x, y))
+                ret := and(iszero(x), iszero(y))
             }
 
             /// @notice Checks if a point in affine coordinates belongs to the BN curve.
@@ -357,10 +353,10 @@ object "EcPairing" {
                     ret := 1
                 }
                 if iszero(g1AffinePointIsInfinity(x, y)) { 
-                    let ySquared := montgomeryMul(y, y)
-                    let xSquared := montgomeryMul(x, x)
-                    let xQubed := montgomeryMul(xSquared, x)
-                    let xQubedPlusThree := montgomeryAdd(xQubed, MONTGOMERY_THREE())
+                    let ySquared := mulmod(y, y, P())
+                    let xSquared := mulmod(x, x, P())
+                    let xQubed := mulmod(xSquared, x, P())
+                    let xQubedPlusThree := addmod(xQubed, THREE(), P())
 
                     ret := eq(ySquared, xQubedPlusThree)
                 }
@@ -388,15 +384,15 @@ object "EcPairing" {
 				yr0 := yp0
 				yr1 := yp1
 				zr0 := MONTGOMERY_ONE()
-				zr1 := 0
-				if and(eq(xp0, 0), eq(xp1, 0)) {
-					if and(eq(yp0, 0), eq(yp1, 0)) {
+				zr1 := ZERO()
+				if and(eq(xp0, ZERO()), eq(xp1, ZERO())) {
+					if and(eq(yp0, ZERO()), eq(yp1, ZERO())) {
 						xr0 := MONTGOMERY_ONE()
-						// xr1 is already 0
+						// xr1 is already ZERO()
 						yr0 := MONTGOMERY_ONE()
-						// yr1 is already 0
-						zr0 := 0
-						// zr1 is already 0
+						// yr1 is already ZERO()
+						zr0 := ZERO()
+						// zr1 is already ZERO()
 					}
 				}
 			}
@@ -413,8 +409,7 @@ object "EcPairing" {
 
             /// @notice Checks if a G2 point in affine coordinates belongs to the twisted curve.
             /// @dev The coordinates are encoded in Montgomery form.
-            /// @dev In Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
-            /// @dev The point is assumed not to be the point at infinity.
+            /// @dev in Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
             /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
             /// @param x0, x1 The x coordinate to check.
             /// @param y0, y1 The y coordinate to check.
@@ -766,7 +761,7 @@ object "EcPairing" {
             /// @param a00, a01 The coefficients of the Fp2 element A.
             /// @return c00, c01 The coefficients of the element C = -A.
             function fp2Neg(a00, a01) -> c00, c01 {
-                c00, c01 := fp2Sub(0, 0, a00, a01)
+                c00, c01 := fp2Sub(ZERO(), ZERO(), a00, a01)
             }
 
             /// @notice Computes the inverse of a Fp2 element.
@@ -780,7 +775,7 @@ object "EcPairing" {
                 t1 := montgomeryModularInverse(t0)
 
                 c00 := montgomeryMul(a00, t1)
-                c01 := montgomerySub(0, montgomeryMul(a01, t1))
+                c01 := montgomerySub(ZERO(), montgomeryMul(a01, t1))
             }
 
             /// @notice Computes the multiplication of a Fp2 element with xi.
@@ -799,7 +794,7 @@ object "EcPairing" {
             /// @return c00, c01 The coefficients of the element C = A'.
             function fp2Conjugate(a00, a01) -> c00, c01 {
                 c00 := a00
-                c01 := montgomerySub(0, a01)
+                c01 := montgomerySub(ZERO(), a01)
             }
 
             // FP6 ARITHMETHICS
@@ -1137,7 +1132,7 @@ object "EcPairing" {
                 c111 := a111
                 c120 := a120
                 c121 := a121
-                for { let i := 0 } lt(i, n) { i := add(i, 1) } {
+                for { let i := 0 } lt(i, n) { i := add(i, ONE()) } {
                     c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121 := fp12CyclotomicSquare(c000, c001, c010, c011, c020, c021, c100, c101, c110, c111, c120, c121)
                 }
             }
@@ -1358,7 +1353,7 @@ object "EcPairing" {
             /// @return zt0, zt1 The coefficients of the Fp2 X coordinate of T = 2Q.
             /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the tangent line to Q.
 			function doubleStep(xq0, xq1, yq0, yq1, zq0, zq1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xt0, xt1, yt0, yt1, zt0, zt1 {
-                let zero := 0
+                let zero := ZERO()
                 let twoInv := MONTGOMERY_TWO_INV()
                 let t00, t01 := fp2Mul(xq0, xq1, yq0, yq1)
                 let t10, t11 := fp2ScalarMul(t00, t01, twoInv)
@@ -1412,6 +1407,7 @@ object "EcPairing" {
                 zt0, zt1 := fp2Mul(t20, t21, t80, t81)
             }
 
+
             /// @notice Computes the addition of two G2 points and the line through them.
             /// @dev It's called mixed addition because Q is in affine coordinates ands T in projective coordinates.
             /// @dev See https://eprint.iacr.org/2013/722.pdf for further details.
@@ -1424,8 +1420,8 @@ object "EcPairing" {
             /// @return yc0, yc1 The coefficients of the Fp2 X coordinate of C = Q + T.
             /// @return zc0, zc1 The coefficients of the Fp2 X coordinate of C = Q + T.
             /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
-            function mixedAdditionStep(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
-                let zero := 0
+            function mixed_addition_step(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
+                let zero := ZERO()
                 let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
                 let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
                 t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
@@ -1553,7 +1549,7 @@ object "EcPairing" {
 
                     // naf digit = 1
                     if and(naf, 2) {
-                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixedAdditionStep(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(xq0, xq1, yq0, yq1, t00, t01, t10, t11, t20, t21)
                         l00, l01 := fp2ScalarMul(l00, l01, yp)
                         l30, l31 := fp2ScalarMul(l30, l31, xp)
                         f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
@@ -1561,7 +1557,7 @@ object "EcPairing" {
 
                     // naf digit = -1
                     if and(naf, 4) {
-                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixedAdditionStep(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
+                        l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
                         l00, l01 := fp2ScalarMul(l00, l01, yp)
                         l30, l31 := fp2ScalarMul(l30, l31, xp)
                         f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
@@ -1579,12 +1575,12 @@ object "EcPairing" {
                 let r30, r31 := mulByGamma23(yq0, yq1)
                 r30, r31 := fp2Neg(r30, r31)
 
-                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixedAdditionStep(r00, r01, r10, r11, t00, t01, t10, t11, t20, t21)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r00, r01, r10, r11, t00, t01, t10, t11, t20, t21)
                 l00, l01 := fp2ScalarMul(l00, l01, yp)
                 l30, l31 := fp2ScalarMul(l30, l31, xp)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
 
-                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixedAdditionStep(r20, r21, r30, r31, t00, t01, t10, t11, t20, t21)
+                l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, t00, t01, t10, t11, t20, t21 := mixed_addition_step(r20, r21, r30, r31, t00, t01, t10, t11, t20, t21)
                 l00, l01 := fp2ScalarMul(l00, l01, yp)
                 l30, l31 := fp2ScalarMul(l30, l31, xp)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121, l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51)
@@ -1606,8 +1602,8 @@ object "EcPairing" {
 		  	let inputSize := calldatasize()
 
 			// Empty input is valid and results in returning one.
-		  	if eq(inputSize, 0) {
-				mstore(0, 1)
+		  	if eq(inputSize, ZERO()) {
+				mstore(0, ONE())
 				return(0, 32)
 			}
 
@@ -1628,16 +1624,11 @@ object "EcPairing" {
 				let g1_x := mload(i)
 				let g1_y := mload(add(i, 32))
 
-                if iszero(and(coordinateIsOnFieldOrder(g1_x), coordinateIsOnFieldOrder(g1_y))) {
+                if iszero(and(coordinateIsOnGroupOrder(g1_x), coordinateIsOnGroupOrder(g1_y))) {
                     burnGas()
                 }
 
-                g1_x := intoMontgomeryForm(g1_x)
-                g1_y := intoMontgomeryForm(g1_y)
-
-                let g1IsInfinity := g1AffinePointIsInfinity(g1_x, g1_y)
-
-				if and(iszero(g1IsInfinity), iszero(g1AffinePointIsOnCurve(g1_x, g1_y))) {
+				if iszero(g1AffinePointIsOnCurve(g1_x, g1_y)) {
 					burnGas()
 				}
 
@@ -1658,12 +1649,12 @@ object "EcPairing" {
 				let g2_y0 := mload(g2_y0_offset)
 
                 // TODO: Double check if this is right
-                if iszero(and(coordinateIsOnFieldOrder(g2_x0), coordinateIsOnFieldOrder(g2_x1))) {
+                if iszero(and(coordinateIsOnGroupOrder(g2_x0), coordinateIsOnGroupOrder(g2_x1))) {
                     burnGas()
                 }
 
                 // TODO: Double check if this is right
-                if iszero(and(coordinateIsOnFieldOrder(g2_y0), coordinateIsOnFieldOrder(g2_y1))) {
+                if iszero(and(coordinateIsOnGroupOrder(g2_y0), coordinateIsOnGroupOrder(g2_y1))) {
                     burnGas()
                 }
 
@@ -1671,6 +1662,8 @@ object "EcPairing" {
                     continue
                 }
 
+                g1_x := intoMontgomeryForm(g1_x)
+                g1_y := intoMontgomeryForm(g1_y)
                 g2_x0 := intoMontgomeryForm(g2_x0)
                 g2_x1 := intoMontgomeryForm(g2_x1)
                 g2_y0 := intoMontgomeryForm(g2_y0)
@@ -1684,9 +1677,7 @@ object "EcPairing" {
 					burnGas()
 				}
 
-                // We must continue if g1 is the point at infinity after validating both g1 and g2
-                // That's why although knowing this before parsing and validating g2 we check it later.
-                if g1IsInfinity {
+                if g1AffinePointIsInfinity(g1_x, g1_y) {
                     continue
                 }
 
@@ -1696,16 +1687,16 @@ object "EcPairing" {
 			}
 
             // Pair check
-            if and(eq(r000, MONTGOMERY_ONE()), iszero(or(r001, or(r010, r011)))) {
-                if iszero(or(or(r020, r021), or(r100, r101))) {
-                    if iszero(or(or(r110, r111), or(r120, r121))) {
-                        mstore(0, 1)
+            if and(and(eq(r000, MONTGOMERY_ONE()), iszero(r001)), and(iszero(r010), iszero(r011))) {
+                if and(and(iszero(r020), iszero(r021)), and(iszero(r100), iszero(r101))) {
+                    if and(and(iszero(r110), iszero(r111)), and(iszero(r120), iszero(r121))) {
+                        mstore(0, ONE())
                         return(0, 32)
                     }
                 }
             }
 
-            mstore(0, 0)
+            mstore(0, ZERO())
 			return(0, 32)
 		}
 	}
