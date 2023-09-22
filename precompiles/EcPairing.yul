@@ -146,6 +146,13 @@ object "EcPairing" {
 				precompileCall(0, gas())
 		  	}
 
+            /// @notice Checks if the LSB of a number is 1.
+            /// @param x The number to check.
+            /// @return ret True if the LSB is 1, false otherwise.
+            function lsbIsOne(x) -> ret {
+                ret := and(x, 1)
+            }
+
             // MONTGOMERY
 
             /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
@@ -547,14 +554,14 @@ object "EcPairing" {
                     c21 := zr1
                     flag := 1
                 }
-                if and(g2Eq(xr0, xr1, montgomerySub(ZERO(), yr0), montgomerySub(ZERO(), yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1), iszero(flag)) {
+                if and(g2Eq(xr0, xr1, montgomerySub(0, yr0), montgomerySub(0, yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1), iszero(flag)) {
                     // P + (-P) = Infinity
-                    c00 := ZERO()
-                    c01 := ZERO()
-                    c10 := ZERO()
-                    c11 := ZERO()
-                    c20 := ZERO()
-                    c21 := ZERO()
+                    c00 := 0
+                    c01 := 0
+                    c10 := 0
+                    c11 := 0
+                    c20 := 0
+                    c21 := 0
 
                     flag := 1
                 }
@@ -614,11 +621,11 @@ object "EcPairing" {
                     let zq0 := zp0
                     let zq1 := zp1
                     xr0 := MONTGOMERY_ONE()
-                    xr1 := ZERO()
+                    xr1 := 0
                     yr0 := MONTGOMERY_ONE()
-                    yr1 := ZERO()
-                    zr0 := ZERO()
-                    zr1 := ZERO()
+                    yr1 := 0
+                    zr0 := 0
+                    zr1 := 0
                     for {} scalar {} {
 
                         if lsbIsOne(scalar) {
@@ -647,14 +654,14 @@ object "EcPairing" {
                                 break
                             }
                             // We could've used the neg function for G2 but we would need auxiliar variables for the negation
-                            if g2Eq(xr0, xr1, montgomerySub(ZERO(), yr0), montgomerySub(ZERO(), yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
+                            if g2Eq(xr0, xr1, montgomerySub(0, yr0), montgomerySub(0, yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
                                 // P + (-P) = Infinity
-                                xr0 := ZERO()
-                                xr1 := ZERO()
-                                yr0 := ZERO()
-                                yr1 := ZERO()
-                                zr0 := ZERO()
-                                zr1 := ZERO()
+                                xr0 := 0
+                                xr1 := 0
+                                yr0 := 0
+                                yr1 := 0
+                                zr0 := 0
+                                zr1 := 0
         
                                 xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
                                 // Check next bit
