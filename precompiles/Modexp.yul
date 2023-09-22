@@ -2,9 +2,13 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
-            //////////////////////////////////////////////////////////////////
-            //                      HELPER FUNCTIONS
-            //////////////////////////////////////////////////////////////////
+            // CONSTANTS
+
+            function WORD_SIZE() -> wordSize {
+                wordSize := 0x20
+            }
+
+            // HELPER FUNCTIONS
 
             /// @notice Checks whether a big number is zero.
             /// @param start The pointer to the calldata where the big number starts.
@@ -59,7 +63,7 @@ object "ModExp" {
                     let otherBytesAreZeroes := bigNumberIsZero(start, sub(len, 1))
 
                     // The number is one if the last byte is one and all other bytes are zero.
-                    ret := and(lastByteIsOne, otherBytesAreZeroes)
+                    res := and(lastByteIsOne, otherBytesAreZeroes)
                 }
             }
 
