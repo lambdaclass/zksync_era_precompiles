@@ -373,6 +373,8 @@ object "EcMul" {
 
             if affinePointIsInfinity(x, y) {
                 // Infinity * scalar = Infinity
+                mstore(0x00, 0x00)
+                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
 
@@ -386,6 +388,8 @@ object "EcMul" {
 
             if eq(scalar, 0) {
                 // P * 0 = Infinity
+                mstore(0x00, 0x00)
+                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
             if eq(scalar, 1) {
