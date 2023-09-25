@@ -67,6 +67,42 @@ object "ModExp" {
                 }
             }
 
+            /// @notice Performs the big unsigned integer bit or operation.
+            /// @dev The result is stored from `resPtr` to `resPtr + (LIMB_SIZE * nLimbs)`.
+            /// @param lhsPtr The pointer to the MSB of the left operand.
+            /// @param rhsPtr The pointer to the MSB of the right operand.
+            /// @param nLimbs The number of limbs needed to represent the operands.
+            /// @param resPtr The pointer to where you want the result to be stored
+            function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
+                // The memory map for each of the big unsinged integers,
+                // called, `lhs`, `rhs` and `res` is defined as:
+                //
+                // +--------------------+----------------+------+
+                // |       Offset       |     Value      | Size |
+                // +--------------------+----------------+------+
+                // | +0                 | limb[1]        |   32 |
+                // | +32                | limb[1]        |   32 |
+                // | +64                | limb[2]        |   32 |
+                // | ...                | ...            |  ... |
+                // | +(32 * (nLimbs-1)) | limb[nLimbs-1] |   32 |
+                // +--------------------+----------------+------+
+                //
+                // offset(i) = LIMB_SIZE * i
+                // 
+
+                let finalOffset := shl(nLimbs, 5) // 32 * nLimbs 
+                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 32) }
+                {
+                    let lhs_i_ptr := add(lhsPtr, offset_i)
+                    let rhs_i_ptr := add(rhsPtr, offset_i)
+                    let res_i_ptr := add(resPtr, offset_i)
+                    let lhs_i := mload(lhs_i_ptr)
+                    let rhs_i := mload(rhs_i_ptr)
+                    let res_i := or(lhs_i, rhs_i)
+                    mstore(res_i_ptr, res_i)
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
