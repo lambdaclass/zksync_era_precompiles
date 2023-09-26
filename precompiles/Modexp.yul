@@ -4,8 +4,12 @@ object "ModExp" {
 		code {
             // CONSTANTS
 
-            function WORD_SIZE() -> wordSize {
-                wordSize := 0x20
+            function LIMB_SIZE_IN_BYTES() -> limbSize {
+                limbSize := 0x20
+            }
+
+            function LIMB_SIZE_IN_BITS() -> limbSize {
+                limbSize := 0x100
             }
 
             // HELPER FUNCTIONS
