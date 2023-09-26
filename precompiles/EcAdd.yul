@@ -284,7 +284,7 @@ object "EcAdd" {
                 mstore(32, 0)
                 return(0, 64)
             }
-            if and(p1IsInfinity, iszero(p2IsInfinity)) {
+            if p1IsInfinity {
                 // Infinity + P = P
 
                 // Ensure that the coordinates are between 0 and the field order.
@@ -307,7 +307,7 @@ object "EcAdd" {
                 mstore(32, y2)
                 return(0, 64)
             }
-            if and(iszero(p1IsInfinity), p2IsInfinity) {
+            if p2IsInfinity {
                 // P + Infinity = P
 
                 // Ensure that the coordinates are between 0 and the field order.
@@ -352,7 +352,7 @@ object "EcAdd" {
                 let m_y2 := intoMontgomeryForm(y2)
 
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                if or(iszero(pointIsInCurve(m_x1, m_y1)), iszero(pointIsInCurve(m_x2, m_y2))) {
+                if iszero(pointIsInCurve(m_x1, m_y1)) {
                     invalid()
                 }
 
@@ -362,10 +362,6 @@ object "EcAdd" {
                 mstore(0, 0)
                 mstore(32, 0)
                 return(0, 64)
-            }
-
-            if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, P()))))) {
-                invalid()
             }
 
             if and(eq(x1, x2), eq(y1, y2)) {
