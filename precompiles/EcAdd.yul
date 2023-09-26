@@ -284,7 +284,7 @@ object "EcAdd" {
                 mstore(32, 0)
                 return(0, 64)
             }
-            if and(p1IsInfinity, iszero(p2IsInfinity)) {
+            if p1IsInfinity {
                 // Infinity + P = P
 
                 // Ensure that the coordinates are between 0 and the field order.
@@ -307,7 +307,7 @@ object "EcAdd" {
                 mstore(32, y2)
                 return(0, 64)
             }
-            if and(iszero(p1IsInfinity), p2IsInfinity) {
+            if p2IsInfinity {
                 // P + Infinity = P
 
                 // Ensure that the coordinates are between 0 and the field order.
