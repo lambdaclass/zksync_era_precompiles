@@ -28,6 +28,25 @@ object "ModExp" {
                 isZero := iszero(isZero)
             }
 
+            function getLimbValueAtOffset(limbPointer, anOffset) -> limbValue {
+                limbValue := mload(lhsPointer, anOffset)
+            }
+
+            function subLimbsWithBorrow(leftLimb, rightLimb, borrow) -> substractionResult, shiftedBorrow {
+                shiftedBorrow := borrow >> 255
+                rightPlusBorrow := add(rightLimb, borrow)
+                substractionResult := sub(leftLimb, rightPlusBorrow)
+            }
+
+            function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer {
+                for {let i := numberOfLimbs } gt(i, 0) {i := sub(i, 1)} {
+                    leftIthLimbValue := getLimbValueAtOffset(lshPointer, i)
+                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, i)
+                    ithLimbSubstractionResult, ithLimbBorrowResult := subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
+                    mstore(limbResultOffset, ithLimbSubstractionResult)
+                    borrow := ithLimbBorrowResult
+                }
+            }
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
