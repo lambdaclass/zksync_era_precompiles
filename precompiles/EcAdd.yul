@@ -364,10 +364,6 @@ object "EcAdd" {
                 return(0, 64)
             }
 
-            if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, P()))))) {
-                invalid()
-            }
-
             if and(eq(x1, x2), eq(y1, y2)) {
                 // P + P = 2P
 
