@@ -352,7 +352,7 @@ object "EcAdd" {
                 let m_y2 := intoMontgomeryForm(y2)
 
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                if or(iszero(pointIsInCurve(m_x1, m_y1)), iszero(pointIsInCurve(m_x2, m_y2))) {
+                if iszero(pointIsInCurve(m_x1, m_y1)) {
                     invalid()
                 }
 
