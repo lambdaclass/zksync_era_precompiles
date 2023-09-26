@@ -74,33 +74,28 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operands.
             /// @param resPtr The pointer to where you want the result to be stored
             function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
-                // The memory map for each of the big unsinged integers,
-                // called, `lhs`, `rhs` and `res` is defined as:
-                //
-                // +--------------------+----------------+------+
-                // |       Offset       |     Value      | Size |
-                // +--------------------+----------------+------+
-                // | +0                 | limb[1]        |   32 |
-                // | +32                | limb[1]        |   32 |
-                // | +64                | limb[2]        |   32 |
-                // | ...                | ...            |  ... |
-                // | +(32 * (nLimbs-1)) | limb[nLimbs-1] |   32 |
-                // +--------------------+----------------+------+
-                //
-                // offset(i) = LIMB_SIZE * i
-                // 
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
+                // | Iteration  |       offset_i        |           ptr_lhs_i           |           ptr_rhs_i           |           ptr_res_i           |   value_lhs_i   |   value_rhs_i   |             value_res_i              |
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
+                // | 0          | +0x00                 | lhsPtr + 0x00                 | rhsPtr + 0x00                 | resPtr + 0x00                 | lhs[0]          | rhs[0]          | or(lhs[0], rhs[0])                   |
+                // | 1          | +0x20                 | lhsPtr + 0x20                 | rhsPtr + 0x20                 | resPtr + 0x20                 | lhs[1]          | rhs[1]          | or(lhs[1], rhs[1])                   |
+                // | 2          | +0x40                 | lhsPtr + 0x40                 | rhsPtr + 0x40                 | resPtr + 0x40                 | lhs[2]          | rhs[2]          | or(lhs[2], rhs[2])                   |
+                // |            |                       |                               |                               |                               |                 |                 |                                      |
+                // | ...        | ...                   | ...                           | ...                           | ...                           | ...             | ...             | ...                                  |
+                // |            |                       |                               |                               |                               |                 |                 |                                      |
+                // | nLimbs - 1 | +(0x20 * (nLimbs - 1) | lhsPtr + (0x20 * (nLimbs - 1) | rhsPtr + (0x20 * (nLimbs - 1) | resPtr + (0x20 * (nLimbs - 1) | lhs[nLimbs - 1] | rhs[nLimbs - 1] | or(lhs[nLimbs - 1], rhs[nLimbs - 1]) |
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
 
-                let finalOffset := shl(nLimbs, 5) // 32 * nLimbs 
-                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 32) }
+                let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
+                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
                 {
-                    let lhs_i_ptr := add(lhsPtr, offset_i)
-                    let rhs_i_ptr := add(rhsPtr, offset_i)
-                    let res_i_ptr := add(resPtr, offset_i)
-                    let lhs_i := mload(lhs_i_ptr)
-                    let rhs_i := mload(rhs_i_ptr)
-                    let res_i := or(lhs_i, rhs_i)
-                    mstore(res_i_ptr, res_i)
-                }
+                    let ptr_lhs_i := add(lhsPtr, offset_i)
+                    let ptr_lhs_i := add(rhsPtr, offset_i)
+                    let ptr_res_i := add(resPtr, offset_i)
+                    let value_lhs_i := mload(ptr_lhs_i)
+                    let value_rhs_i := mload(ptr_lhs_i)
+                    let value_res_i := or(value_lhs_i, value_rhs_i)
+                    mstore(ptr_res_i, value_res_i)
             }
 
             ////////////////////////////////////////////////////////////////
