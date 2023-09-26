@@ -29,31 +29,40 @@ object "ModExp" {
             }
 
             function getLimbValueAtOffset(limbPointer, anOffset) -> limbValue {
-                limbValue := mload(limbPointer, anOffset)
+                limbValue := mload(add(anOffset, limbPointer))
             }
 
             function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
                     mstore(add(limbPointer, anOffset), aValue)
             }
+
             function subLimbsWithBorrow(leftLimb, rightLimb, borrow) -> substractionResult, shiftedBorrow {
-                let shiftedBorrow := shr(255, borrow)
+                shiftedBorrow := shr(255, borrow)
                 let rightPlusBorrow := add(rightLimb, borrow)
                 substractionResult := sub(leftLimb, rightPlusBorrow)
             }
 
             function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer {
-                let leftIthLimbValue := 0
-                let rightIthLimbValue := 0
-                let ithLimbBorrowResult := 0 
-                let ithLimbSubstractionResult := 0 
-                let borrow := 0
-                let limbResultOffset := 0
-                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
-                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, i)
-                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, i)
+                let leftIthLimbValue
+                let rightIthLimbValue
+                let ithLimbBorrowResult 
+                let ithLimbSubstractionResult 
+                let borrow
+                let limbResultOffset 
+                for {let limbOffset := 0} lt(limbOffset, numberOfLimbs) {limbOffset := add(limbOffset, 1)} {
+                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, mul(limbOffset, 32))
+                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, mul(limbOffset, 32))
                     ithLimbSubstractionResult, ithLimbBorrowResult :=
                                                subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
-                    storeLimbValueAtOffset(resultPointer, i, ithLimbSubstractionResult)
+
+  
+                    // console_log(leftIthLimbValue)
+                    // console_log(rightIthLimbValue)
+
+                    // console_log(ithLimbSubstractionResult)
+
+                    storeLimbValueAtOffset(resultPointer, mul(limbOffset, 32), ithLimbSubstractionResult)
+
                     borrow := ithLimbBorrowResult
                 }
             }
