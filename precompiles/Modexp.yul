@@ -85,13 +85,9 @@ object "ModExp" {
                 let hiPtr := productPtr
                 let loPtr := add(productPtr, mul(nLimbs, WORD_SIZE()))
                 
-                let i := nLimbs
-                let j, k, index, a_i, a_j, hi, lo, cs, overflow, c
-                for {} gt(i, 1) {} {
-                    i := sub(i, 1)
-                    j := i
-                    for {} gt(j, 0) {} {
-                        j := sub(j, 1)
+                let k, index, a_i, a_j, hi, lo, cs, overflow, c
+                for {let i := nLimbs} gt(i, 1) {i := sub(i, 1)} {
+                    for {let j := i} gt(j, 0) {j := sub(j, 1)} {
                         k := add(i, j)
                         if or(gt(k, sub(i, 1)), eq(k, sub(i, 1))) {
                             index := sub(add(k, 1), nLimbs)
@@ -100,13 +96,9 @@ object "ModExp" {
                             hi := getHighestHalfOfMultiplication(a_i, a_j)
                             lo := mul(a_i,a_j)
                             lo, overflow := overflowingAdd(lo, mload(add(loPtr, mul(index, WORD_SIZE()))))
-                            if overflow {
-                                hi := add(hi, 1)
-                            }
+                            hi := add(hi, overflow)
                             lo, overflow := overflowingAdd(lo, c)
-                            if overflow {
-                                hi := add(hi, 1)
-                            }
+                            hi := add(hi, overflow)
                             c := hi
                             mstore(add(loPtr, mul(index, WORD_SIZE())), lo)
                         }
@@ -117,13 +109,9 @@ object "ModExp" {
                             hi := getHighestHalfOfMultiplication(a_i, a_j)
                             lo := mul(a_i,a_j)
                             lo, overflow := overflowingAdd(lo, mload(add(hiPtr, mul(index, WORD_SIZE()))))
-                            if overflow {
-                                hi := add(hi, 1)
-                            }
+                            hi := add(hi, overflow)
                             lo, overflow := overflowingAdd(lo, c)
-                            if overflow {
-                                hi := add(hi, 1)
-                            }
+                            hi := add(hi, overflow)
                             c := hi
                             mstore(add(hiPtr, mul(index, WORD_SIZE())), lo)
                         }
@@ -136,40 +124,29 @@ object "ModExp" {
                 // hi.limbs[NUM_LIMBS - 1] |= carry;
 
                 c := 0
-                i := nLimbs
-                for {} gt(i, 0) {} {
-                    i := sub(i, 1)
+                
+                for {let i := nLimbs} gt(i, 0) {i := sub(i, 1)} {
                     if or(lt(sub(nLimbs, 1), mul(i, 2)), eq(sub(nLimbs, 1), mul(i, 2))) {
                         index := sub(add(mul(2, i), 1), nLimbs)
                         a_i := mload(add(numberPtr, mul(WORD_SIZE(), i)))
-                        a_j := mload(add(numberPtr, mul(WORD_SIZE(), j)))
-                        hi := getHighestHalfOfMultiplication(a_i, a_j)
+                        hi := getHighestHalfOfMultiplication(a_i, a_i)
                         lo := mul(a_i,a_j)
                         lo, overflow := overflowingAdd(lo, mload(add(loPtr, mul(index, WORD_SIZE()))))
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         lo, overflow := overflowingAdd(lo, c)
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         c := hi
                         mstore(add(loPtr, mul(index, WORD_SIZE())), lo)
                     }
                     if gt(sub(nLimbs, 1), mul(i, 2)) {
                         index := add(mul(2, i), 1)
                         a_i := mload(add(numberPtr, mul(WORD_SIZE(), i)))
-                        a_j := mload(add(numberPtr, mul(WORD_SIZE(), j)))
-                        hi := getHighestHalfOfMultiplication(a_i, a_j)
+                        hi := getHighestHalfOfMultiplication(a_i, a_i)
                         lo := mul(a_i,a_j)
                         lo, overflow := overflowingAdd(lo, mload(add(hiPtr, mul(index, WORD_SIZE()))))
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         lo, overflow := overflowingAdd(lo, c)
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         c := hi
                         mstore(add(hiPtr, mul(index, WORD_SIZE())), lo)
                     }
@@ -177,9 +154,7 @@ object "ModExp" {
                         index := sub(mul(2, i), nLimbs)
                         hi := 0
                         lo, overflow := overflowingAdd(c, mload(add(hiPtr, mul(index, WORD_SIZE()))))
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         c := hi
                         mstore(add(loPtr, mul(index, WORD_SIZE())), lo)
                     }
@@ -187,9 +162,7 @@ object "ModExp" {
                         index := mul(2, i)
                         hi := 0
                         lo, overflow := overflowingAdd(c, mload(add(hiPtr, mul(index, WORD_SIZE()))))
-                        if overflow {
-                            hi := add(hi, 1)
-                        }
+                        hi := add(hi, overflow)
                         c := hi
                         mstore(add(hiPtr, mul(index, WORD_SIZE())), lo)
                     }
