@@ -4,8 +4,12 @@ object "ModExp" {
 		code {
             // CONSTANTS
 
-            function WORD_SIZE() -> wordSize {
-                wordSize := 0x20
+            function LIMB_SIZE_IN_BYTES() -> limbSize {
+                limbSize := 0x20
+            }
+
+            function LIMB_SIZE_IN_BITS() -> limbSize {
+                limbSize := 0x100
             }
 
             // HELPER FUNCTIONS
@@ -77,6 +81,81 @@ object "ModExp" {
                 }
             }
 
+            /// @notice Performs the big unsigned integer left shift (<<).
+            /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (LIMB_SIZE_IN_BYTES * nLimbs)`.
+            /// @param numberPtr The pointer to the MSB of the number to shift.
+            /// @param nLimbs The number of limbs needed to represent the operands.
+            /// @param shiftedPtr The pointer to the MSB of the shifted number.
+            function bigUIntShl(times, numberPtr, nLimbs, shiftedPtr) {
+                switch times
+                case 0 {
+                    // If the pointers are different and the amount of bits to shift is zero, 
+                    // then we copy the number, otherwise, we do nothing.
+                    if iszero(eq(numberPtr, shiftedPtr)) {
+                        let currentLimbPtr := numberPtr
+                        let currentShiftedLimbPtr := shiftedPtr
+                        for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
+                            mstore(currentShiftedLimbPtr, mload(currentLimbPtr))
+                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                            currentLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
+                        }
+                    }
+                }
+                default {
+                    let effectiveShifts := mod(times, LIMB_SIZE_IN_BITS())
+                    let b_inv := sub(LIMB_SIZE_IN_BITS(), effectiveShifts)
+                    let limbsToShiftOut := div(times, LIMB_SIZE_IN_BITS())
+                    let shiftDivInv := sub(LIMB_SIZE_IN_BITS(), limbsToShiftOut)
+                    
+                    switch iszero(effectiveShifts)
+                    case 1 {
+                        // When numberPtr could be equal to shiftedPtr that means that the result
+                        // will be stored in the same pointer as the value to shift. To avoid
+                        // overlaping, as this is a left shift we read and store from left to
+                        // right.
+
+                        let currentLimbPtrOffset := mul(limbsToShiftOut, LIMB_SIZE_IN_BYTES())
+                        let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
+                        let currentShiftedLimbPtr := shiftedPtr
+                        for { let i := limbsToShiftOut } lt(i, nLimbs) { i := add(i, 1) } {
+                            mstore(currentShiftedLimbPtr, mload(currentLimbPtr))
+                            currentLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
+                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                        }
+                        // Fill with zeros the limbs that will shifted out limbs.
+                        // We need to fill the zeros after in the edge case that numberPtr == shiftedPtr. 
+                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
+                            mstore(currentShiftedLimbPtr, 0)
+                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                        }
+                    }
+                    default {
+                        // When there are effectiveShifts we need to do a bit more of work.
+                        // We go from right to left, shifting the current limb and adding the
+                        // previous one shifted to the left by b_inv bits.
+                        let currentLimbPtrOffset := mul(limbsToShiftOut, LIMB_SIZE_IN_BYTES())
+                        let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
+                        let nextLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
+                        let currentShiftedLimbPtr := shiftedPtr
+                        for { let i := limbsToShiftOut } lt(i, nLimbs) { i := add(i, 1) } {
+                            let shiftedLimb := or(shr(b_inv, mload(nextLimbPtr)), shl(effectiveShifts, mload(currentLimbPtr)))
+                            mstore(currentShiftedLimbPtr, shiftedLimb)
+                            nextLimbPtr := add(nextLimbPtr, LIMB_SIZE_IN_BYTES())
+                            currentLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
+                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                        }
+                        // Finally the non-zero LSB limb.
+                        mstore(currentShiftedLimbPtr, shl(effectiveShifts, mload(currentShiftedLimbPtr)))
+                        currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                        // Fill with zeros the shifted in limbs.
+                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
+                            mstore(currentShiftedLimbPtr, 0)
+                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
+                        }
+                    }
+                }
+            }
+
             /// @notice Add two big numbers.
             /// @param lhsPtr The pointer where the big number on the left operand starts.
             /// @param rhsPtr The pointer where the big number on right operand starts.
@@ -84,7 +163,7 @@ object "ModExp" {
             /// @param resPtr The pointer where the result of the addition will be stored.
             /// @return isOverflow A boolean indicating whether the addition overflowed (true) or not (false).
             function bigUIntAdd(lhsPtr, rhsPtr, nLimbs, resPtr) -> isOverflow {
-                let totalLength := mul(nLimbs, WORD_SIZE())
+                let totalLength := mul(nLimbs, LIMB_SIZE_IN_BYTES())
                 let carry := 0
 
                 let lhsCurrentLimbPtr := add(lhsPtr, totalLength)
@@ -93,7 +172,7 @@ object "ModExp" {
                 // Loop through each full 32-byte word to add the two big numbers.
                 for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
-                    let actualLimbOffset := mul(WORD_SIZE(), i)
+                    let actualLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
                     lhsCurrentLimbPtr := sub(lhsCurrentLimbPtr, actualLimbOffset)
                     rhsCurrentLimbPtr := sub(rhsCurrentLimbPtr, actualLimbOffset)
                     
