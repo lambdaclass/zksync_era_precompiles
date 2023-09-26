@@ -29,21 +29,31 @@ object "ModExp" {
             }
 
             function getLimbValueAtOffset(limbPointer, anOffset) -> limbValue {
-                limbValue := mload(lhsPointer, anOffset)
+                limbValue := mload(limbPointer, anOffset)
             }
 
+            function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
+                    mstore(add(limbPointer, anOffset), aValue)
+            }
             function subLimbsWithBorrow(leftLimb, rightLimb, borrow) -> substractionResult, shiftedBorrow {
-                shiftedBorrow := borrow >> 255
-                rightPlusBorrow := add(rightLimb, borrow)
+                let shiftedBorrow := shr(255, borrow)
+                let rightPlusBorrow := add(rightLimb, borrow)
                 substractionResult := sub(leftLimb, rightPlusBorrow)
             }
 
             function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer {
-                for {let i := numberOfLimbs } gt(i, 0) {i := sub(i, 1)} {
-                    leftIthLimbValue := getLimbValueAtOffset(lshPointer, i)
+                let leftIthLimbValue := 0
+                let rightIthLimbValue := 0
+                let ithLimbBorrowResult := 0 
+                let ithLimbSubstractionResult := 0 
+                let borrow := 0
+                let limbResultOffset := 0
+                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
+                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, i)
                     rightIthLimbValue := getLimbValueAtOffset(rhsPointer, i)
-                    ithLimbSubstractionResult, ithLimbBorrowResult := subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
-                    mstore(limbResultOffset, ithLimbSubstractionResult)
+                    ithLimbSubstractionResult, ithLimbBorrowResult :=
+                                               subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
+                    storeLimbValueAtOffset(resultPointer, i, ithLimbSubstractionResult)
                     borrow := ithLimbBorrowResult
                 }
             }
