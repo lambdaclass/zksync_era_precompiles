@@ -104,10 +104,10 @@ object "ModExp" {
                 for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
                 {
                     let ptr_lhs_i := add(lhsPtr, offset_i)
-                    let ptr_lhs_i := add(rhsPtr, offset_i)
+                    let ptr_rhs_i := add(rhsPtr, offset_i)
                     let ptr_res_i := add(resPtr, offset_i)
                     let value_lhs_i := mload(ptr_lhs_i)
-                    let value_rhs_i := mload(ptr_lhs_i)
+                    let value_rhs_i := mload(ptr_rhs_i)
                     let value_res_i := or(value_lhs_i, value_rhs_i)
                     mstore(ptr_res_i, value_res_i)
 
