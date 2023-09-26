@@ -377,11 +377,11 @@ object "EcAdd" {
 
                 // (3 * x1^2 + a) / (2 * y1)
                 let x1_squared := montgomeryMul(x, x)
-                let slope := montgomeryDiv(addmod(x1_squared, addmod(x1_squared, x1_squared, P()), P()), addmod(y, y, P()))
+                let slope := montgomeryDiv(montgomeryAdd(x1_squared, montgomeryAdd(x1_squared, x1_squared)), montgomeryAdd(y, y))
                 // x3 = slope^2 - 2 * x1
-                let x3 := submod(montgomeryMul(slope, slope), addmod(x, x, P()), P())
+                let x3 := montgomerySub(montgomeryMul(slope, slope), montgomeryAdd(x, x))
                 // y3 = slope * (x1 - x3) - y1
-                let y3 := submod(montgomeryMul(slope, submod(x, x3, P())), y, P())
+                let y3 := montgomerySub(montgomeryMul(slope, montgomerySub(x, x3)), y)
 
                 x3 := outOfMontgomeryForm(x3)
                 y3 := outOfMontgomeryForm(y3)
@@ -404,11 +404,11 @@ object "EcAdd" {
             }
 
             // (y2 - y1) / (x2 - x1)
-            let slope := montgomeryDiv(submod(y2, y1, P()), submod(x2, x1, P()))
+            let slope := montgomeryDiv(montgomerySub(y2, y1), montgomerySub(x2, x1))
             // x3 = slope^2 - x1 - x2
-            let x3 := submod(montgomeryMul(slope, slope), addmod(x1, x2, P()), P())
+            let x3 := montgomerySub(montgomeryMul(slope, slope), montgomeryAdd(x1, x2))
             // y3 = slope * (x1 - x3) - y1
-            let y3 := submod(montgomeryMul(slope, submod(x1, x3, P())), y1, P())
+            let y3 := montgomerySub(montgomeryMul(slope, montgomerySub(x1, x3)), y1)
 
             x3 := outOfMontgomeryForm(x3)
             y3 := outOfMontgomeryForm(y3)
