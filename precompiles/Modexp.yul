@@ -82,7 +82,7 @@ object "ModExp" {
             }
 
             /// @notice Performs the big unsigned integer left shift (<<).
-            /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (WORD_SIZE * nLimbs)`.
+            /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (LIMB_SIZE_IN_BYTES * nLimbs)`.
             /// @param numberPtr The pointer to the MSB of the number to shift.
             /// @param nLimbs The number of limbs needed to represent the operands.
             /// @param shiftedPtr The pointer to the MSB of the shifted number.
@@ -163,7 +163,7 @@ object "ModExp" {
             /// @param resPtr The pointer where the result of the addition will be stored.
             /// @return isOverflow A boolean indicating whether the addition overflowed (true) or not (false).
             function bigUIntAdd(lhsPtr, rhsPtr, nLimbs, resPtr) -> isOverflow {
-                let totalLength := mul(nLimbs, WORD_SIZE())
+                let totalLength := mul(nLimbs, LIMB_SIZE_IN_BYTES())
                 let carry := 0
 
                 let lhsCurrentLimbPtr := add(lhsPtr, totalLength)
@@ -172,7 +172,7 @@ object "ModExp" {
                 // Loop through each full 32-byte word to add the two big numbers.
                 for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
-                    let actualLimbOffset := mul(WORD_SIZE(), i)
+                    let actualLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
                     lhsCurrentLimbPtr := sub(lhsCurrentLimbPtr, actualLimbOffset)
                     rhsCurrentLimbPtr := sub(rhsCurrentLimbPtr, actualLimbOffset)
                     
