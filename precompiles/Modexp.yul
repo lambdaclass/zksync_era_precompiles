@@ -67,6 +67,28 @@ object "ModExp" {
                 }
             }
 
+            /// @notice Performs the Big UInt Conditional Select operation.
+            /// @dev The result is stored from `resPtr` to `resPtr + (LIMB_SIZE * nLimbs)`.
+            /// @dev For each limb, `res[i] == lhs[i] ^ (mask & (lhs[i] ^ rhs[i]))`
+            /// @param lhsPtr Base pointer to the left hand side operand.
+            /// @param rhsPtr Base pointer to the right hand side operand.
+            /// @param resPtr Base pointer to where you want the result to be stored
+            /// @param nLimbs The number of limbs needed to represent all of the operands.
+            /// @param mask Either `0x0` or `0xFF...FF`.
+            function bigUIntCondSelect(lhsPtr, rhsPtr, resPtr, nLimbs, mask) {
+                let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs)
+                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
+                {
+                    let ptr_lhs_i := add(lhsPtr, offset_i)
+                    let ptr_rhs_i := add(rhsPtr, offset_i)
+                    let ptr_res_i := add(resPtr, offset_i)
+                    let value_lhs_i := mload(ptr_lhs_i)
+                    let value_rhs_i := mload(ptr_rhs_i)
+                    let value_res_i := xor(value_lhs_i, and(mask, xor(value_lhs_i, value_rhs_i))) // a ^ (ct & (a ^ b))
+                    mstore(ptr_res_i, value_res_i)
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
