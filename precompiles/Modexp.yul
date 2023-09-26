@@ -10,6 +10,16 @@ object "ModExp" {
 
             // HELPER FUNCTIONS
 
+            /// @notice Computes an addition and checks for overflow.
+            /// @param augend The value to add to.
+            /// @param addend The value to add.
+            /// @return sum The sum of the two values.
+            /// @return overflowed True if the addition overflowed, false otherwise.
+            function overflowingAdd(augend, addend) -> sum, overflowed {
+                sum := add(augend, addend)
+                overflowed := lt(sum, augend)
+            }
+
             /// @notice Checks whether a big number is zero.
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
@@ -65,6 +75,38 @@ object "ModExp" {
                     // The number is one if the last byte is one and all other bytes are zero.
                     res := and(lastByteIsOne, otherBytesAreZeroes)
                 }
+            }
+
+            /// @notice Add two big numbers.
+            /// @param lhsPtr The pointer where the big number on the left operand starts.
+            /// @param rhsPtr The pointer where the big number on right operand starts.
+            /// @param nLimbs The number of 32-byte words that the big numbers occupy.
+            /// @param resPtr The pointer where the result of the addition will be stored.
+            /// @return isOverflow A boolean indicating whether the addition overflowed (true) or not (false).
+            function bigUIntAdd(lhsPtr, rhsPtr, nLimbs, resPtr) -> isOverflow {
+                let totalLength := mul(nLimbs, WORD_SIZE())
+                let carry := 0
+
+                let lhsCurrentLimbPtr := add(lhsPtr, totalLength)
+                let rhsCurrentLimbPtr := add(rhsPtr, totalLength)
+
+                // Loop through each full 32-byte word to add the two big numbers.
+                for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
+                    // Check limb from the right (least significant limb)
+                    let actualLimbOffset := mul(WORD_SIZE(), i)
+                    lhsCurrentLimbPtr := sub(lhsCurrentLimbPtr, actualLimbOffset)
+                    rhsCurrentLimbPtr := sub(rhsCurrentLimbPtr, actualLimbOffset)
+                    
+                    let rhsLimb := mload(rhsCurrentLimbPtr)
+                    let lhsLimb := mload(lhsCurrentLimbPtr)
+                    let sumResult, overflow := overflowingAdd(lhsLimb, rhsLimb)
+                    let sumWithPreviousCarry, carrySumOverflow := overflowingAdd(sumResult, carry)
+                    sumResult := sumWithPreviousCarry
+                    carry := or(overflow, carrySumOverflow)
+                    let limbResultPtr := sub(add(resPtr,totalLength),actualLimbOffset)
+                    mstore(limbResultPtr, sumResult)
+                }
+                isOverflow := carry
             }
 
             ////////////////////////////////////////////////////////////////
