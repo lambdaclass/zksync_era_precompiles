@@ -37,9 +37,11 @@ docs:
 
 # Checks that zksolc is able to compile an individual Yul contract.
 # Usage example: make check.compiles.EcAdd.yul
+.PHONY: check.compiles.%
 check.compiles.%: $(PRECOMPILES_DIR)/%
 	./scripts/check-that-yul-file-compiles "$^"
 
 # Checks that zksolc is able to build every file under the $(PRECOMPILES_DIR) dir
+.PHONY: check.compiles
 check.compiles: $(PRECOMPILES:$(PRECOMPILES_DIR)/%=check.compiles.%)
 	@echo "All YUL files compiled successfully."
