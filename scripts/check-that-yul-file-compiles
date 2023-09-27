@@ -1,7 +1,18 @@
 #! /bin/sh
 set -eu
 
-# Checks wether a Yul file compiles successfully or not.
+# Usage: ${0} <YUL-SRC-FILE>
+#
+# This shell script, when invoked with a Yul source file as an argument,
+# verifies the successful compilation of the Yul code using the zksolc compiler.
+# The script utilizes specific zksolc flags consistent with those employed by
+# the era-test-node for building bundled precompiles. It returns a successful
+# status if the compilation is successful; otherwise, it displays the compiler
+# logs and exits with an error status code.
+
+_log_info() { printf "\033[1;34mINFO: %s\033[0m\n" "$1"; }
+_log_success() { printf "\033[1;32mSUCCESS: %s\033[0m\n" "$1"; }
+_log_failure() { printf "\033[1;31mFAILURE: %s\033[0m\n" "$1"; }
 
 _compile() {
     zksolc "${1}" --optimization 3 --system-mode --yul --bin 2>&1
@@ -9,7 +20,7 @@ _compile() {
 
 SRC_FILE="${1}"
 
-echo "Checking compilation of yul file ${SRC_FILE}..."
+_log_info "Checking compilation of yul file ${SRC_FILE}..."
 
 set +e # Disable errexit for the following command(s)
 COMPILER_LOGS="$( _compile "${SRC_FILE}" )" # This will continue even if it fails
@@ -18,9 +29,9 @@ set -e # Reenable errexit
 
 # Logs the compilation status.
 if [ "${COMPILER_EXIT_STATUS}" -eq 0 ]; then
-    echo "Successfully compiled ${SRC_FILE}"
+    _log_success "Successfully compiled ${SRC_FILE}"
 else
     echo "${COMPILER_LOGS}"
-    echo "Failed to compile "${SRC_FILE}
+    _log_failure "Failed to compile "${SRC_FILE}
     exit 1
 fi
