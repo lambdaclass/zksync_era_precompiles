@@ -99,7 +99,6 @@ object "ModExp" {
 
                         // Calculating the product of the two limbs and adding the carry.
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
-                        console_log(product)
 
                         // Calculating the new carry.
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
@@ -119,10 +118,7 @@ object "ModExp" {
                     }
 
                     // Store the last word which comes from the final carry.
-                    retIndex := add(resStart, mul(sub(sub(nLimbs, i), 1), WORD_SIZE()))
-                    //retWordBefore := mload(retIndex)
-                    console_log(retIndex)
-                    console_log(carry)
+                    retIndex := add(resStart, mul(sub(i, 1), WORD_SIZE()))
                     mstore(retIndex, carry)
                 }
             }
@@ -156,25 +152,31 @@ object "ModExp" {
 
             // 3f3ad1611ab58212f92a2484e9560935b9ac4615fe61cfe
             // d1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9
-            mstore(0x00, 0x5e2d939b602a50911232731d04fe6f40c05f97da0602307)
-            mstore(0x20, 0x099fb991f9b414e2d52bef130349ec18db1a0215ea6caf76)
+            mstore(0x00, 0x5e2d939b602a50911232731d04fe6f4)
+            mstore(0x20, 0x0c05f97da0602307099fb991f9b414e2d52bef130349ec18db1a0215ea6caf76)
+            mstore(0x40, 0x0c05f97da0602307099fb991f9b414e2d52bef130349ec18db1a0215ea6caf76)
 
-            mstore(0x40, 0x3f3ad1611ab58212f92a2484e9560935b9ac4615fe61cfe)
-            mstore(0x60, 0xd1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9)
+            mstore(0x60, 0x3f3ad1611ab58212f92a2484e956093)
+            mstore(0x80, 0x5b9ac4615fe61cfed1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9)
+            mstore(0xa0,0x5b9ac4615fe61cfed1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9)
 
-            let retStart := 0x80
-            bigNumberMultiplication(0x00, 0x40, 2, retStart)
+            let retStart := 0x120
+            bigNumberMultiplication(0x00, 0x60, 3, retStart)
             let res := mload(retStart)
             let res2 := mload(add(retStart, 0x20))
             let res3 := mload(add(retStart, 0x40))
             let res4 := mload(add(retStart, 0x60))
+            let res5 := mload(add(retStart, 0x80))
+            let res6 := mload(add(retStart, 0xa0))
 
             console_log(res)
             console_log(res2)
             console_log(res3)
             console_log(res4)
+            console_log(res5)
+            console_log(res6)
 
             // TODO: big arithmetics
-		}
+        }
 	}
 }
