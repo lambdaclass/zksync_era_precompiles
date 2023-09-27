@@ -101,6 +101,7 @@ object "ModExp" {
                     let value_res_i := xor(value_lhs_i, and(mask, xor(value_lhs_i, value_rhs_i))) // a ^ (ct & (a ^ b))
                     mstore(ptr_res_i, value_res_i)
                 }
+            }
 
             /// @notice Performs the big unsigned integer left shift (<<).
             /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (LIMB_SIZE_IN_BYTES * nLimbs)`.
