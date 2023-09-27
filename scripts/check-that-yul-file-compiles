@@ -1,0 +1,26 @@
+#! /bin/sh
+set -eu
+
+# Checks wether a Yul file compiles successfully or not.
+
+_compile() {
+    zksolc "${1}" --optimization 3 --system-mode --yul --bin 2>&1
+}
+
+SRC_FILE="${1}"
+
+echo "Checking compilation of yul file ${SRC_FILE}..."
+
+set +e # Disable errexit for the following command(s)
+COMPILER_LOGS="$( _compile "${SRC_FILE}" )" # This will continue even if it fails
+COMPILER_EXIT_STATUS="$?" # Save the compilation status.
+set -e # Reenable errexit
+
+# Logs the compilation status.
+if [ "${COMPILER_EXIT_STATUS}" -eq 0 ]; then
+    echo "Successfully compiled ${SRC_FILE}"
+else
+    echo "${COMPILER_LOGS}"
+    echo "Failed to compile "${SRC_FILE}
+    exit 1
+fi
