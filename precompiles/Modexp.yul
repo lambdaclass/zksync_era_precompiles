@@ -8,6 +8,38 @@ object "ModExp" {
                 wordSize := 0x20
             }
 
+            /// @notice Computes an addition and checks for overflow.
+            /// @param augend The value to add to.
+            /// @param addend The value to add.
+            /// @return sum The sum of the two values.
+            /// @return overflowed True if the addition overflowed, false otherwise.
+            function overflowingAdd(augend, addend) -> sum, overflowed {
+                sum := add(augend, addend)
+                overflowed := lt(sum, augend)
+            }
+
+            /// @notice Retrieves the highest half of the multiplication result.
+            /// @param multiplicand The value to multiply.
+            /// @param multiplier The multiplier.
+            /// @return ret The highest half of the multiplication result.
+            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
+                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
+            }
+
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // A big memory address to store the function selector.
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1) // mem[0] = 0xf8...
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
             // HELPER FUNCTIONS
 
             /// @notice Checks whether a big number is zero.
@@ -47,6 +79,54 @@ object "ModExp" {
                 }
             }
 
+            /// @param start1 - The start index in memory of the first number.
+            /// @param numberOfLimbs1 - The number of limbs in the first number.
+            /// @param start2 - The start index in memory of the second number.
+            /// @param numberOfLimbs2 - The number of limbs in the second number.
+            function bigNumberMultiplication(start1, start2, nLimbs, resStart) {
+                // TODO: allocate retStart and retLen
+                // Iterating over each limb in the first number.
+                let retIndex, retWordAfter, retWordBefore
+                for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
+                    // Initialize carry to 0 for each iteration of i.
+                    let carry := 0
+
+                    // Iterating over each limb in the second number.
+                    for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
+                        // Loading the i-th and j-th limbs of the first and second numbers.
+                        let word1 := mload(add(start1, mul(WORD_SIZE(), sub(i, 1))))
+                        let word2 := mload(add(start2, mul(WORD_SIZE(), sub(j, 1))))
+
+                        // Calculating the product of the two limbs and adding the carry.
+                        let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
+                        console_log(product)
+
+                        // Calculating the new carry.
+                        carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
+
+                        // Calculate the index to store the result.
+                        retIndex := add(resStart, mul(sub(add(i, j), 1), WORD_SIZE()))
+                        retWordBefore := mload(retIndex) // Load the previous value at the result index.
+                        retWordAfter, carryFlag := overflowingAdd(retWordBefore, product) // Add the product to the result.
+
+                        console_log(retIndex)
+                        console_log(retWordAfter)
+                        // Store the new result back to memory.
+                        mstore(retIndex, retWordAfter)
+
+                        // Adding to the carry if there was an overflow.
+                        carry := add(carry, carryFlag)
+                    }
+
+                    // Store the last word which comes from the final carry.
+                    retIndex := add(resStart, mul(sub(sub(nLimbs, i), 1), WORD_SIZE()))
+                    //retWordBefore := mload(retIndex)
+                    console_log(retIndex)
+                    console_log(carry)
+                    mstore(retIndex, carry)
+                }
+            }
+
             /// @notice Checks whether a big number is one.
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
@@ -70,58 +150,29 @@ object "ModExp" {
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
+            
+            // 5e2d939b602a50911232731d04fe6f40c05f97da0602307
+            // 099fb991f9b414e2d52bef130349ec18db1a0215ea6caf76
 
-            let baseLen := calldataload(0)
-            let expLength := calldataload(32)
-            let modLen := calldataload(64)
+            // 3f3ad1611ab58212f92a2484e9560935b9ac4615fe61cfe
+            // d1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9
+            mstore(0x00, 0x5e2d939b602a50911232731d04fe6f40c05f97da0602307)
+            mstore(0x20, 0x099fb991f9b414e2d52bef130349ec18db1a0215ea6caf76)
 
-            // Handle a special case when both the base and mod length are zeroes.
-            if and(iszero(baseLen), iszero(modLen)) {
-                return(0, 0)
-            }
+            mstore(0x40, 0x3f3ad1611ab58212f92a2484e9560935b9ac4615fe61cfe)
+            mstore(0x60, 0xd1a4861e193a74d20c94f9f88d8b2cc089543c3f699969d9)
 
-            let basePtr := 96
-            let expPtr := add(basePtr, baseLen)
-            let modPtr := add(expPtr, expLength)
+            let retStart := 0x80
+            bigNumberMultiplication(0x00, 0x40, 2, retStart)
+            let res := mload(retStart)
+            let res2 := mload(add(retStart, 0x20))
+            let res3 := mload(add(retStart, 0x40))
+            let res4 := mload(add(retStart, 0x60))
 
-            // Note: This check covers the case where length of the modulo is zero.
-            // base^exponent % 0 = 0
-            if bigNumberIsZero(modPtr, modLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
-            }
-
-            // 1^exponent % modulus = 1
-            if bigNumberIsOne(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
-            }
-
-            // base^0 % modulus = 1
-            if bigNumberIsZero(expPtr, expLength) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
-            }
-
-            // 0^exponent % modulus = 0
-            if bigNumberIsZero(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
-            }
+            console_log(res)
+            console_log(res2)
+            console_log(res3)
+            console_log(res4)
 
             // TODO: big arithmetics
 		}
