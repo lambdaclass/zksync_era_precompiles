@@ -73,6 +73,22 @@ object "EcMul" {
             //                      HELPER FUNCTIONS
             // ////////////////////////////////////////////////////////////////
 
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
             /// @dev Executes the `precompileCall` opcode.
             function precompileCall(precompileParams, gasToBurn) -> ret {
                 // Compiler simulation for calling `precompileCall` opcode
@@ -436,7 +452,7 @@ object "EcMul" {
                 // P1 + P2 = P3
                 if iszero(flag) {
                     let t0 := montgomeryMul(yq, zp)
-                    let t1 := montgomeryMul(zp, zq)
+                    let t1 := montgomeryMul(yp, zq)
                     let t := montgomerySub(t0, t1)
                     let u0 := montgomeryMul(xq, zp)
                     let u1 := montgomeryMul(xp, zq)
@@ -452,7 +468,12 @@ object "EcMul" {
                 }
             }
 
-            
+            function bitLen(n) -> nLen {
+                for {} gt(0) {} {
+                    nLen := add(nLen, 1)
+                    n := shr(1, n)
+                }
+            }
 
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
@@ -511,26 +532,31 @@ object "EcMul" {
             let t00 := xp
             let t01 := yp 
             let t02 := zp
-            let t30, t31, t32 := phi(xp, yp, zp) 
+            let table30, table31, table32 := phi(xp, yp, xp)
 
             let v10, v11, v20, v21, det, b1, b2 := MONTGOMERY_GLV_BASIS()
-            let k0, k1 := splitScalar(scalar, v10, v11, v20, v21, det, b1, b2)
+            let k1, k2 := splitScalar(scalar, v10, v11, v20, v21, det, b1, b2)
 
-            // TODO: check sign of k0 and k1?
+            let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
+            let table20, table21, table22 := addProjective(table10, table11, table12, table00, table01, table02)
+            let table40, table41, table42 := addProjective(table30, table31, table32, table00, table01, table02)
+            let table50, table51, table52 := addProjective(table30, table31, table32, table10, table11, table12)
+            let table60, table61, table62 := addProjective(table20, table21, table22, table30, table31, table32)
+            let table70, table71, table72 := projectiveDouble(table30, table31, table32)
+            let table80, table81, table82 := addProjective(table70, table71, table72, table00, table01, table02)
+            let table90, table91, table92 := addProjective(table70, table71, table72, table10, table11, table12)
+            let table100, table101, table102 := addProjective(table70, table71, table72, table20, table21, table22)
+            let table110, table111, table112 := addProjective(table70, table71, table72, table30, table31, table32)
+            let table120, table121, table122 := addProjective(table110, table111, table112, table00, table01, table02)
+            let table130, table131, table132 := addProjective(table110, table111, table112, table10, table11, table12)
+            let table140, table141, table142 := addProjective(table110, table111, table112, table20, table21, table22)
 
-            let t10, t11, t12 := projectiveDouble(t00, t01, t02)
-            let t20, t21, t22 := addProjective(t10, t11, t12, t00, t00, t00)
-            let t40, t41, t42 := addProjective(t30, t31, t32, t00, t00, t00)
-            let t50, t51, t52 := addProjective(t30, t31, t32, t10, t11, t12)
-            let t60, t61, t62 := addProjective(t20, t21, t22, t30, t31, t32)
-            let t70, t71, t72 := projectiveDouble(t30, t31, t32)
-            let t80, t81, t82 := addProjective(t70, t71, t72, t00, t01, t02)
-            let t90, t91, t92 := addProjective(t70, t71, t72, t10, t11, t12)
-            let t100, t101, t102 := addProjective(t70, t71, t72, t20, t21, t22)
-            let t110, t111, t112 := addProjective(t70, t71, t72, t30, t31, t32)
-            let t120, t121, t122 := addProjective(t110, t111, t112, t00, t01, t02)
-            let t130, t131, t132 := addProjective(t110, t111, t112, t10, t11, t12)
-            let t140, t141, t142 := addProjective(t110, t111, t112, t20, t21, t22)
+            let k1BitLen := bitLen(outOfMontgomeryForm(k1))
+            let k2BitLen := bitLen(outOfMontgomeryForm(k2))
+            let maxBit := k1BitLen
+            if gt(k2BitLen, maxBit) {
+                maxBit := k2BitLen
+            }
 
             mstore(0, xr)
             mstore(32, yr)
