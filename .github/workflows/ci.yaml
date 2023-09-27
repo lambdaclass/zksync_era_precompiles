@@ -45,3 +45,13 @@ jobs:
 
       - name: Run clippy
         run: cd tests && cargo clippy --all-targets --all-features -- -D warnings
+
+  build_precompiles:
+    name: "Build precompiles"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Check that all precompiles build correctly
+        run: make check.compiles
