@@ -81,7 +81,39 @@ object "ModExp" {
                 }
             }
 
-                        /// @notice Performs the big unsigned integer right shift (>>).
+            /// @notice Performs the big unsigned integer bit or operation.
+            /// @dev The result is stored from `resPtr` to `resPtr + (LIMB_SIZE * nLimbs)`.
+            /// @param lhsPtr The pointer to the MSB of the left operand.
+            /// @param rhsPtr The pointer to the MSB of the right operand.
+            /// @param nLimbs The number of limbs needed to represent the operands.
+            /// @param resPtr The pointer to where you want the result to be stored
+            function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
+                // | Iteration  |       offset_i        |           ptr_lhs_i           |           ptr_rhs_i           |           ptr_res_i           |   value_lhs_i   |   value_rhs_i   |             value_res_i              |
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
+                // | 0          | +0x00                 | lhsPtr + 0x00                 | rhsPtr + 0x00                 | resPtr + 0x00                 | lhs[0]          | rhs[0]          | or(lhs[0], rhs[0])                   |
+                // | 1          | +0x20                 | lhsPtr + 0x20                 | rhsPtr + 0x20                 | resPtr + 0x20                 | lhs[1]          | rhs[1]          | or(lhs[1], rhs[1])                   |
+                // | 2          | +0x40                 | lhsPtr + 0x40                 | rhsPtr + 0x40                 | resPtr + 0x40                 | lhs[2]          | rhs[2]          | or(lhs[2], rhs[2])                   |
+                // |            |                       |                               |                               |                               |                 |                 |                                      |
+                // | ...        | ...                   | ...                           | ...                           | ...                           | ...             | ...             | ...                                  |
+                // |            |                       |                               |                               |                               |                 |                 |                                      |
+                // | nLimbs - 1 | +(0x20 * (nLimbs - 1) | lhsPtr + (0x20 * (nLimbs - 1) | rhsPtr + (0x20 * (nLimbs - 1) | resPtr + (0x20 * (nLimbs - 1) | lhs[nLimbs - 1] | rhs[nLimbs - 1] | or(lhs[nLimbs - 1], rhs[nLimbs - 1]) |
+                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
+
+                let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
+                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
+                {
+                    let ptr_lhs_i := add(lhsPtr, offset_i)
+                    let ptr_rhs_i := add(rhsPtr, offset_i)
+                    let ptr_res_i := add(resPtr, offset_i)
+                    let value_lhs_i := mload(ptr_lhs_i)
+                    let value_rhs_i := mload(ptr_rhs_i)
+                    let value_res_i := or(value_lhs_i, value_rhs_i)
+                    mstore(ptr_res_i, value_res_i)
+                }
+            }
+
+            /// @notice Performs the big unsigned integer right shift (>>).
             /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (WORD_SIZE * nLimbs)`.
             /// @param numberPtr The pointer to the MSB of the number to shift.
             /// @param nLimbs The number of limbs needed to represent the operands.
@@ -276,6 +308,7 @@ object "ModExp" {
                     mstore(limbResultPtr, sumResult)
                 }
                 isOverflow := carry
+
             }
 
             ////////////////////////////////////////////////////////////////
