@@ -50,36 +50,76 @@ object "ModExp" {
                     mstore(add(limbPointer, anOffset), aValue)
             }
 
-            function subLimbsWithBorrow(leftLimb, rightLimb, borrow) -> substractionResult, shiftedBorrow {
-                shiftedBorrow := shr(255, borrow)
-                let rightPlusBorrow := add(rightLimb, borrow)
+            function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> substractionResult, returnBorrow {
+                let rightPlusBorrow := add(rightLimb, limbBorrow)
                 substractionResult := sub(leftLimb, rightPlusBorrow)
+                returnBorrow := shr(255, substractionResult)
             }
 
-            function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer {
+            function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
                 let leftIthLimbValue
                 let rightIthLimbValue
                 let ithLimbBorrowResult 
                 let ithLimbSubstractionResult 
-                let borrow
-                let limbResultOffset 
-                for {let limbOffset := 0} lt(limbOffset, numberOfLimbs) {limbOffset := add(limbOffset, 1)} {
-                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, mul(limbOffset, 32))
-                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, mul(limbOffset, 32))
-                    ithLimbSubstractionResult, ithLimbBorrowResult :=
+                let borrow := 0
+                let limbOffset := 0
+                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
+                    limbOffset := mul(sub(i,1), 32)
+                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, limbOffset)
+                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, limbOffset)
+                    ithLimbSubstractionResult, borrow :=
                                                subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
+                    storeLimbValueAtOffset(resultPointer, limbOffset, ithLimbSubstractionResult)
 
-  
-                    // console_log(leftIthLimbValue)
-                    // console_log(rightIthLimbValue)
-
-                    // console_log(ithLimbSubstractionResult)
-
-                    storeLimbValueAtOffset(resultPointer, mul(limbOffset, 32), ithLimbSubstractionResult)
-
-                    borrow := ithLimbBorrowResult
                 }
             }
+
+
+
+
+            // Test4: Big number 4 limb substraction
+            // First Number:
+            //  - First Limb: 0xFFFF
+            //  - Second Limb: 0xAAAA
+            //  - Third Limb: 0xFFFF
+            //  - Fourth Limb: 0xAAAA
+            // Second Number:
+            //  - First Limb: 0xAAAA
+            //  - Second Limb: 0xFFFF
+            //  - Third Limb: 0xAAAA
+            //  - Fourth Limb: 0xFFF
+            //  
+            // Should print:
+            // 0x5554 (first limb)
+            // 0xffffffffffffaaab (second limb)
+            // 0x5555 (third limb)
+            // 0x9aab (fourth limb)
+            
+
+            mstore(0x00, 0xffff)
+            mstore(0x20, 0xaaaa)
+            mstore(0x40, 0xffff)
+            mstore(0x60, 0xaaaa)
+
+            mstore(0x80, 0xaaaa)
+            mstore(0xa0, 0xffff)
+            mstore(0xc0, 0xaaaa)
+            mstore(0xe0, 0xfff)
+
+
+            let retStart := 0x100
+            let _, borrow := bigUintSubstractionWithBorrow(0x00, 0x80, 4, retStart)
+
+            let res := mload(retStart)
+            let res2 := mload(add(retStart, 0x20))
+            let res3 := mload(add(retStart, 0x40))
+            let res4 := mload(add(retStart, 0x60))
+
+            console_log(res)
+            console_log(res2)
+            console_log(res3)
+            console_log(res4)
+            // console_log(sub(0x0, 0x1))
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
