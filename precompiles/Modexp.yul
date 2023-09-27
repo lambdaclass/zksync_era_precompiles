@@ -69,7 +69,6 @@ object "ModExp" {
                 }
             }
 
-
             /// @notice Checks whether a big number is one.
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
@@ -380,7 +379,7 @@ object "ModExp" {
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
-            
+
             let baseLen := calldataload(0)
             let expLength := calldataload(32)
             let modLen := calldataload(64)
