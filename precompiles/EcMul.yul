@@ -469,7 +469,7 @@ object "EcMul" {
             }
 
             function bitLen(n) -> nLen {
-                for {} gt(0) {} {
+                for {} gt(n, 0) {} {
                     nLen := add(nLen, 1)
                     n := shr(1, n)
                 }
@@ -529,13 +529,13 @@ object "EcMul" {
             let yr := MONTGOMERY_ONE()
             let zr := 0
 
-            let t00 := xp
-            let t01 := yp 
-            let t02 := zp
-            let table30, table31, table32 := phi(xp, yp, xp)
+            let table00 := xp
+            let table01 := yp
+            let table02 := zp
+            let table30, table31, table32 := phi(xp, yp, zp)
 
             let v10, v11, v20, v21, det, b1, b2 := MONTGOMERY_GLV_BASIS()
-            let k1, k2 := splitScalar(scalar, v10, v11, v20, v21, det, b1, b2)
+            let k1, k2 := splitScalar(intoMontgomeryForm(scalar), v10, v11, v20, v21, det, b1, b2)
 
             let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
             let table20, table21, table22 := addProjective(table10, table11, table12, table00, table01, table02)
@@ -551,12 +551,76 @@ object "EcMul" {
             let table130, table131, table132 := addProjective(table110, table111, table112, table10, table11, table12)
             let table140, table141, table142 := addProjective(table110, table111, table112, table20, table21, table22)
 
-            let k1BitLen := bitLen(outOfMontgomeryForm(k1))
-            let k2BitLen := bitLen(outOfMontgomeryForm(k2))
-            let maxBit := k1BitLen
-            if gt(k2BitLen, maxBit) {
-                maxBit := k2BitLen
+            // let k1BitLen := bitLen(outOfMontgomeryForm(k1))
+            // let k2BitLen := bitLen(outOfMontgomeryForm(k2))
+            // let maxBit := k1BitLen
+            // if gt(k2BitLen, maxBit) {
+            //     maxBit := k2BitLen
+            // }
+
+            k1 := outOfMontgomeryForm(k1)
+            k2 := outOfMontgomeryForm(k2)
+            let f := 254
+            let mask := shl(f, 3)
+            for { let j := 0 } lt(j, 128) { j := add(j, 1) } {
+                xr, yr, zr := projectiveDouble(xr, yr, zr)
+                xr, yr, zr := projectiveDouble(xr, yr, zr)
+                let shift := sub(f, add(j, j))
+                let b1 := shr(shift, and(k1, mask))
+                let b2 := shr(shift, and(k2, mask))
+                if or(b1, b2) {
+                    let s := or(shl(2, b2), b1)
+                    switch sub(s, 1)
+                    case 0 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table00, table01, table02)
+                    }
+                    case 1 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table10, table11, table12)
+                    }
+                    case 2 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table20, table21, table22)
+                    }
+                    case 3 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table30, table31, table32)
+                    }
+                    case 4 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table40, table41, table42)
+                    }
+                    case 5 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table50, table51, table52)
+                    }
+                    case 6 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table60, table61, table62)
+                    }
+                    case 7 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table70, table71, table72)
+                    }
+                    case 8 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table80, table81, table82)
+                    }
+                    case 9 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table90, table91, table92)
+                    }
+                    case 10 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table100, table101, table102)
+                    }
+                    case 11 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table110, table111, table112)
+                    }
+                    case 12 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table120, table121, table122)
+                    }
+                    case 13 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table130, table131, table132)
+                    }
+                    case 14 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table140, table141, table142)
+                    }
+                }
+                mask := shr(2, mask)
             }
+
+            xr, yr := projectiveIntoAffine(xr, yr, zr)
 
             mstore(0, xr)
             mstore(32, yr)
