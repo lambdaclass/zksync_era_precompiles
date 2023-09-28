@@ -20,6 +20,24 @@ object "EcMul" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
+            function MONTGOMERY_GLV_BASIS() -> v10, v11, v20, v21, det, b1, b2 {
+                v10 := 9467151881811383727216712387251582584038710124949150773810224174953673958495
+                v11 := 7832780885517429488914881362264053307162815318423880121458870703782468606792
+                v20 := 17299932767328813216131593749515635891201525443373030895269094878736142565287
+                v21 := 9467151881811383727216712387251582584038710124949150773810224174953673958495
+                det := 17171738990013410148209280487843271955783777084671648589027996831129432963265
+                b1 := 1999550452416974871140046113947404043388591104517078921953891555888361342916
+                b2 := 2348897689843608674094128271148469530883240042839830706128860949317525936861
+            }
+
+            function DIV_LATTICE_DETERMINANT() -> ret {
+                ret := 512
+            }
+
+            function MONTGOMERY_THIRD_ROOT() -> ret {
+                ret := 20006444479023397533370224967097343182639219473961804911780625968796493078869
+            }
+
             /// @notice Constant function for value 3*b (i.e. 9) in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_b3 The value 9 in Montgomery form.
@@ -359,6 +377,91 @@ object "EcMul" {
                 xr := montgomeryAdd(xr, xr)
             }
 
+            function phi(xp, yp, zp) -> xr, yr, zr {
+                xr := montgomeryMul(xp, MONTGOMERY_THIRD_ROOT())
+                yr := yp
+                zr := zp
+            }
+
+            function splitScalar(scalar, v10, v11, v20, v21, det, b1, b2) -> v0, v1 {
+                let k1 := montgomeryMul(scalar, b1)
+                let k2 := montgomeryMul(scalar, b2)
+                k2 := montgomerySub(0, k2)
+                // n := 2 * ((l.Det.BitLen()+32)>>6)<<6)
+                let n := DIV_LATTICE_DETERMINANT()
+                k1 := shr(n, k1)
+                k2 := shr(n, k2)
+                v0, v1 := getVector(v10, v11, v20, v21, k1, k2)
+                v0 := montgomerySub(scalar, v0)
+                v1 := montgomerySub(0, v1)
+            }
+
+            function getVector(v10, v11, v20, v21, k1, k2) -> v0, v1 {
+                let tmp := montgomeryMul(k2, v20)
+                v0 := montgomeryMul(v20, k1)
+                v0 := montgomeryAdd(v0, tmp)
+                tmp := montgomeryMul(k2, v21)
+                v1 := montgomeryMul(k1, v11)
+                v1 := montgomeryAdd(v1, tmp)
+            }
+
+            function addProjective(xq, yq, zq, xp, yp, zp) -> xr, yr, zr {
+                let flag := 1
+                let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
+                let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
+                if and(and(pIsInfinity, qIsInfinity), flag) {
+                    // Infinity + Infinity = Infinity
+                    xr := 0
+                    yr := MONTGOMERY_ONE()
+                    zr := 0
+                    flag := 0
+                }
+                if and(pIsInfinity, flag) {
+                    // Infinity + P = P
+                    xr := xq
+                    yr := yq
+                    zr := zq
+                    flag := 0
+                }
+                if and(qIsInfinity, flag) {
+                    // P + Infinity = P
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                    flag := 0
+                }
+                if and(and(and(eq(xp, xq), eq(montgomerySub(0, yp), yq)), eq(zp, zq)), flag) {
+                    // P + (-P) = Infinity
+                    xr := 0
+                    yr := MONTGOMERY_ONE()
+                    zr := 0
+                    flag := 0
+                }
+                if and(and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq)), flag) {
+                    // P + P = 2P
+                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                    flag := 0
+                }
+
+                // P1 + P2 = P3
+                if flag {
+                    let t0 := montgomeryMul(yq, zp)
+                    let t1 := montgomeryMul(yp, zq)
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xq, zp)
+                    let u1 := montgomeryMul(xp, zq)
+                    let u := montgomerySub(u0, u1)
+                    let u2 := montgomeryMul(u, u)
+                    let u3 := montgomeryMul(u2, u)
+                    let v := montgomeryMul(zq, zp)
+                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+    
+                    xr := montgomeryMul(u, w)
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
+                    zr := montgomeryMul(u3, v)
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
@@ -413,62 +516,99 @@ object "EcMul" {
                 return(0x00, 0x40)
             }
 
-            let xq := xp
-            let yq := yp
-            let zq := zp
             let xr := 0
             let yr := MONTGOMERY_ONE()
             let zr := 0
-            for {} scalar {} {
-                if lsbIsOne(scalar) {
-                    let rIsInfinity := projectivePointIsInfinity(xr, yr, zr)
 
-                    if rIsInfinity {
-                        // Infinity + P = P
-                        xr := xq
-                        yr := yq
-                        zr := zq
+            let table00 := xp
+            let table01 := yp
+            let table02 := zp
+            let table30, table31, table32 := phi(xp, yp, zp)
 
-                        xq, yq, zq := projectiveDouble(xq, yq, zq)
-                        // Check next bit
-                        scalar := shr(1, scalar)
-                        continue
+            let v10, v11, v20, v21, det, b1, b2 := MONTGOMERY_GLV_BASIS()
+            let k1, k2 := splitScalar(intoMontgomeryForm(scalar), v10, v11, v20, v21, det, b1, b2)
+
+            let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
+            let table20, table21, table22 := addProjective(table10, table11, table12, table00, table01, table02)
+            let table40, table41, table42 := addProjective(table30, table31, table32, table00, table01, table02)
+            let table50, table51, table52 := addProjective(table30, table31, table32, table10, table11, table12)
+            let table60, table61, table62 := addProjective(table20, table21, table22, table30, table31, table32)
+            let table70, table71, table72 := projectiveDouble(table30, table31, table32)
+            let table80, table81, table82 := addProjective(table70, table71, table72, table00, table01, table02)
+            let table90, table91, table92 := addProjective(table70, table71, table72, table10, table11, table12)
+            let table100, table101, table102 := addProjective(table70, table71, table72, table20, table21, table22)
+            let table110, table111, table112 := addProjective(table70, table71, table72, table30, table31, table32)
+            let table120, table121, table122 := addProjective(table110, table111, table112, table00, table01, table02)
+            let table130, table131, table132 := addProjective(table110, table111, table112, table10, table11, table12)
+            let table140, table141, table142 := addProjective(table110, table111, table112, table20, table21, table22)
+
+            // let k1BitLen := bitLen(outOfMontgomeryForm(k1))
+            // let k2BitLen := bitLen(outOfMontgomeryForm(k2))
+            // let maxBit := k1BitLen
+            // if gt(k2BitLen, maxBit) {
+            //     maxBit := k2BitLen
+            // }
+
+            k1 := outOfMontgomeryForm(k1)
+            k2 := outOfMontgomeryForm(k2)
+            let f := 254
+            let mask := shl(f, 3)
+            for { let j := 0 } lt(j, 128) { j := add(j, 1) } {
+                xr, yr, zr := projectiveDouble(xr, yr, zr)
+                xr, yr, zr := projectiveDouble(xr, yr, zr)
+                let shift := sub(f, add(j, j))
+                let b1 := shr(shift, and(k1, mask))
+                let b2 := shr(shift, and(k2, mask))
+                if or(b1, b2) {
+                    let s := or(shl(2, b2), b1)
+                    switch sub(s, 1)
+                    case 0 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table00, table01, table02)
                     }
-
-                    let t0 := montgomeryMul(yq, zr)
-                    let t1 := montgomeryMul(yr, zq)
-                    let t := montgomerySub(t0, t1)
-                    let u0 := montgomeryMul(xq, zr)
-                    let u1 := montgomeryMul(xr, zq)
-                    let u := montgomerySub(u0, u1)
-
-                    // t = (yq*zr - yr*zq); u = (xq*zr - xr*zq)
-                    if iszero(or(t, u)) { 
-                        // P + P = 2P
-                        xr, yr, zr := projectiveDouble(xr, yr, zr)
-
-                        xq := xr
-                        yq := yr
-                        zq := zr
-                        // Check next bit
-                        scalar := shr(1, scalar)
-                        continue
+                    case 1 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table10, table11, table12)
                     }
-
-                    // P1 + P2 = P3
-                    let u2 := montgomeryMul(u, u)
-                    let u3 := montgomeryMul(u2, u)
-                    let v := montgomeryMul(zq, zr)
-                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
-    
-                    xr := montgomeryMul(u, w)
-                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
-                    zr := montgomeryMul(u3, v)
+                    case 2 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table20, table21, table22)
+                    }
+                    case 3 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table30, table31, table32)
+                    }
+                    case 4 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table40, table41, table42)
+                    }
+                    case 5 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table50, table51, table52)
+                    }
+                    case 6 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table60, table61, table62)
+                    }
+                    case 7 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table70, table71, table72)
+                    }
+                    case 8 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table80, table81, table82)
+                    }
+                    case 9 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table90, table91, table92)
+                    }
+                    case 10 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table100, table101, table102)
+                    }
+                    case 11 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table110, table111, table112)
+                    }
+                    case 12 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table120, table121, table122)
+                    }
+                    case 13 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table130, table131, table132)
+                    }
+                    case 14 {
+                        xr, yr, zr := addProjective(xr, yr, zr, table140, table141, table142)
+                    }
                 }
-
-                xq, yq, zq := projectiveDouble(xq, yq, zq)
-                // Check next bit
-                scalar := shr(1, scalar)
+                mask := shr(2, mask)
             }
 
             xr, yr := projectiveIntoAffine(xr, yr, zr)
