@@ -53,7 +53,9 @@ object "ModExp" {
             function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> substractionResult, returnBorrow {
                 let rightPlusBorrow := add(rightLimb, limbBorrow)
                 substractionResult := sub(leftLimb, rightPlusBorrow)
-                returnBorrow := shr(255, substractionResult)
+                if gt(substractionResult, leftLimb) {
+                 returnBorrow := 1
+                }
             }
 
             function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
