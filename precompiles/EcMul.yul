@@ -20,14 +20,14 @@ object "EcMul" {
                 m_three := 19052624634359457937016868847204597229365286637454337178037183604060995791063
             }
 
-            function MONTGOMERY_GLV_BASIS() -> v10, v11, v20, v21, det, b1, b2 {
-                v10 := 9467151881811383727216712387251582584038710124949150773810224174953673958495
-                v11 := 7832780885517429488914881362264053307162815318423880121458870703782468606792
-                v20 := 17299932767328813216131593749515635891201525443373030895269094878736142565287
-                v21 := 9467151881811383727216712387251582584038710124949150773810224174953673958495
-                det := 17171738990013410148209280487843271955783777084671648589027996831129432963265
-                b1 := 1999550452416974871140046113947404043388591104517078921953891555888361342916
-                b2 := 2348897689843608674094128271148469530883240042839830706128860949317525936861
+            function GLV_BASIS() -> v10, v11, v20, v21, det, b1, b2 {
+                v10 := 9931322734385697763
+                v11 := 147946756881789319000765030803803410728
+                v20 := 147946756881789319010696353538189108491
+                v21 := 9931322734385697763
+                det := 21888242871839275222246405745257275088548364400416034343698204186575808495617
+                b1 := 14543540530720168141288635243388629919715755786477002759840454263230943838258
+                b2 := 12705133846569304976684616152979546432541976507551503015265861210005237258542
             }
 
             function DIV_LATTICE_DETERMINANT() -> ret {
@@ -384,25 +384,27 @@ object "EcMul" {
             }
 
             function splitScalar(scalar, v10, v11, v20, v21, det, b1, b2) -> v0, v1 {
-                let k1 := montgomeryMul(scalar, b1)
-                let k2 := montgomeryMul(scalar, b2)
-                k2 := montgomerySub(0, k2)
+                let k1 := mul(scalar, b1)
+                let k2 := mul(scalar, b2)
+                k2 := sub(0, k2)
                 // n := 2 * ((l.Det.BitLen()+32)>>6)<<6)
                 let n := DIV_LATTICE_DETERMINANT()
                 k1 := shr(n, k1)
                 k2 := shr(n, k2)
                 v0, v1 := getVector(v10, v11, v20, v21, k1, k2)
-                v0 := montgomerySub(scalar, v0)
-                v1 := montgomerySub(0, v1)
+                console_log(v0)
+                console_log(v1)
+                v0 := sub(scalar, v0)
+                v1 := sub(0, v1)
             }
 
             function getVector(v10, v11, v20, v21, k1, k2) -> v0, v1 {
-                let tmp := montgomeryMul(k2, v20)
-                v0 := montgomeryMul(v20, k1)
-                v0 := montgomeryAdd(v0, tmp)
-                tmp := montgomeryMul(k2, v21)
-                v1 := montgomeryMul(k1, v11)
-                v1 := montgomeryAdd(v1, tmp)
+                let tmp := mul(k2, v20)
+                v0 := mul(v20, k1)
+                v0 := add(v0, tmp)
+                tmp := mul(k2, v21)
+                v1 := mul(k1, v11)
+                v1 := add(v1, tmp)
             }
 
             function addProjective(xq, yq, zq, xp, yp, zp) -> xr, yr, zr {
@@ -525,8 +527,18 @@ object "EcMul" {
             let table02 := zp
             let table30, table31, table32 := phi(xp, yp, zp)
 
-            let v10, v11, v20, v21, det, b1, b2 := MONTGOMERY_GLV_BASIS()
+            let v10, v11, v20, v21, det, b1, b2 := GLV_BASIS()
             let k1, k2 := splitScalar(intoMontgomeryForm(scalar), v10, v11, v20, v21, det, b1, b2)
+            console_log(k1)
+            console_log(k2)
+            if shr(255, k1) {
+                k1 := sub(P(), k1)
+                table00, table01, table02 := projectiveNeg(table00, table01, table02)
+            }
+            if shr(255, k2) {
+                k2 := sub(P(), k2)
+                table30, table31, table32 := projectiveNeg(table30, table31, table32)
+            }
 
             let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
             let table20, table21, table22 := addProjective(table10, table11, table12, table00, table01, table02)
@@ -549,8 +561,8 @@ object "EcMul" {
             //     maxBit := k2BitLen
             // }
 
-            k1 := outOfMontgomeryForm(k1)
-            k2 := outOfMontgomeryForm(k2)
+            // k1 := outOfMontgomeryForm(k1)
+            // k2 := outOfMontgomeryForm(k2)
             let f := 254
             let mask := shl(f, 3)
             for { let j := 0 } lt(j, 128) { j := add(j, 1) } {
