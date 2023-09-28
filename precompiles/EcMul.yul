@@ -464,6 +464,12 @@ object "EcMul" {
                 }
             }
 
+            function projectiveNeg(xp, yp, zp) -> xr, yr, zr {
+                xr := xp
+                yr := montgomerySub(0, yp)
+                zr := zp
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
