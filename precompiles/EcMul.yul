@@ -392,8 +392,6 @@ object "EcMul" {
                 k1 := shr(n, k1)
                 k2 := shr(n, k2)
                 v0, v1 := getVector(v10, v11, v20, v21, k1, k2)
-                console_log(v0)
-                console_log(v1)
                 v0 := sub(scalar, v0)
                 v1 := sub(0, v1)
             }
@@ -535,8 +533,7 @@ object "EcMul" {
 
             let v10, v11, v20, v21, det, b1, b2 := GLV_BASIS()
             let k1, k2 := splitScalar(intoMontgomeryForm(scalar), v10, v11, v20, v21, det, b1, b2)
-            console_log(k1)
-            console_log(k2)
+
             if shr(255, k1) {
                 k1 := sub(P(), k1)
                 table00, table01, table02 := projectiveNeg(table00, table01, table02)
