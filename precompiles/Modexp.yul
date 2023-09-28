@@ -107,10 +107,10 @@ object "ModExp" {
             let padded_base_pointer := add(96, base_padding)
             calldatacopy(padded_base_pointer, base_pointer, base_length)
             let base := mload(base_pointer)
-
+            
             // As the exponent length could be more than 32 bytes we
             // decided to represent the exponent with limbs. Because
-            // of that, we keep track of a calldata pointer and a memory
+            // of that, we keep track of a calldata pointer and a memory 
             // pointer.
             //
             // The calldata pointer keeps track of the real exponent length
@@ -118,21 +118,21 @@ object "ModExp" {
             // The memory pointer keeps track of the adjusted exponent length
             // (which is always divisible by the word size).
             //
-            // There is a special case to handle when the leftmost limb of
-            // the exponent has less than 32 bytes in the calldata (e.g. if
-            // the calldata has 33 bytes in the calldata, in our limbs
+            // There is a special case to handle when the leftmost limb of 
+            // the exponent has less than 32 bytes in the calldata (e.g. if 
+            // the calldata has 33 bytes in the calldata, in our limbs 
             // representation it should have 64 bytes). Here is where it
             // it could be a difference between the real exponent length and
             // the adjusted exponent length.
             //
-            // For the amount of limbs, if the exponent length is divisible
-            // by the word size, then we just divide it by the word size.
+            // For the amount of limbs, if the exponent length is divisible 
+            // by the word size, then we just divide it by the word size. 
             // If not, we divide and then add the remainder limb (this is
             // the case when the leftmost limb has less than 32 bytes).
             //
             // In the special case, the memory exponent pointer and the
             // calldata exponent pointer are outphased. That's why after
-            // loading the exponent from the calldata, we still need to
+            // loading the exponent from the calldata, we still need to 
             // compute two pointers for the modulus.
             let calldata_exponent_pointer := add(base_pointer, base_length)
             let memory_exponent_pointer := add(base_pointer, WORD_SIZE())
@@ -214,7 +214,7 @@ object "ModExp" {
                     exponent := shr(1, exponent)
                     base := mulmod(base, base, modulus)
                 }
-
+    
                 mstore(0, pow)
                 let unpadding := sub(WORD_SIZE(), modulus_length)
                 return(unpadding, modulus_length)
