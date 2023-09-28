@@ -76,52 +76,6 @@ object "ModExp" {
                 }
             }
 
-
-
-
-            // Test4: Big number 4 limb substraction
-            // First Number:
-            //  - First Limb: 0xFFFF
-            //  - Second Limb: 0xAAAA
-            //  - Third Limb: 0xFFFF
-            //  - Fourth Limb: 0xAAAA
-            // Second Number:
-            //  - First Limb: 0xAAAA
-            //  - Second Limb: 0xFFFF
-            //  - Third Limb: 0xAAAA
-            //  - Fourth Limb: 0xFFF
-            //  
-            // Should print:
-            // 0x5554 (first limb)
-            // 0xffffffffffffaaab (second limb)
-            // 0x5555 (third limb)
-            // 0x9aab (fourth limb)
-            
-
-            mstore(0x00, 0xffff)
-            mstore(0x20, 0xaaaa)
-            mstore(0x40, 0xffff)
-            mstore(0x60, 0xaaaa)
-
-            mstore(0x80, 0xaaaa)
-            mstore(0xa0, 0xffff)
-            mstore(0xc0, 0xaaaa)
-            mstore(0xe0, 0xfff)
-
-
-            let retStart := 0x100
-            let _, borrow := bigUintSubstractionWithBorrow(0x00, 0x80, 4, retStart)
-
-            let res := mload(retStart)
-            let res2 := mload(add(retStart, 0x20))
-            let res3 := mload(add(retStart, 0x40))
-            let res4 := mload(add(retStart, 0x60))
-
-            console_log(res)
-            console_log(res2)
-            console_log(res3)
-            console_log(res4)
-            // console_log(sub(0x0, 0x1))
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
