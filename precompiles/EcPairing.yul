@@ -67,6 +67,7 @@ object "EcPairing" {
             /// @dev Then we concatenate all and represent the result as a decimal. E.g. [0,-1,0,1] -> 001 100 001 010 -> 778
             /// @dev In each step of the iteration we just need to compute the operation AND between the number and 1, 2 and 4 to check the original value.
             /// @dev Finally we shift 3 bits to the right to get the next value.
+            /// @dev For this implementation, the first two iterations of the Miller loop are skipped, so the last two digits of the NAF representation of t are not used.
             /// @dev This value was precomputed using Python.
             /// @return ret The value of the decimal representation of the NAF.
             function NAF_REPRESENTATIVE() ->  ret {
@@ -1275,10 +1276,6 @@ object "EcPairing" {
                 // NAF[63] == -1.
                 // Here T = 2Q, so doing a dobule step and a mixed addition step with -Q looks like: (2(2Q)-Q) = 3Q.
                 // This is equivalent to a mixed addition step with Q: (2Q + Q) = 3Q
-
-                // FIX. This fp12Square cause: assembly-to-bytecode conversion error: assembly parse error Label DEFAULT_UNWIND was tried to be used for either PC or constant at offset 238030 that is more than `65535` addressable space
-                // We changed ir for a fp12Mul
-                // f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Square(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := fp12Mul(f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121,f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121)
                 l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 := computeLine(mq00, mq01, mq10, mq11, t00, t01, t10, t11, t20, t21)
                 l00, l01 := fp2ScalarMul(l00, l01, yp)
