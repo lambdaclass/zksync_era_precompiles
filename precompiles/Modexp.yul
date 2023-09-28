@@ -43,7 +43,13 @@ object "ModExp" {
                  returnBorrow := 1
                 }
             }
-
+            /// @notice Computes the BigUint substraction between the number stored
+            /// in lshPointer and rhsPointer.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L795
+            /// @param lhsPointer The start of the left hand side substraction Big Number.
+            /// @param rhsPointer The start of the right hand side substraction Big Number.
+            /// @return numberOfLimbs The number of limbs of both numbers.
+            /// @return resultPointer Where the result will be stored.
             function bigUintSubstractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
                 let leftIthLimbValue
                 let rightIthLimbValue
