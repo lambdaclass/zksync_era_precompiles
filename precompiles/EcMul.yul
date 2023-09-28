@@ -621,6 +621,8 @@ object "EcMul" {
             }
 
             xr, yr := projectiveIntoAffine(xr, yr, zr)
+            xr := outOfMontgomeryForm(xr)
+            yr := outOfMontgomeryForm(yr)
 
             mstore(0, xr)
             mstore(32, yr)
