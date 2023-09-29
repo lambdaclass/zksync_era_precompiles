@@ -24,6 +24,14 @@ object "ModExp" {
                 overflowed := lt(sum, augend)
             }
 
+            /// @notice Retrieves the highest half of the multiplication result.
+            /// @param multiplicand The value to multiply.
+            /// @param multiplier The multiplier.
+            /// @return ret The highest half of the multiplication result.
+            function getHighestHalfOfMultiplication(multiplicand, multiplier) -> ret {
+                ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
+            }
+
             /// @notice Checks whether a big number is zero.
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
@@ -331,6 +339,41 @@ object "ModExp" {
                 }
                 isOverflow := carry
 
+            }
+
+            /// @notice Performs the multiplication between two bigUInts
+            /// @dev The result is stored from `mulResultPtr` to `mulResultPtr + (LIMB_SIZE * nLimbs)`.
+            /// @param lhsPtr The start index in memory of the first number.
+            /// @param rhsPtr The start index in memory of the second number.
+            /// @param nLimbs The number of limbs needed to represent the operands.
+            function bigUIntMul(lhsPtr, rhsPtr, nLimbs, mulResultPtr) {
+                let retIndex, retWordAfter, retWordBefore
+                // Iterating over each limb in the first number.
+                for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
+                    let carry := 0
+
+                    // Iterating over each limb in the second number.
+                    for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
+                        // Loading the i-th and j-th limbs of the first and second numbers.
+                        let word1 := mload(add(lhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
+                        let word2 := mload(add(rhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
+
+                        let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
+                        carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
+
+                        // Calculate the index to store the product.
+                        retIndex := add(mulResultPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
+                        retWordBefore := mload(retIndex) // Load the previous value at the result index.
+                        retWordAfter, carryFlag := overflowingAdd(retWordBefore, product)
+
+                        mstore(retIndex, retWordAfter)
+                        carry := add(carry, carryFlag)
+                    }
+
+                    // Store the last word which comes from the final carry.
+                    retIndex := add(mulResultPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
+                    mstore(retIndex, carry)
+                }
             }
 
             ////////////////////////////////////////////////////////////////
