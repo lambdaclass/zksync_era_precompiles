@@ -4,24 +4,6 @@ object "P256VERIFY" {
         code {
             // Constants
 
-            /// @notice Constant function for value zero.
-            /// @return zero The value zero.
-            function ZERO() -> zero {
-                zero := 0x00
-            }
-
-            /// @notice Constant function for value one.
-            /// @return one The value one.
-            function ONE() -> one {
-                one := 0x01
-            }
-
-            /// @notice Constant function for value two.
-            /// @return two The value two.
-            function TWO() -> two {
-                two := 0x02
-            }
-
             // CURVE CONSTANTS
 
             // elliptic curve coefficient
@@ -71,6 +53,12 @@ object "P256VERIFY" {
                 m_b := 99593677540221402957765480916910020772520766868399186769503856397241456836063
             }
 
+            function MONTGOMERY_PROJECTIVE_G() -> m_gx, m_gy, m_gz {
+                m_gx := 0x18905F76A53755C679FB732B7762251075BA95FC5FEDB60179E730D418A9143C
+                m_gy := 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
+                m_gz := MONTGOMERY_ONE()
+            }
+
             /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
@@ -109,7 +97,7 @@ object "P256VERIFY" {
             /// @param x The number to check.
             /// @return ret True if the LSB is 1, false otherwise.
             function lsbIsOne(x) -> ret {
-                ret := and(x, ONE())
+                ret := and(x, 1)
             }
 
             // MONTGOMERY
@@ -125,13 +113,13 @@ object "P256VERIFY" {
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := ZERO()
+                let c := 0
 
-                for {} and(iszero(eq(u, ONE())), iszero(eq(v, ONE()))) {} {
-                    for {} iszero(and(u, ONE())) {} {
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
                         let current_b := b
-                        let current_b_is_odd := and(current_b, ONE())
+                        let current_b_is_odd := and(current_b, 1)
                         if iszero(current_b_is_odd) {
                             b := shr(1, b)
                         }
@@ -146,10 +134,10 @@ object "P256VERIFY" {
                         }
                     }
 
-                    for {} iszero(and(v, ONE())) {} {
+                    for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
                         let current_c := c
-                        let current_c_is_odd := and(current_c, ONE())
+                        let current_c_is_odd := and(current_c, 1)
                         if iszero(current_c_is_odd) {
                             c := shr(1, c)
                         }
@@ -181,7 +169,7 @@ object "P256VERIFY" {
                     }
                 }
 
-                switch eq(u, ONE())
+                switch eq(u, 1)
                 case 0 {
                     inv := c
                 }
@@ -215,10 +203,13 @@ object "P256VERIFY" {
             /// @return S The result of the Montgomery reduction.
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
                 let q := mul(lowest_half_of_T, N_PRIME())
-                let a_high := add(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
-                let a_low, overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
-                if overflowed {
-                    a_high := add(a_high, ONE())
+                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
+                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
+                if a_high_overflowed {
+                    a_high := add(a_high, MONTGOMERY_ONE())
+                }
+                if a_low_overflowed {
+                    a_high := add(a_high, 1)
                 }
                 S := a_high
                 if iszero(lt(a_high, P())) {
@@ -241,7 +232,7 @@ object "P256VERIFY" {
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
-                    let higher_half_of_m := ZERO()
+                    let higher_half_of_m := 0
                     let lowest_half_of_m := m 
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
@@ -328,9 +319,7 @@ object "P256VERIFY" {
             // @return ret True if the point is on the curve, false otherwise.
             function affinePointIsOnCurve(xp, yp) -> ret {
                 let left := montgomeryMul(yp, yp)
-                let right := montgomeryMul(xp, montgomeryMul(xp, xp))
-                right := montgomeryAdd(right, montgomeryMul(MONTGOMERY_A(), xp))
-                right := montgomeryAdd(right, MONTGOMERY_B())
+                let right := montgomeryAdd(montgomeryMul(xp, montgomeryMul(xp, xp)), montgomeryAdd(montgomeryMul(MONTGOMERY_A(), xp), MONTGOMERY_B()))
                 ret := eq(left, right)
             }
 
@@ -360,8 +349,8 @@ object "P256VERIFY" {
             function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
                 switch zp
                 case 0 {
-                    xr := ZERO()
-                    yr := ZERO()
+                    xr := 0
+                    yr := 0
                 }
                 default {
                     let zp_inv := montgomeryModularInverse(zp)
@@ -416,31 +405,71 @@ object "P256VERIFY" {
             /// @return yr The y coordinate of the point P + Q in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the point P + Q in projective coordinates in Montgomery form.
             function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
-                let t0 := montgomeryMul(yq, zr)
-                let t1 := montgomeryMul(yr, zq)
-                let t := montgomerySub(t0, t1)
-                let u0 := montgomeryMul(xq, zr)
-                let u1 := montgomeryMul(xr, zq)
-                let u := montgomerySub(u0, u1)
-                let u2 := montgomeryMul(u, u)
-                let u3 := montgomeryMul(u2, u)
-                let v := montgomeryMul(zq, zr)
-                let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+                let flag := 1
+                let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
+                let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
+                if and(and(pIsInfinity, qIsInfinity), flag) {
+                    // Infinity + Infinity = Infinity
+                    xr := 0
+                    yr := MONTGOMERY_ONE()
+                    zr := 0
+                    flag := 0
+                }
+                if and(pIsInfinity, flag) {
+                    // Infinity + P = P
+                    xr := xq
+                    yr := yq
+                    zr := zq
+                    flag := 0
+                }
+                if and(qIsInfinity, flag) {
+                    // P + Infinity = P
+                    xr := xp
+                    yr := yp
+                    zr := zp
+                    flag := 0
+                }
+                if and(and(and(eq(xp, xq), eq(montgomerySub(0, yp), yq)), eq(zp, zq)), flag) {
+                    // P + (-P) = Infinity
+                    xr := 0
+                    yr := MONTGOMERY_ONE()
+                    zr := 0
+                    flag := 0
+                }
+                if and(and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq)), flag) {
+                    // P + P = 2P
+                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                    flag := 0
+                }
 
-                xr := montgomeryMul(u, w)
-                yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
-                zr := montgomeryMul(u3, v)
+                // P1 + P2 = P3
+                if flag {
+                    let t0 := montgomeryMul(yq, zp)
+                    let t1 := montgomeryMul(yp, zq)
+                    let t := montgomerySub(t0, t1)
+                    let u0 := montgomeryMul(xq, zp)
+                    let u1 := montgomeryMul(xp, zq)
+                    let u := montgomerySub(u0, u1)
+                    let u2 := montgomeryMul(u, u)
+                    let u3 := montgomeryMul(u2, u)
+                    let v := montgomeryMul(zq, zp)
+                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
+    
+                    xr := montgomeryMul(u, w)
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
+                    zr := montgomeryMul(u3, v)
+                }
             }
 
             function projectiveScalarMul(xp, yp, zp, scalar) -> xr, yr, zr {
-                switch eq(scalar, TWO())
+                switch eq(scalar, 2)
                 case 0 {
                     let xq := xp
                     let yq := yp
                     let zq := zp
-                    xr := ZERO()
+                    xr := 0
                     yr := MONTGOMERY_ONE()
-                    zr := ZERO()
+                    zr := 0
                     for {} scalar {} {
                         if lsbIsOne(scalar) {
                             let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
@@ -464,11 +493,11 @@ object "P256VERIFY" {
                                 // P + Infinity = P
                                 break
                             }
-                            if and(and(eq(xr, xq), eq(montgomerySub(ZERO(), yr), yq)), eq(zr, zq)) {
+                            if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
                                 // P + (-P) = Infinity
-                                xr := ZERO()
-                                yr := ZERO()
-                                zr := ZERO()
+                                xr := 0
+                                yr := 0
+                                zr := 0
         
                                 xq, yq, zq := projectiveDouble(xq, yq, zq)
                                 // Check next bit
@@ -515,6 +544,22 @@ object "P256VERIFY" {
                 }
             }
 
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := mload(0x600)
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
             // Fallback
 
             let hash := calldataload(0)
@@ -538,10 +583,12 @@ object "P256VERIFY" {
                 burnGas()
             }
 
-            let x, y, z := projectiveFromAffine(x, y)
+            let z := 0
+            x, y, z := projectiveFromAffine(x, y)
 
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
+            hash := intoMontgomeryForm(hash)
             r := intoMontgomeryForm(r)
             s := intoMontgomeryForm(s)
 
@@ -550,16 +597,25 @@ object "P256VERIFY" {
             let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
 
-            let gx, gy := G()
-            let gx, gy, gz := projectiveFromAffine(gx, gy)
+            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
             // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
+            console_log(xp)
+            console_log(yp)
+            console_log(zp)
             let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
+            console_log(xq)
+            console_log(yq)
+            console_log(zq)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
+            console_log(xr)
+            console_log(yr)
+            console_log(zr)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            console_log(0xaca8)
 
             mstore(0, eq(xr, r))
             return(0, 32)
