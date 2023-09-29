@@ -369,15 +369,14 @@ object "ModExp" {
                 let ithLimbBorrowResult
                 let ithLimbSubtractionResult
                 let borrow := 0
-                let limbOffset := 0
+                let limbOffset := shl(5, numberOfLimbs)
                 for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
-                    limbOffset := mul(sub(i,1), 32)
                     leftIthLimbValue := getLimbValueAtOffset(lhsPointer, limbOffset)
                     rightIthLimbValue := getLimbValueAtOffset(rhsPointer, limbOffset)
                     ithLimbSubtractionResult, borrow :=
                                                subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
                     storeLimbValueAtOffset(resultPointer, limbOffset, ithLimbSubtractionResult)
-
+                    limbOffset := sub(limbOffset, LIMB_SIZE_IN_BYTES())
                 }
             }
 
