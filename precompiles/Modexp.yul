@@ -463,9 +463,10 @@ object "ModExp" {
                 for {let bd := sub(mul(nLimbs, 256), mb)} gt(bd, 0) {bd := sub(bd, 1)} {
                     subtractionResultPtr, borrow := bigUintSubtractionWithBorrow(remPtr, rhsPtr, nLimbs, subtractionResultPtr) 
                     bigUIntCondSelect(subtractionResultPtr, remPtr, remPtr, nLimbs, borrow)
-                    bigUIntCondSelect(bigUIntBitOr(remPtr, one, nLimbs, subtractionResultPtr), borrow)
-                    bigUintShr(one, c)
-                    bigUIntShl(quo, 1)
+                    bigUIntBitOr(remPtr, one, nLimbs, subtractionResultPtr)
+                    bigUIntCondSelect(subtractionResultPtr, quo, quo, nLimbs, borrow)
+                    bigUIntShr(1, cPtr, nLimbs, cPtr)
+                    bigUIntShr(1, quo, nLimbs, quo)
                 }
             }
 
