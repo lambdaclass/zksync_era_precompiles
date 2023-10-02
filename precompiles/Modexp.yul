@@ -362,27 +362,20 @@ object "ModExp" {
                 overflowed := gt(difference, minuend)
             }
             /// @notice Computes the BigUint subtraction between the number stored
-            /// in lshPointer and rhsPointer.
+            /// in minuendPtr and subtrahendPtr.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L795
-            /// @param lhsPointer The start of the left hand side subtraction Big Number.
-            /// @param rhsPointer The start of the right hand side subtraction Big Number.
-            /// @return numberOfLimbs The number of limbs of both numbers.
-            /// @return resultPointer Where the result will be stored.
-            function bigUintSubtractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
-                let leftIthLimbValue
-                let rightIthLimbValue
-                let ithLimbBorrowResult
-                let ithLimbSubtractionResult
-                let borrow := 0
+            /// @param minuendPtr The start of the left hand side subtraction Big Number.
+            /// @param subtrahendPtr The start of the right hand side subtraction Big Number.
+            /// @return nLimbs The number of limbs of both numbers.
+            /// @return differencePtr Where the result will be stored.
+            function bigUIntSubWithBorrow(minuendPtr, subtrahendPtr, nLimbs, differencePtr) -> borrow {
                 let limbOffset := 0
-                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
+                for {let i := nLimbs} gt(i, 0) {i := sub(i, 1)} {
                     limbOffset := mul(sub(i,1), 32)
-                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, limbOffset)
-                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, limbOffset)
-                    ithLimbSubtractionResult, borrow :=
-                                               subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
-                    storeLimbValueAtOffset(resultPointer, limbOffset, ithLimbSubtractionResult)
-
+                    let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
+                    let subtrahendCurrentLimb := getLimbValueAtOffset(subtrahendPtr, limbOffset)
+                    let differenceCurrentLimb, borrow := overflowingSubWithBorrow(minuendCurrentLimb, subtrahendCurrentLimb, borrow)
+                    storeLimbValueAtOffset(differencePtr, limbOffset, differenceCurrentLimb)
                 }
             }
             /// @notice Performs the multiplication between two bigUInts
