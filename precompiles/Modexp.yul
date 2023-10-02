@@ -128,18 +128,6 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operands.
             /// @param resPtr The pointer to where you want the result to be stored
             function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-                // | Iteration  |       currentOffset   |           lhsCurrentPtr       |           rhsCurrentPtr       |           resCurrentPtr       | lhsCurrentValue | rhsCurrentValue |           resCurrentValue            |
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-                // | 0          | +0x00                 | lhsPtr + 0x00                 | rhsPtr + 0x00                 | resPtr + 0x00                 | lhs[0]          | rhs[0]          | or(lhs[0], rhs[0])                   |
-                // | 1          | +0x20                 | lhsPtr + 0x20                 | rhsPtr + 0x20                 | resPtr + 0x20                 | lhs[1]          | rhs[1]          | or(lhs[1], rhs[1])                   |
-                // | 2          | +0x40                 | lhsPtr + 0x40                 | rhsPtr + 0x40                 | resPtr + 0x40                 | lhs[2]          | rhs[2]          | or(lhs[2], rhs[2])                   |
-                // |            |                       |                               |                               |                               |                 |                 |                                      |
-                // | ...        | ...                   | ...                           | ...                           | ...                           | ...             | ...             | ...                                  |
-                // |            |                       |                               |                               |                               |                 |                 |                                      |
-                // | nLimbs - 1 | +(0x20 * (nLimbs - 1) | lhsPtr + (0x20 * (nLimbs - 1) | rhsPtr + (0x20 * (nLimbs - 1) | resPtr + (0x20 * (nLimbs - 1) | lhs[nLimbs - 1] | rhs[nLimbs - 1] | or(lhs[nLimbs - 1], rhs[nLimbs - 1]) |
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-
                 let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
                 for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
                     let lhsCurrentPtr := add(lhsPtr, currentOffset)
