@@ -24,6 +24,17 @@ object "ModExp" {
                 overflowed := lt(sum, augend)
             }
 
+            /// @notice Computes the difference between two 256 bit number and keeps
+            /// account of the borrow bit.
+            /// @param minuend The left side of the difference (i.e. the a in a - b).
+            /// @param subtrahend The right side of the difference (i.e. the b in a - b).
+            /// @return difference i.e. the c in c = a - b.
+            /// @return overflowed If there was any borrow on the subtraction, is returned as 1.
+            function overflowingSubWithBorrow(minuend, subtrahend, borrow) -> difference, overflowed {
+                difference := sub(minuend, add(subtrahend, borrow))
+                overflowed := gt(difference, minuend)
+            }
+
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
             /// @param multiplier The multiplier.
@@ -345,19 +356,6 @@ object "ModExp" {
 
             function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
                 mstore(add(limbPointer, anOffset), aValue)
-            }
-
-            /// @notice Computes the difference between two 256 bit number and keeps
-            /// account of the borrow bit
-            /// in lshPointer and rhsPointer.
-            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L785
-            /// @param minuend The left side of the difference (i.e. the a in a - b).
-            /// @param subtrahend The right side of the difference (i.e. the b in a - b).
-            /// @return difference i.e. the c in c = a - b.
-            /// @return overflowed If there was any borrow on the subtraction, is returned as 1.
-            function overflowingSubWithBorrow(minuend, subtrahend, borrow) -> difference, overflowed {
-                difference := sub(minuend, add(subtrahend, borrow))
-                overflowed := gt(difference, minuend)
             }
 
             /// @notice Computes the BigUint subtraction between the number stored
