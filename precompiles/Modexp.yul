@@ -453,12 +453,12 @@ object "ModExp" {
             function bigUIntDivRem(lhsPtr, rhsPtr, nLimbs, quotientPtr, reminderPtr) {
                 let mb := mul(nLimbs, 256)
                 let bd := sub(mul(nLimbs, 256), mb)
-                let quo := zeroWithLimbSizeAt(nLimbs, 0x400)
+                let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
                 let one := oneWithLimbSizeAt(nLimbs, 0x500)
                 let cPtr := 0x600
                 let subtractionResultPtr := 0x700 
                 let borrow := 0
-                let remPtr := copyBigUint(nLimbs, lhsPtr, 0x800)
+                let remPtr := copyBigUint(nLimbs, lhsPtr, reminderPtr)
                 bigUIntShr(bd, copyBigUint(nLimbs, rhsPtr, cPtr),  nLimbs, cPtr)
                 for {let bd := sub(mul(nLimbs, 256), mb)} gt(bd, 0) {bd := sub(bd, 1)} {
                     subtractionResultPtr, borrow := bigUintSubtractionWithBorrow(remPtr, rhsPtr, nLimbs, subtractionResultPtr) 
