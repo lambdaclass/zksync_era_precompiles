@@ -353,16 +353,13 @@ object "ModExp" {
             /// account of the borrow bit
             /// in lshPointer and rhsPointer.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L785
-            /// @param leftLimb The left side of the difference (i.e. the a in a - b).
-            /// @param rightLimb The right side of the difference (i.e. the b in a - b).
-            /// @return subtractionResult i.e. the c in c = a - b.
-            /// @return returnBorrow If there was any borrow on the subtraction, is returned as 1.
-            function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> subtractionResult, returnBorrow {
-                let rightPlusBorrow := add(rightLimb, limbBorrow)
-                subtractionResult := sub(leftLimb, rightPlusBorrow)
-                if gt(subtractionResult, leftLimb) {
-                 returnBorrow := 1
-                }
+            /// @param minuend The left side of the difference (i.e. the a in a - b).
+            /// @param subtrahend The right side of the difference (i.e. the b in a - b).
+            /// @return difference i.e. the c in c = a - b.
+            /// @return overflowed If there was any borrow on the subtraction, is returned as 1.
+            function overflowingSubWithBorrow(minuend, subtrahend, borrow) -> difference, overflowed {
+                difference := sub(minuend, add(subtrahend, borrow))
+                overflowed := gt(difference, minuend)
             }
             /// @notice Computes the BigUint subtraction between the number stored
             /// in lshPointer and rhsPointer.
