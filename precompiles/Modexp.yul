@@ -341,6 +341,53 @@ object "ModExp" {
 
             }
 
+            function getLimbValueAtOffset(limbPointer, anOffset) -> limbValue {
+                limbValue := mload(add(anOffset, limbPointer))
+            }
+
+            function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
+                    mstore(add(limbPointer, anOffset), aValue)
+            }
+
+            /// @notice Computes the difference between two 256 bit number and keeps
+            /// account of the borrow bit
+            /// in lshPointer and rhsPointer.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L785
+            /// @param leftLimb The left side of the difference (i.e. the a in a - b).
+            /// @param rightLimb The right side of the difference (i.e. the b in a - b).
+            /// @return subtractionResult i.e. the c in c = a - b.
+            /// @return returnBorrow If there was any borrow on the subtraction, is returned as 1.
+            function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> subtractionResult, returnBorrow {
+                let rightPlusBorrow := add(rightLimb, limbBorrow)
+                subtractionResult := sub(leftLimb, rightPlusBorrow)
+                if gt(subtractionResult, leftLimb) {
+                 returnBorrow := 1
+                }
+            }
+            /// @notice Computes the BigUint subtraction between the number stored
+            /// in lshPointer and rhsPointer.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L795
+            /// @param lhsPointer The start of the left hand side subtraction Big Number.
+            /// @param rhsPointer The start of the right hand side subtraction Big Number.
+            /// @return numberOfLimbs The number of limbs of both numbers.
+            /// @return resultPointer Where the result will be stored.
+            function bigUintSubtractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
+                let leftIthLimbValue
+                let rightIthLimbValue
+                let ithLimbBorrowResult
+                let ithLimbSubtractionResult
+                let borrow := 0
+                let limbOffset := 0
+                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
+                    limbOffset := mul(sub(i,1), 32)
+                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, limbOffset)
+                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, limbOffset)
+                    ithLimbSubtractionResult, borrow :=
+                                               subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
+                    storeLimbValueAtOffset(resultPointer, limbOffset, ithLimbSubtractionResult)
+
+                }
+            }
             /// @notice Performs the multiplication between two bigUInts
             /// @dev The result is stored from `mulResultPtr` to `mulResultPtr + (LIMB_SIZE * nLimbs)`.
             /// @param lhsPtr The start index in memory of the first number.
