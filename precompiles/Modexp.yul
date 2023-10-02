@@ -119,7 +119,7 @@ object "ModExp" {
             /// @param resPtr The pointer to where you want the result to be stored
             function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
                 // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-                // | Iteration  |       offset_i        |           ptr_lhs_i           |           ptr_rhs_i           |           ptr_res_i           |   value_lhs_i   |   value_rhs_i   |             value_res_i              |
+                // | Iteration  |       currentOffset   |           lhsCurrentPtr       |           rhsCurrentPtr       |           resCurrentPtr       | lhsCurrentValue | rhsCurrentValue |           resCurrentValue            |
                 // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
                 // | 0          | +0x00                 | lhsPtr + 0x00                 | rhsPtr + 0x00                 | resPtr + 0x00                 | lhs[0]          | rhs[0]          | or(lhs[0], rhs[0])                   |
                 // | 1          | +0x20                 | lhsPtr + 0x20                 | rhsPtr + 0x20                 | resPtr + 0x20                 | lhs[1]          | rhs[1]          | or(lhs[1], rhs[1])                   |
@@ -131,15 +131,14 @@ object "ModExp" {
                 // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
 
                 let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
-                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
-                {
-                    let ptr_lhs_i := add(lhsPtr, offset_i)
-                    let ptr_rhs_i := add(rhsPtr, offset_i)
-                    let ptr_res_i := add(resPtr, offset_i)
-                    let value_lhs_i := mload(ptr_lhs_i)
-                    let value_rhs_i := mload(ptr_rhs_i)
-                    let value_res_i := or(value_lhs_i, value_rhs_i)
-                    mstore(ptr_res_i, value_res_i)
+                for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
+                    let lhsCurrentPtr := add(lhsPtr, currentOffset)
+                    let rhsCurrentPtr := add(rhsPtr, currentOffset)
+                    let resCurrentPtr := add(resPtr, currentOffset)
+                    let lhsCurrentValue := mload(lhsCurrentPtr)
+                    let rhsCurrentValue := mload(rhsCurrentPtr)
+                    let resCurrentValue := or(lhsCurrentValue, rhsCurrentValue)
+                    mstore(resCurrentPtr, resCurrentValue)
                 }
             }
 
@@ -322,7 +321,7 @@ object "ModExp" {
                 let addendCurrentLimbPtr := add(addendPtr, totalLength)
 
                 // Loop through each full 32-byte word to add the two big numbers.
-                for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
+                for { let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
                     let currentLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
                     augendCurrentLimbPtr := sub(augendCurrentLimbPtr, currentLimbOffset)
@@ -361,6 +360,7 @@ object "ModExp" {
                 difference := sub(minuend, add(subtrahend, borrow))
                 overflowed := gt(difference, minuend)
             }
+
             /// @notice Computes the BigUint subtraction between the number stored
             /// in minuendPtr and subtrahendPtr.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L795
@@ -373,7 +373,7 @@ object "ModExp" {
                 let subtrahendCurrentLimb
                 let differenceCurrentLimb
                 let limbOffset := 0
-                for {let i := nLimbs} gt(i, 0) {i := sub(i, 1)} {
+                for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
                     limbOffset := mul(sub(i,1), 32)
                     let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
                     let subtrahendCurrentLimb := getLimbValueAtOffset(subtrahendPtr, limbOffset)
@@ -381,6 +381,7 @@ object "ModExp" {
                     storeLimbValueAtOffset(differencePtr, limbOffset, differenceCurrentLimb)
                 }
             }
+
             /// @notice Performs the multiplication between two bigUInts
             /// @dev The result is stored from `productPtr` to `productPtr + (LIMB_SIZE * nLimbs)`.
             /// @param multiplicandPtr The start index in memory of the first number.
