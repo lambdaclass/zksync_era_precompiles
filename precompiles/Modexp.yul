@@ -451,6 +451,7 @@ object "ModExp" {
             /// @dev The quotient is stored from `quotientPtr` to `quotientPtr + (WORD_SIZE * nLimbs)`.
             /// @dev The reminder is stored from `reminderPtr` to `reminderPtr + (WORD_SIZE * nLimbs)`.
             function bigUIntDivRem(lhsPtr, rhsPtr, nLimbs, quotientPtr, reminderPtr) {
+                /// FIX: This is not correct
                 let mb := mul(nLimbs, 256)
                 let bd := sub(mul(nLimbs, 256), mb)
                 let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
@@ -460,6 +461,8 @@ object "ModExp" {
                 let borrow := 0
                 let remPtr := copyBigUint(nLimbs, lhsPtr, reminderPtr)
                 bigUIntShr(bd, copyBigUint(nLimbs, rhsPtr, cPtr),  nLimbs, cPtr)
+                copyBigUint(nLimbs, rhsPtr, cPtr)
+                bigUIntShr(bd, cPtr ,  nLimbs, cPtr)
                 for {let bd := sub(mul(nLimbs, 256), mb)} gt(bd, 0) {bd := sub(bd, 1)} {
                     subtractionResultPtr, borrow := bigUintSubtractionWithBorrow(remPtr, rhsPtr, nLimbs, subtractionResultPtr) 
                     bigUIntCondSelect(subtractionResultPtr, remPtr, remPtr, nLimbs, borrow)
