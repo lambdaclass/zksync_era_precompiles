@@ -452,6 +452,8 @@ object "ModExp" {
             /// @dev The reminder is stored from `reminderPtr` to `reminderPtr + (WORD_SIZE * nLimbs)`.
             function bigUIntDivRem(lhsPtr, rhsPtr, nLimbs, quotientPtr, reminderPtr) {
                 /// FIX: This is not correct
+                /// this should be the same as bits_le,
+                /// which I think is log2(rhs)+1
                 let mb := mul(nLimbs, 256)
                 let bd := sub(mul(nLimbs, 256), mb)
                 let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
