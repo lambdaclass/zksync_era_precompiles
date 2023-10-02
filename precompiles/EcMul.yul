@@ -468,6 +468,14 @@ object "EcMul" {
                 zr := zp
             }
 
+            function bitLen(n) -> ret {
+                ret := 0
+                for {} gt(n, 0) {} {
+                    n := shr(1, n)
+                    ret := add(ret, 1)
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
@@ -557,18 +565,19 @@ object "EcMul" {
             let table130, table131, table132 := addProjective(table110, table111, table112, table10, table11, table12)
             let table140, table141, table142 := addProjective(table110, table111, table112, table20, table21, table22)
 
-            // let k1BitLen := bitLen(outOfMontgomeryForm(k1))
-            // let k2BitLen := bitLen(outOfMontgomeryForm(k2))
-            // let maxBit := k1BitLen
-            // if gt(k2BitLen, maxBit) {
-            //     maxBit := k2BitLen
-            // }
+            let k1BitLen := bitLen(k1)
+            let k2BitLen := bitLen(k2)
+            let maxBit := k1BitLen
+            if gt(k2BitLen, maxBit) {
+                maxBit := k2BitLen
+            }
 
             // k1 := outOfMontgomeryForm(k1)
             // k2 := outOfMontgomeryForm(k2)
-            let f := 254
+            let f := sub(maxBit, 2)
             let mask := shl(f, 3)
-            for { let j := 0 } lt(j, 128) { j := add(j, 1) } {
+
+            for { let j := 0 } lt(j,  div(maxBit, 2)) { j := add(j, 1) } {
                 xr, yr, zr := projectiveDouble(xr, yr, zr)
                 xr, yr, zr := projectiveDouble(xr, yr, zr)
                 let shift := sub(f, add(j, j))
