@@ -36,7 +36,7 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is zero (true) or not (false).
-            function bigNumberIsZero(start, len) -> res {
+            function bigUIntIsZero(start, len) -> res {
                 // Initialize result as true, assuming the number is zero until proven otherwise.
                 res := true
 
@@ -73,16 +73,16 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is one (true) or not (false).
-            function bigNumberIsOne(start, len) -> res {
+            function bigUIntIsOne(start, len) -> res {
                 if len {
                     let lastBytePtr := sub(add(start, len), 1)
                     let lastByte := byte(0, calldataload(lastBytePtr))
 
                     // Check if the last byte is one.
                     let lastByteIsOne := eq(lastByte, 1)
-                    // Check if all other bytes are zero using the bigNumberIsZero function
+                    // Check if all other bytes are zero using the bigUIntIsZero function
                     // The length for this check is (len - 1) because we exclude the last byte.
-                    let otherBytesAreZeroes := bigNumberIsZero(start, sub(len, 1))
+                    let otherBytesAreZeroes := bigUIntIsZero(start, sub(len, 1))
 
                     // The number is one if the last byte is one and all other bytes are zero.
                     res := and(lastByteIsOne, otherBytesAreZeroes)
@@ -442,7 +442,7 @@ object "ModExp" {
 
             // Note: This check covers the case where length of the modulo is zero.
             // base^exponent % 0 = 0
-            if bigNumberIsZero(modPtr, modLen) {
+            if bigUIntIsZero(modPtr, modLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -451,7 +451,7 @@ object "ModExp" {
             }
 
             // 1^exponent % modulus = 1
-            if bigNumberIsOne(basePtr, baseLen) {
+            if bigUIntIsOne(basePtr, baseLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -461,7 +461,7 @@ object "ModExp" {
             }
 
             // base^0 % modulus = 1
-            if bigNumberIsZero(expPtr, expLength) {
+            if bigUIntIsZero(expPtr, expLength) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -471,7 +471,7 @@ object "ModExp" {
             }
 
             // 0^exponent % modulus = 0
-            if bigNumberIsZero(basePtr, baseLen) {
+            if bigUIntIsZero(basePtr, baseLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
