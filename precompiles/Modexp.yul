@@ -15,7 +15,7 @@ object "ModExp" {
             function oneWithLimbSizeAt(limbSize, address) {
                let pointerToOne :=  address
                mstore(pointerToOne, 0x1)
-               for{let i := limbSize - 1} gt(i, 0) { i := i - 1} {
+               for{let i := sub(limbSize, 1)} gt(i, 0) { i := sub(i, 1)} {
                   let offset := add(mul(i, 32), pointerToOne)
                   mstore(offset, 0x0)
                }
@@ -23,8 +23,8 @@ object "ModExp" {
 
             function zeroWithLimbSizeAt(limbSize, address) {
                let pointerToZero :=  address
-               for{let i := limbSize} gt(i, 0) { i := i - 1} {
-                  let offset := add(mul(i, 32), pointerToOne)
+               for{let i := limbSize} gt(i, 0) { i := sub(i, 1)} {
+                  let offset := add(mul(i, 32), pointerToZero)
                   mstore(offset, 0x0)
                }
             }
@@ -455,14 +455,15 @@ object "ModExp" {
                 let bd := sub(mul(nLimbs, 256), mb)
                 let quo := zeroWithLimbSizeAt(nLimbs, 0x400)
                 let one := oneWithLimbSizeAt(nLimbs, 0x500)
-                let cPtr, subtractionResultPtr, borrow := 0x600, 0x700, 0
+                let cPtr := 0x600
+                let subtractionResultPtr := 0x700 
+                let borrow := 0
                 let remPtr := copyBigUint(nLimbs, lhsPtr, 0x800)
-                // c := rhs.shl(bd)
-                bigUintShr(bd, copyBigUint(nLimbs, rhsPtr, cPtr))
-                for {let bd := (nLimbs*(256) - mb)} gt(bd, 0) {bd := sub(bd, 1)} {
+                bigUIntShr(bd, copyBigUint(nLimbs, rhsPtr, cPtr),  nLimbs, cPtr)
+                for {let bd := sub(mul(nLimbs, 256), mb)} gt(bd, 0) {bd := sub(bd, 1)} {
                     subtractionResultPtr, borrow := bigUintSubtractionWithBorrow(remPtr, rhsPtr, nLimbs, subtractionResultPtr) 
-                    rem := bigUIntCondSelect(subtractionResultPtr, remPtr, borrow)
-                    quo := bigUIntCondSelect(bigUIntBitOr(rem, one, nLimbs, subtractionResultPtr), borrow)
+                    bigUIntCondSelect(subtractionResultPtr, remPtr, remPtr, nLimbs, borrow)
+                    bigUIntCondSelect(bigUIntBitOr(remPtr, one, nLimbs, subtractionResultPtr), borrow)
                     bigUintShr(one, c)
                     bigUIntShl(quo, 1)
                 }
