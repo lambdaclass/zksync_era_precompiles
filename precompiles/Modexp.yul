@@ -389,11 +389,11 @@ object "ModExp" {
                 }
             }
             /// @notice Performs the multiplication between two bigUInts
-            /// @dev The result is stored from `mulResultPtr` to `mulResultPtr + (LIMB_SIZE * nLimbs)`.
-            /// @param lhsPtr The start index in memory of the first number.
-            /// @param rhsPtr The start index in memory of the second number.
+            /// @dev The result is stored from `productPtr` to `productPtr + (LIMB_SIZE * nLimbs)`.
+            /// @param multiplicandPtr The start index in memory of the first number.
+            /// @param multiplierPtr The start index in memory of the second number.
             /// @param nLimbs The number of limbs needed to represent the operands.
-            function bigUIntMul(lhsPtr, rhsPtr, nLimbs, mulResultPtr) {
+            function bigUIntMul(multiplicandPtr, multiplierPtr, nLimbs, productPtr) {
                 let retIndex, retWordAfter, retWordBefore
                 // Iterating over each limb in the first number.
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
@@ -402,14 +402,14 @@ object "ModExp" {
                     // Iterating over each limb in the second number.
                     for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
                         // Loading the i-th and j-th limbs of the first and second numbers.
-                        let word1 := mload(add(lhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
-                        let word2 := mload(add(rhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
+                        let word1 := mload(add(multiplicandPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
+                        let word2 := mload(add(multiplierPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
 
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
 
                         // Calculate the index to store the product.
-                        retIndex := add(mulResultPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
+                        retIndex := add(productPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
                         retWordBefore := mload(retIndex) // Load the previous value at the result index.
                         retWordAfter, carryFlag := overflowingAdd(retWordBefore, product)
 
@@ -418,7 +418,7 @@ object "ModExp" {
                     }
 
                     // Store the last word which comes from the final carry.
-                    retIndex := add(mulResultPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
+                    retIndex := add(productPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
                     mstore(retIndex, carry)
                 }
             }
