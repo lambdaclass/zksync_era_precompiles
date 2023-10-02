@@ -369,6 +369,9 @@ object "ModExp" {
             /// @return nLimbs The number of limbs of both numbers.
             /// @return differencePtr Where the result will be stored.
             function bigUIntSubWithBorrow(minuendPtr, subtrahendPtr, nLimbs, differencePtr) -> borrow {
+                let minuendCurrentLimb
+                let subtrahendCurrentLimb
+                let differenceCurrentLimb
                 let limbOffset := 0
                 for {let i := nLimbs} gt(i, 0) {i := sub(i, 1)} {
                     limbOffset := mul(sub(i,1), 32)
