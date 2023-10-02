@@ -346,7 +346,7 @@ object "ModExp" {
             }
 
             function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
-                    mstore(add(limbPointer, anOffset), aValue)
+                mstore(add(limbPointer, anOffset), aValue)
             }
 
             /// @notice Computes the difference between two 256 bit number and keeps
