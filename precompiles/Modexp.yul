@@ -312,9 +312,9 @@ object "ModExp" {
             /// @param augendPtr The pointer where the big number on the left operand starts.
             /// @param addendPtr The pointer where the big number on right operand starts.
             /// @param nLimbs The number of 32-byte words that the big numbers occupy.
-            /// @param resPtr The pointer where the result of the addition will be stored.
+            /// @param sumPtr The pointer where the result of the addition will be stored.
             /// @return overflowed A boolean indicating whether the addition overflowed (true) or not (false).
-            function bigUIntAdd(augendPtr, addendPtr, nLimbs, resPtr) -> overflowed {
+            function bigUIntAdd(augendPtr, addendPtr, nLimbs, sumPtr) -> overflowed {
                 let totalLength := mul(nLimbs, LIMB_SIZE_IN_BYTES())
                 let carry := 0
 
@@ -324,9 +324,9 @@ object "ModExp" {
                 // Loop through each full 32-byte word to add the two big numbers.
                 for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
-                    let actualLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
-                    augendCurrentLimbPtr := sub(augendCurrentLimbPtr, actualLimbOffset)
-                    addendCurrentLimbPtr := sub(addendCurrentLimbPtr, actualLimbOffset)
+                    let currentLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
+                    augendCurrentLimbPtr := sub(augendCurrentLimbPtr, currentLimbOffset)
+                    addendCurrentLimbPtr := sub(addendCurrentLimbPtr, currentLimbOffset)
                     
                     let addendLimb := mload(addendCurrentLimbPtr)
                     let augendLimb := mload(augendCurrentLimbPtr)
@@ -334,7 +334,7 @@ object "ModExp" {
                     let sumWithPreviousCarry, carrySumOverflow := overflowingAdd(sum, carry)
                     sum := sumWithPreviousCarry
                     carry := or(overflow, carrySumOverflow)
-                    let limbResultPtr := sub(add(resPtr,totalLength),actualLimbOffset)
+                    let limbResultPtr := sub(add(sumPtr,totalLength), currentLimbOffset)
                     mstore(limbResultPtr, sum)
                 }
                 overflowed := carry
