@@ -4,6 +4,20 @@ object "EcPairing" {
 		code {
             // CONSTANTS
 
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // A big memory address to store the function selector.
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1) // mem[0] = 0xf8...
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
             /// @notice Constant function for value one in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
@@ -623,6 +637,33 @@ object "EcPairing" {
                 c20, c21 := fp2Mul(c20, c21, t60, t61)
             }
 
+            /// @notice Computes the multiplication a Fp6 element with a Fp6 without the quadratic term.
+            /// @dev Algorithm 15 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21 The coefficients of the Fp6 element A.
+            /// @param b00, b01, b10, b11, b20, b21 The coefficients of the Fp6 element B, with b20 = b21 = 0.
+            /// @return c00, c01, c10, c11, c20, c21 The coefficients of the element C = A * B.
+            function fp6MulBySparse01(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21) -> c00, c01, c10, c11, c20, c21 {
+                let t00, t01 := fp2Mul(a00, a01, b00, b01)
+                let t10, t11 := fp2Mul(a10, a11, b10, b11)
+                
+                let t20, t21 := fp2Add(a10, a11, a20, a21)
+                c00, c01 := fp2Mul(b10, b11, t20, t21)
+                c00, c01 := fp2Sub(c00, c01, t10, t11)
+                c00, c01 := mulByXi(c00, c01)
+                c00, c01 := fp2Add(c00, c01, t00, t01)
+
+                t20, t21 := fp2Add(a00, a01, a20, a21)
+                c20, c21 := fp2Mul(b00, b01, t20, t21)
+                c20, c21 := fp2Sub(c20, c21, t00, t01)
+                c20, c21 := fp2Add(c20, c21, t10, t11)
+
+                c10, c11 := fp2Add(b00, b01, b10, b11)
+                t20, t21 := fp2Add(a00, a01, a10, a11)
+                c10, c11 := fp2Mul(c10, c11, t20, t21)
+                c10, c11 := fp2Sub(c10, c11, t00, t01)
+                c10, c11 := fp2Sub(c10, c11, t10, t11)
+            }
+
             // FP12 ARITHMETHICS
 
             /// @notice Computes the sum of two Fp12 elements.
@@ -824,8 +865,72 @@ object "EcPairing" {
                 }
             }
 
-            // FROBENIUS
+            /// @notice Computes the multiplication a Fp12 element with a sparce Fp12.
+            /// @param a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51 The coefficients of the Fp12 element A.
+            /// @param b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51 The coefficients of the Fp6 element B, with b10 = b11 = b20 = b21 = b50 = b51 = 0.
+            /// @return c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 The coefficients of the element C = A * B.
+            function fp12MulBySparece034(a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51, b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t00, t01 := fp2Mul(a00, a01, b00, b01)
+                let t10, t11 := fp2Mul(a10, a11, b00, b01)
+                let t20, t21 := fp2Mul(a20, a21, b00, b01)
+                let t30, t31, t40, t41, t50, t51 := fp6MulBySparse01(a30, a31, a40, a41, a50, a51, b30, b31, b40, b41, 0, 0) 
+                let t60, t61 := fp2Add(b00, b01, b30, b31)
+                let t70, t71, t80, t81, t90, t91 := fp6Add(a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51)
+                t70, t71, t80, t81, t90, t91 := fp6MulBySparse01(t70, t71, t80, t81, t90, t91, t60, t61, b40, b41, 0, 0)
+                c30, c31, c40, c41, c50, c51 := fp6Add(t00, t01, t10, t11, t20, t21, t30, t31, t40, t41, t50, t51)
+                c30, c31, c40, c41, c50, c51 := fp6Neg(c30, c31, c40, c41, c50, c51)
+                c30, c31, c40, c41, c50, c51 := fp6Add(c30, c31, c40, c41, c50, c51, t70, t71, t80, t81, t90, t91)
+                c00, c01, c10, c11, c20, c21 := mulByGamma(t30, t31, t40, t41, t50, t51)
+                c00, c01, c10, c11, c20, c21 := fp6Add(c00, c01, c10, c11, c20, c21, t00, t01, t10, t11, t20, t21)
+            }
 
+            /// @notice Computes the multiplication a Fp12 element with a sparce Fp12.
+            /// @dev Algorithm 21 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51 The coefficients of the Fp12 element A.
+            /// @param b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51 The coefficients of the Fp6 element B, with b50 = b51 = 0.
+            /// @return c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 The coefficients of the element C = A * B.
+            function fp12MulBySparece01234(a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51, b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t00, t01, t10, t11, t20, t21 := fp6Add(a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51)
+                let t30, t31, t40, t41, t50, t51 := fp6Add(b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51)
+                t00, t01, t10, t11, t20, t21 := fp6Mul(t00, t01, t10, t11, t20, t21, t30, t31, t40, t41, t50, t51)
+                t30, t31, t40, t41, t50, t51 := fp6Mul(a00, a01, a10, a11, a20, a21, b00, b01, b10, b11, b20, b21)
+                let t60, t61, t70, t71, t80, t81 := fp6MulBySparse01(a30, a31, a40, a41, a50, a51, b30, b31, b40, b41, b50, b51)
+                c30, c31, c40, c41, c50, c51 := fp6Sub(t00, t01, t10, t11, t20, t21, t30, t31, t40, t41, t50, t51)
+                c30, c31, c40, c41, c50, c51 := fp6Sub(c30, c31, c40, c41, c50, c51, t60, t61, t70, t71, t80, t81)
+                c00, c01, c10, c11, c20, c21 := mulByGamma(t60, t61, t70, t71, t80, t81)
+                c00, c01, c10, c11, c20, c21 := fp6Add(c00, c01, c10, c11, c20, c21, t30, t31, t40, t41, t50, t51)
+            }
+
+            /// @notice Computes the multiplication two sparce Fp12 elements.
+            /// @param a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51 The coefficients of the Fp12 element A, with a10 = a11 = a20 = a21 = a50 = a51 = 0
+            /// @param b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51 The coefficients of the Fp6 element B, with b10 = b11 = b20 = b21 = b50 = b51 = 0.
+            /// @return c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 The coefficients of the element C = A * B.
+            function fp12MulSparse034By034(a00, a01, a10, a11, a20, a21, a30, a31, a40, a41, a50, a51, b00, b01, b10, b11, b20, b21, b30, b31, b40, b41, b50, b51) -> c00, c01, c10, c11, c20, c21, c30, c31, c40, c41, c50, c51 {
+                let t00, t01 := fp2Mul(a00, a01, b00, b01)
+                c10, c11 := fp2Mul(a30, a31, b30, b31)
+                let t10, t11 := fp2Mul(a40, a41, b40, b41)
+                let t20, t21 := fp2Add(b00, b01, a40, a41)
+                c40, c41 := fp2Add(a00, a01, a40, a41)
+                c40, c41 := fp2Mul(c40, c41, t20, t21)
+                c40, c41 := fp2Sub(c40, c41, t00, t01)
+                c40, c41 := fp2Sub(c40, c41, t10, t11)
+                t20, t21 := fp2Add(b00, b01, b30, b31)
+                c30, c31 := fp2Add(a00, a01, a30, a31)
+                c30, c31 := fp2Mul(c30, c31, t20, t21)
+                c30, c31 := fp2Sub(c30, c31, t00, t01)
+                c30, c31 := fp2Sub(c30, c31, c10, c11)
+                t20, t21 := fp2Add(b30, b31, b40, b41)
+                c20, c21 := fp2Add(a30, a31, a40, a41)
+                c20, c21 := fp2Mul(c20, c21, t20, t21)
+                c20, c21 := fp2Sub(c20, c21, c10, c11)
+                c20, c21 := fp2Sub(c20, c21, t10, t11)
+                c00, c01 := mulByXi(t10, t11)
+                c00, c01 := fp2Add(c00, c01, t00, t01)
+                c50 := 0
+                c51 := 0
+            }
+
+            // FROBENIUS
 
             /// @notice Computes the exponentiation of a Fp12 element to p.
             /// @dev Algorithm 28 in: https://eprint.iacr.org/2010/354.pdf.
