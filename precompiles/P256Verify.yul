@@ -220,8 +220,8 @@ object "P256VERIFY" {
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
-                    let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, P()), R2_MOD_P())
-                    let lowest_half_of_a := mul(mod(a, P()), R2_MOD_P())
+                    let higher_half_of_a := getHighestHalfOfMultiplication(a, R2_MOD_P())
+                    let lowest_half_of_a := mul(a, R2_MOD_P())
                     ret := REDC(lowest_half_of_a, higher_half_of_a)
             }
 
