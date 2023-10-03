@@ -408,35 +408,35 @@ object "P256VERIFY" {
                 let flag := 1
                 let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                 let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
-                if and(and(pIsInfinity, qIsInfinity), flag) {
+                if and(pIsInfinity, qIsInfinity) {
                     // Infinity + Infinity = Infinity
                     xr := 0
                     yr := MONTGOMERY_ONE()
                     zr := 0
                     flag := 0
                 }
-                if and(pIsInfinity, flag) {
+                if and(flag, pIsInfinity) {
                     // Infinity + P = P
                     xr := xq
                     yr := yq
                     zr := zq
                     flag := 0
                 }
-                if and(qIsInfinity, flag) {
+                if and(flag, qIsInfinity) {
                     // P + Infinity = P
                     xr := xp
                     yr := yp
                     zr := zp
                     flag := 0
                 }
-                if and(and(and(eq(xp, xq), eq(montgomerySub(0, yp), yq)), eq(zp, zq)), flag) {
+                if and(flag, and(and(eq(xp, xq), eq(montgomerySub(0, yp), yq)), eq(zp, zq))) {
                     // P + (-P) = Infinity
                     xr := 0
                     yr := MONTGOMERY_ONE()
                     zr := 0
                     flag := 0
                 }
-                if and(and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq)), flag) {
+                if and(flag, and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq))) {
                     // P + P = 2P
                     xr, yr, zr := projectiveDouble(xp, yp, zp)
                     flag := 0
