@@ -487,7 +487,7 @@ object "ModExp" {
                 let bd := sub(mul(nLimbs, 256), mb)
                 let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
                 let one := oneWithLimbSizeAt(nLimbs, 0x500)
-                let cPtr := 0x600
+                let cPtr := 0x900
                 let subtractionResultPtr := 0x700 
                 let borrow := 0
                 let remPtr := copyBigUint(nLimbs, lhsPtr, reminderPtr)
