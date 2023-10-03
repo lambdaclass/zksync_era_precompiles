@@ -503,18 +503,13 @@ object "Playground" {
             /// @dev The quotient is stored from `quotient_ptr` to `quotient_ptr + (WORD_SIZE * nLimbs)`.
             /// @dev The reminder is stored from `rem_ptr` to `rem_ptr + (WORD_SIZE * nLimbs)`.
             function bigUIntDivRem(dividend_ptr, divisor_ptr, n_limbs, quotient_ptr, rem_ptr) {
-                console_log(0xA0A0)
-                console_log(mload(dividend_ptr))
                 copyBigUint(n_limbs, dividend_ptr, rem_ptr) // rem = dividend 
-                console_log(mload(rem_ptr))
 
                 // Init quotient to 0.
                 zeroWithLimbSizeAt(n_limbs, quotient_ptr) // quotient = 0
 
                 let mb := big_uint_bit_size(divisor_ptr, n_limbs)
-                console_log(mb)
                 let bd := sub(mul(n_limbs, 256), mb)
-                console_log(bd)
                 let c_ptr := 0x900 // FIXME don't use a hardcoded address!
                 bigUIntShl(bd, divisor_ptr, n_limbs, c_ptr) // c == divisor << bd
 
@@ -522,33 +517,19 @@ object "Playground" {
 
                 for { } iszero(0) { } {
                     // LAMBDAWORKS : let (mut r, borrow) = rem.sbb(&c, 0);
-                    console_log(0xDEADBEEF)
-                    console_log(mload(rem_ptr))
-                    console_log(mload(c_ptr))
                     let r_ptr, borrow := bigUintSubtractionWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
-                    console_log(mload(r_ptr))
-                    console_log(borrow)
 
-                    console_log(0xCAFE0001)
 
                     // LAMBDAWORKS : rem = Self::ct_select(&r, &rem, borrow);
-                    console_log(mload(r_ptr))
-                    console_log(mload(rem_ptr))
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, rem_ptr)
                     }
-                    console_log(mload(rem_ptr))
 
                     // LAMBDAWORKS : r = quo.bitor(Self::from_u64(1));
-                    console_log(0xCAFE0002)
-                    console_log(mload(quotient_ptr))
-                    console_log(mload(r_ptr))
                     copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
                     big_uint_inplace_or_1(r_ptr, n_limbs) // r = quotient | 1
-                    console_log(mload(r_ptr))
 
                     // LAMBDAWORKS : quo = Self::ct_select(&r, &quo, borrow);
-                    console_log(0xCAFE0002)
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, quotient_ptr)
                     }
@@ -578,28 +559,48 @@ object "Playground" {
             let nLimbs := 0x1
 
             let dividendPtr := 0x0
-            mstore(add(dividendPtr, 0), shr(1, not(0))) // dividend[0]
+            mstore(add(dividendPtr, 0), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) // dividend[0]
 
             let divisorPtr := 0x20
-            mstore(add(divisorPtr, 0), not(0)) // divisor[0]
+            mstore(add(divisorPtr, 0), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) // divisor[0]
 
-            let quotient_ptr := 0x40
-            mstore(add(quotient_ptr, 0), 0x0) // quotient[0]
+            let quotientPtr := 0x40
+            mstore(add(quotientPtr, 0), 0x0) // quotient[0]
 
-            let rem_ptr := 0x60
-            mstore(add(rem_ptr, 0), 0x0) // reminder[0]
+            let reminderPtr := 0x60
+            mstore(add(reminderPtr, 0), 0x0) // reminder[0]
 
-            bigUIntDivRem(dividendPtr, divisorPtr, nLimbs, quotient_ptr, rem_ptr)
-            console_log(mload(quotient_ptr)) // Expected 1
-            console_log(mload(rem_ptr)) // Expected 0
+            bigUIntDivRem(dividendPtr, divisorPtr, nLimbs, quotientPtr, reminderPtr)
 
             // Comparing quotient against expected values:
-            //console_log(eq(mload(add(64, 0)), 0x0)) // quotient[0]
+            console_log(eq(mload(add(64, 0)), 0x1)) // quotient[0]
 
             // Comparing reminder against expected values:
-            //console_log(eq(mload(add(96, 0)), 0x42)) // reminder[0]
+            console_log(eq(mload(add(96, 0)), 0x0)) // reminder[0]
 
 
+            // Test 02
+            let nLimbs := 0x1
+
+            let dividendPtr := 0x0
+            mstore(add(dividendPtr, 0), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) // dividend[0]
+
+            let divisorPtr := 0x20
+            mstore(add(divisorPtr, 0), 0x8000000000000000000000000000000000000000000000000000000000000000) // divisor[0]
+
+            let quotientPtr := 0x40
+            mstore(add(quotientPtr, 0), 0x0) // quotient[0]
+
+            let reminderPtr := 0x60
+            mstore(add(reminderPtr, 0), 0x0) // reminder[0]
+
+            bigUIntDivRem(dividendPtr, divisorPtr, nLimbs, quotientPtr, reminderPtr)
+
+            // Comparing quotient against expected values:
+            console_log(eq(mload(add(64, 0)), 0x1)) // quotient[0]
+
+            // Comparing reminder against expected values:
+            console_log(eq(mload(add(96, 0)), 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) // reminder[0]
 		}
     }
 }
