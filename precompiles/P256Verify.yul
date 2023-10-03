@@ -102,13 +102,23 @@ object "P256VERIFY" {
 
             // MONTGOMERY
 
+            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
+            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod P() being `a` the base number (not in Montgomery Form)
+            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
+            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
+            /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
+            /// @dev and a^(-1)*R mod P() respectively).
+            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod P(),
+            /// @dev but we want it to be a^(-1)*R mod P().
+            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod P()
+            /// @dev to get R^2*a^(-1)*R^(-1) mod P() = a^(-1)*R mod P() as the desired result in Montgomery Form.
+            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
+            /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
+            /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
+            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
-                // Precomputation of 1 << 255
-                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 let modulus := P()
-                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-                let modulusHasSpareBits := iszero(and(modulus, mask))
-
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
@@ -118,37 +128,25 @@ object "P256VERIFY" {
                 for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
                     for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, 1)
-                        if iszero(current_b_is_odd) {
+                        let current := b
+                        switch and(current, 1)
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                b := or(b, mask)
-                            }
+                        case 1 {
+                            b := shr(1, add(b, modulus))
                         }
                     }
 
                     for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, 1)
-                        if iszero(current_c_is_odd) {
+                        let current := c
+                        switch and(current, 1)
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                c := or(c, mask)
-                            }
+                        case 1 {
+                            c := shr(1, add(c, modulus))
                         }
                     }
 
