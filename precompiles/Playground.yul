@@ -35,11 +35,10 @@ object "Playground" {
                }
             }
 
-            function zeroWithLimbSizeAt(limbSize, address) {
-               let pointerToZero :=  address
-               for{let i := limbSize} gt(i, 0) { i := sub(i, 1)} {
-                  let offset := add(mul(i, 32), pointerToZero)
-                  mstore(offset, 0x0)
+            function zeroWithLimbSizeAt(n_limbs, base_ptr) {
+               for { let i := 0 } lt(i, n_limbs) { i := add(i, 1) } {
+                   let offset := mul(i, 32)
+                   mstore(add(base_ptr, offset), 0)
                }
             }
 
@@ -513,14 +512,15 @@ object "Playground" {
                 zeroWithLimbSizeAt(n_limbs, quotient_ptr) // quotient = 0
 
                 let mb := big_uint_bit_size(divisor_ptr, n_limbs)
+                console_log(mb)
                 let bd := sub(mul(n_limbs, 256), mb)
+                console_log(bd)
                 let c_ptr := 0x900 // FIXME don't use a hardcoded address!
                 bigUIntShl(bd, divisor_ptr, n_limbs, c_ptr) // c == divisor << bd
 
                 let r_ptr := 0x700 // FIXME don't use a hardcoded address!
 
-                let breaker := 0
-                for { } iszero(breaker) { } {
+                for { } iszero(0) { } {
                     // LAMBDAWORKS : let (mut r, borrow) = rem.sbb(&c, 0);
                     console_log(0xDEADBEEF)
                     console_log(mload(rem_ptr))
@@ -529,23 +529,33 @@ object "Playground" {
                     console_log(mload(r_ptr))
                     console_log(borrow)
 
+                    console_log(0xCAFE0001)
+
                     // LAMBDAWORKS : rem = Self::ct_select(&r, &rem, borrow);
+                    console_log(mload(r_ptr))
+                    console_log(mload(rem_ptr))
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, rem_ptr)
                     }
+                    console_log(mload(rem_ptr))
 
                     // LAMBDAWORKS : r = quo.bitor(Self::from_u64(1));
+                    console_log(0xCAFE0002)
+                    console_log(mload(quotient_ptr))
+                    console_log(mload(r_ptr))
                     copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
                     big_uint_inplace_or_1(r_ptr, n_limbs) // r = quotient | 1
+                    console_log(mload(r_ptr))
 
                     // LAMBDAWORKS : quo = Self::ct_select(&r, &quo, borrow);
+                    console_log(0xCAFE0002)
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, quotient_ptr)
                     }
 
                     // LAMBDAWORKS: if bd == 0 { break; }
                     if eq(bd, 0) {
-                        breaker := 1
+                        break
                     }
 
                     bd := sub(bd, 1)
@@ -568,11 +578,10 @@ object "Playground" {
             let nLimbs := 0x1
 
             let dividendPtr := 0x0
-            mstore(add(dividendPtr, 0), 0xABADBABE) // dividend[0]
+            mstore(add(dividendPtr, 0), shr(1, not(0))) // dividend[0]
 
             let divisorPtr := 0x20
             mstore(add(divisorPtr, 0), not(0)) // divisor[0]
-            console_log(mload(divisorPtr))
 
             let quotient_ptr := 0x40
             mstore(add(quotient_ptr, 0), 0x0) // quotient[0]
@@ -581,8 +590,8 @@ object "Playground" {
             mstore(add(rem_ptr, 0), 0x0) // reminder[0]
 
             bigUIntDivRem(dividendPtr, divisorPtr, nLimbs, quotient_ptr, rem_ptr)
-            console_log(quotient_ptr) // Expected 1
-            console_log(rem_ptr) // Expected 0
+            console_log(mload(quotient_ptr)) // Expected 1
+            console_log(mload(rem_ptr)) // Expected 0
 
             // Comparing quotient against expected values:
             //console_log(eq(mload(add(64, 0)), 0x0)) // quotient[0]
