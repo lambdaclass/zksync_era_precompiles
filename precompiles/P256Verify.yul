@@ -376,8 +376,8 @@ object "P256VERIFY" {
             function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
                 let x_squared := montgomeryMul(xp, xp)
                 let z_squared := montgomeryMul(zp, zp)
-                let az_squared := montgomeryAdd(MONTGOMERY_A(), z_squared)
-                let t := montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared))
+                let az_squared := montgomeryMul(MONTGOMERY_A(), z_squared)
+                let t := montgomeryAdd(montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared)), az_squared)
                 let yz := montgomeryMul(yp, zp)
                 let u := montgomeryAdd(yz, yz)
                 let uxy := montgomeryMul(u, montgomeryMul(xp, yp))
