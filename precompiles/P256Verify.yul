@@ -585,41 +585,30 @@ object "P256VERIFY" {
 
             let z
             x, y, z := projectiveFromAffine(x, y)
-            console_log(0xaca)
 
-            // // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
+            // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            // hash := intoMontgomeryForm(hash)
-            // r := intoMontgomeryForm(r)
-            // s := intoMontgomeryForm(s)
+            hash := intoMontgomeryForm(hash)
+            r := intoMontgomeryForm(r)
+            s := intoMontgomeryForm(s)
 
-            // let s1 := montgomeryModularInverse(s)
+            let s1 := montgomeryModularInverse(s)
 
-            // let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
-            // let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
+            let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
+            let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
 
-            // let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
+            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
-            // // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
-            // let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
-            // console_log(xp)
-            // console_log(yp)
-            // console_log(zp)
-            // let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
-            // console_log(xq)
-            // console_log(yq)
-            // console_log(zq)
-            // let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
-            // console_log(xr)
-            // console_log(yr)
-            // console_log(zr)
+            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
+            let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
+            let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
+            let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
-            // // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            // xr := montgomeryMul(xr, montgomeryModularInverse(zr))
-            // console_log(0xaca8)
+            // As we only need xr in affine form, we can skip transforming the `y` coordinate.
+            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
 
-            // mstore(0, eq(xr, r))
-            // return(0, 32)
+            mstore(0, eq(xr, r))
+            return(0, 32)
         }
     }
 }
