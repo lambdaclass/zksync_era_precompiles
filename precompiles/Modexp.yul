@@ -447,14 +447,43 @@ object "ModExp" {
                 }
             }
 
+            // @notice Computes the bit size of an unsigned integer.
+            // @dev Return value boundary: `0 <= bit_size <= 256`
+            // @param x An unsigned integer value.
+            // @return bit_size Number of bits required to represent `x`.
+            function uint_bit_size(x) -> bit_size {
+                // Increment bit_size until there are no significant bits left.
+                bit_size := 0
+                for { let shift_me := x } lt(0, shift_me) { shift_me := shr(1, shift_me) } {
+                    bit_size := add(bit_size, 1)
+                }
+            }
+
+            function big_uint_bit_size(base_ptr, n_limbs) -> bit_size {
+                bit_size := shl(8, n_limbs)
+
+                // Iterate until finding the most significant limb or reach
+                let limb := 0
+                for { let i := 0 } and(lt(i, n_limbs), iszero(limb)) { i := add(i, 1) } {
+                    bit_size := sub(bit_size, 256) // Decrement one limb worth of bits.
+                    let ptr_i := add(base_ptr, shl(5, i)) // = base_ptr + i * 32 bytes
+                    limb := mload(ptr_i)
+                }
+
+                // At this point, `limb == limbs[i - 1]`. Where `i` equals the
+                // last value it took.
+
+                // At this point, `bit_size` equals the amount of bits in the
+                // limbs following the most significant limb.
+
+                bit_size := add(bit_size, uint_bit_size(limb))
+            }
+
             /// @notice Performs the big unsigned integer square of big unsigned integers with an arbitrary amount of limbs.
             /// @dev The quotient is stored from `quotientPtr` to `quotientPtr + (WORD_SIZE * nLimbs)`.
             /// @dev The reminder is stored from `reminderPtr` to `reminderPtr + (WORD_SIZE * nLimbs)`.
             function bigUIntDivRem(lhsPtr, rhsPtr, nLimbs, quotientPtr, reminderPtr) {
-                /// FIX: This is not correct
-                /// this should be the same as bits_le,
-                /// which I think is log2(rhs)+1
-                let mb := mul(nLimbs, 256)
+                let mb := big_uint_bit_size(rhsPtr, nLimbs)
                 let bd := sub(mul(nLimbs, 256), mb)
                 let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
                 let one := oneWithLimbSizeAt(nLimbs, 0x500)
