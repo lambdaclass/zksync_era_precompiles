@@ -542,15 +542,6 @@ object "EcMul" {
             let v10, v11, v20, v21, det, b1, b2 := GLV_BASIS()
             let k1, k2 := splitScalar(scalar, v10, v11, v20, v21, det, b1, b2)
 
-            // if shr(255, k1) {
-            //     k1 := sub(P(), k1)
-            //     table00, table01, table02 := projectiveNeg(table00, table01, table02)
-            // }
-            // if shr(255, k2) {
-            //     k2 :=sub(P(), k2)
-            //     table30, table31, table32 := projectiveNeg(table30, table31, table32)
-            // }
-
             let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
             let table20, table21, table22 := addProjective(table10, table11, table12, table00, table01, table02)
             let table40, table41, table42 := addProjective(table30, table31, table32, table00, table01, table02)
@@ -572,8 +563,10 @@ object "EcMul" {
                 maxBit := k2BitLen
             }
 
-            // k1 := outOfMontgomeryForm(k1)
-            // k2 := outOfMontgomeryForm(k2)
+            if mod(maxBit, 2) {
+                maxBit := add(maxBit, 1)
+            }
+
             let f := sub(maxBit, 2)
             let mask := shl(f, 3)
 
