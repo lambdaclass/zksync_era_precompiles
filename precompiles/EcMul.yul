@@ -384,14 +384,20 @@ object "EcMul" {
             }
 
             function splitScalar(scalar, v10, v11, v20, v21, det, b1, b2) -> v0, v1 {
+                // This multiplications overflows, multiplication of big integers is needed.
                 let k1 := mul(scalar, b1)
                 let k2 := mul(scalar, b2)
+
                 k2 := sub(0, k2)
-                // n := 2 * ((l.Det.BitLen()+32)>>6)<<6)
                 let n := DIV_LATTICE_DETERMINANT()
+
+                // This shift always result in k2 and k1 being 0.
                 k1 := shr(n, k1)
                 k2 := shr(n, k2)
+
                 v0, v1 := getVector(v10, v11, v20, v21, k1, k2)
+
+                // This is not working as expected, v1 is always 0 and v0 is the whole scalar.
                 v0 := sub(scalar, v0)
                 v1 := sub(0, v1)
             }
@@ -531,7 +537,10 @@ object "EcMul" {
             let table02 := zp
             let table30, table31, table32 := phi(xp, yp, zp)
 
+            // Some of this values need to be represented as big integers.
             let v10, v11, v20, v21, det, b1, b2 := GLV_BASIS()
+
+            // This is not working as expected, k2 is always 0.
             let k1, k2 := splitScalar(scalar, v10, v11, v20, v21, det, b1, b2)
 
             let table10, table11, table12 := addProjective(table00, table01, table02, table00, table01, table02)
@@ -552,6 +561,7 @@ object "EcMul" {
             let mask := shl(f, 3)
             let startIndex := 0
 
+            // Skipping the zeros in the beginning of the scalar in big-endian representation.
             for { let j := 0 } lt(j,  128) { j := add(j, 1) } {
                 let kAux := shr(sub(f, add(j, j)), k1)
                 if iszero(kAux) {
