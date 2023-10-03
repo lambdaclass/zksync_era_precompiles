@@ -580,6 +580,7 @@ object "Playground" {
 
 
             // Test 02
+
             let nLimbs := 0x1
 
             let dividendPtr := 0x0
@@ -601,6 +602,30 @@ object "Playground" {
 
             // Comparing reminder against expected values:
             console_log(eq(mload(add(96, 0)), 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) // reminder[0]
+
+            // Test 03
+            let nLimbs := 0x1
+
+            let dividendPtr := 0x0
+            mstore(add(dividendPtr, 0), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF) // dividend[0]
+
+            let divisorPtr := 0x20
+            mstore(add(divisorPtr, 0), 0x1) // divisor[0]
+
+            let quotientPtr := 0x40
+            mstore(add(quotientPtr, 0), 0x0) // quotient[0]
+
+            let reminderPtr := 0x60
+            mstore(add(reminderPtr, 0), 0x0) // reminder[0]
+
+            bigUIntDivRem(dividendPtr, divisorPtr, nLimbs, quotientPtr, reminderPtr)
+
+            // Comparing quotient against expected values:
+            console_log(eq(mload(add(64, 0)), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)) // quotient[0]
+
+            // Comparing reminder against expected values:
+            console_log(eq(mload(add(96, 0)), 0x0)) // reminder[0]
+
 		}
     }
 }
