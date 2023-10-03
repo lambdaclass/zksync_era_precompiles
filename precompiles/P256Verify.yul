@@ -288,7 +288,7 @@ object "P256VERIFY" {
             /// @dev A field element is on the curve group order if it is on the range [0, curveGroupOrder).
             /// @param felt The field element to check.
             /// @return ret True if the field element is in the range, false otherwise.
-            function fieldElementIsOnGroupOrder(felt) -> ret {
+            function fieldElementIsOnFieldOrder(felt) -> ret {
                 ret := lt(felt, P())
             }
 
@@ -297,8 +297,8 @@ object "P256VERIFY" {
             /// @param xp The x coordinate of the point P to check.
             /// @param yp The y coordinate of the point P to check.
             /// @return ret True if the coordinates are in the range, false otherwise.
-            function affinePointCoordinatesAreOnGroupOrder(xp, yp) -> ret {
-                ret := and(fieldElementIsOnGroupOrder(xp), fieldElementIsOnGroupOrder(yp))
+            function affinePointCoordinatesAreOnFieldOrder(xp, yp) -> ret {
+                ret := and(fieldElementIsOnFieldOrder(xp), fieldElementIsOnFieldOrder(yp))
             }
 
             /// @notice Checks if a point in affine coordinates is the point at infinity.
@@ -568,11 +568,11 @@ object "P256VERIFY" {
             let x := calldataload(96)
             let y := calldataload(128)
 
-            if or(iszero(fieldElementIsOnGroupOrder(r)), iszero(fieldElementIsOnGroupOrder(s))) {
+            if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
                 burnGas()
             }
 
-            if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnGroupOrder(x, y))) {
+            if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
                 burnGas()
             }
 
@@ -583,42 +583,43 @@ object "P256VERIFY" {
                 burnGas()
             }
 
-            let z := 0
+            let z
             x, y, z := projectiveFromAffine(x, y)
+            console_log(0xaca)
 
-            // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
+            // // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            hash := intoMontgomeryForm(hash)
-            r := intoMontgomeryForm(r)
-            s := intoMontgomeryForm(s)
+            // hash := intoMontgomeryForm(hash)
+            // r := intoMontgomeryForm(r)
+            // s := intoMontgomeryForm(s)
 
-            let s1 := montgomeryModularInverse(s)
+            // let s1 := montgomeryModularInverse(s)
 
-            let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
-            let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
+            // let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
+            // let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
 
-            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
+            // let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
-            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
-            let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
-            console_log(xp)
-            console_log(yp)
-            console_log(zp)
-            let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
-            console_log(xq)
-            console_log(yq)
-            console_log(zq)
-            let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
-            console_log(xr)
-            console_log(yr)
-            console_log(zr)
+            // // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
+            // let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
+            // console_log(xp)
+            // console_log(yp)
+            // console_log(zp)
+            // let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
+            // console_log(xq)
+            // console_log(yq)
+            // console_log(zq)
+            // let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
+            // console_log(xr)
+            // console_log(yr)
+            // console_log(zr)
 
-            // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
-            console_log(0xaca8)
+            // // As we only need xr in affine form, we can skip transforming the `y` coordinate.
+            // xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            // console_log(0xaca8)
 
-            mstore(0, eq(xr, r))
-            return(0, 32)
+            // mstore(0, eq(xr, r))
+            // return(0, 32)
         }
     }
 }
