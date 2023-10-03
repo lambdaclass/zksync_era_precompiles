@@ -588,14 +588,17 @@ object "P256VERIFY" {
 
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            hash := intoMontgomeryForm(hash)
-            r := intoMontgomeryForm(r)
-            s := intoMontgomeryForm(s)
+            // hash := intoMontgomeryForm(hash)
+            // r := intoMontgomeryForm(r)
+            // s := intoMontgomeryForm(s)
 
-            let s1 := montgomeryModularInverse(s)
+            // let s1 := montgomeryModularInverse(s)
+            let s1 := mod(exp(s, sub(N(), 2)), N())
 
-            let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
-            let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
+            // let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
+            // let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
+            let t0 := mulmod(hash, s1, N())
+            let t1 := mulmod(r, s1, N())
 
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
@@ -606,6 +609,10 @@ object "P256VERIFY" {
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            xr := outOfMontgomeryForm(xr)
+
+            xr := mod(xr, N())
+            r := mod(r, N())
 
             mstore(0, eq(xr, r))
             return(0, 32)
