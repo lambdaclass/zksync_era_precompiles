@@ -472,66 +472,7 @@ object "P256VERIFY" {
                     zr := 0
                     for {} scalar {} {
                         if lsbIsOne(scalar) {
-                            let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
-                            let rIsInfinity := projectivePointIsInfinity(xr, yr, zr)
-                            if and(rIsInfinity, qIsInfinity) {
-                                // Infinity + Infinity = Infinity
-                                break
-                            }
-                            if and(rIsInfinity, iszero(qIsInfinity)) {
-                                // Infinity + P = P
-                                xr := xq
-                                yr := yq
-                                zr := zq
-        
-                                xq, yq, zq := projectiveDouble(xq, yq, zq)
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-                            if and(iszero(rIsInfinity), qIsInfinity) {
-                                // P + Infinity = P
-                                break
-                            }
-                            if and(and(eq(xr, xq), eq(montgomerySub(0, yr), yq)), eq(zr, zq)) {
-                                // P + (-P) = Infinity
-                                xr := 0
-                                yr := 0
-                                zr := 0
-        
-                                xq, yq, zq := projectiveDouble(xq, yq, zq)
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-                            if and(and(eq(xr, xq), eq(yr, yq)), eq(zr, zq)) {
-                                // P + P = 2P
-                                xr, yr, zr := projectiveDouble(xr, yr, zr)
-        
-                                xq := xr
-                                yq := yr
-                                zq := zr
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-        
-                            // P1 + P2 = P3
-        
-                            let t0 := montgomeryMul(yq, zr)
-                            let t1 := montgomeryMul(yr, zq)
-                            let t := montgomerySub(t0, t1)
-                            let u0 := montgomeryMul(xq, zr)
-                            let u1 := montgomeryMul(xr, zq)
-                            let u := montgomerySub(u0, u1)
-                            let u2 := montgomeryMul(u, u)
-                            let u3 := montgomeryMul(u2, u)
-                            let v := montgomeryMul(zq, zr)
-                            let w := montgomerySub(montgomeryMul(montgomeryMul(t, t), v), montgomeryMul(u2, montgomeryAdd(u0, u1)))
-            
-                            xr := montgomeryMul(u, w)
-                            yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2), w)), montgomeryMul(t0, u3))
-                            zr := montgomeryMul(u3, v)
+                            xr, yr, zr := projectiveAdd(xr, yr, zr, xq, yq, zq)
                         }
         
                         xq, yq, zq := projectiveDouble(xq, yq, zq)
