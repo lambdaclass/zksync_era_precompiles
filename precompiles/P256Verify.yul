@@ -219,10 +219,10 @@ object "P256VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
-            function intoMontgomeryFormP(a) -> ret {
-                let higher_half_of_a := getHighestHalfOfMultiplication(a, R2_MOD_P())
-                let lowest_half_of_a := mul(a, R2_MOD_P())
-                ret := REDC(lowest_half_of_a, higher_half_of_a, P(), P_PRIME())
+            function intoMontgomeryForm(a, n, nPrime, r2) -> ret {
+                let higher_half_of_a := getHighestHalfOfMultiplication(a, r2)
+                let lowest_half_of_a := mul(a, r2)
+                ret := REDC(lowest_half_of_a, higher_half_of_a, n, nPrime)
             }
 
             function intoMontgomeryFormN(a) -> ret {
@@ -516,7 +516,7 @@ object "P256VERIFY" {
 
             // Fallback
             let a := 0x129321
-            let am := intoMontgomeryFormP(a)
+            let am := intoMontgomeryForm(a, P(), P_PRIME(), R2_MOD_P())
             let am_inv := montgomeryModularInverseP(am)
             let one_m := montgomeryMulP(am, am_inv)
 
@@ -534,8 +534,8 @@ object "P256VERIFY" {
                 burnGas()
             }
 
-            x := intoMontgomeryFormP(x)
-            y := intoMontgomeryFormP(y)
+            x := intoMontgomeryForm(x, P(), P_PRIME(), R2_MOD_P())
+            y := intoMontgomeryForm(y, P(), P_PRIME(), R2_MOD_P())
 
             if iszero(affinePointIsOnCurve(x, y)) {
                 burnGas()
@@ -546,9 +546,9 @@ object "P256VERIFY" {
 
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            hash := intoMontgomeryFormN(hash)
-            r := intoMontgomeryFormN(r)
-            s := intoMontgomeryFormN(s)
+            hash := intoMontgomeryForm(hash, N(), N_PRIME(), R2_MOD_N())
+            r := intoMontgomeryForm(r, N(), N_PRIME(), R2_MOD_N())
+            s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
             let s1 := montgomeryModularInverseN(s)
             let result := outOfMontgomeryFormN(montgomeryMulN(s, s1))
