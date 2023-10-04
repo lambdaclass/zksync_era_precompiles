@@ -194,48 +194,24 @@ object "P256VERIFY" {
             // T es T
             // N es P, N' es P'
             // R es 2^256
-            function REDCP(lowest_half_of_T, higher_half_of_T) -> S {
-                let m := mul(lowest_half_of_T, P_PRIME())
-                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(m, P()))
-                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(m, P()))
-                if a_high_overflowed {
+            function REDC(TLo, THi, n, nPrime) -> S {
+                let m := mul(TLo, nPrime)
+                let tHi, tHiOverflowed := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
+                let aLo, aLoOverflowed := overflowingAdd(TLo, mul(m, n))
+                if tHiOverflowed {
                     // TODO: Check if this addition could overflow.
-                    a_high := add(a_high, MONTGOMERY_ONE_P())
+                    tHi := add(tHi, sub(0, n))
                 }
-                if a_low_overflowed {
-                    a_high, a_high_overflowed := overflowingAdd(a_high, 1)
+                if aLoOverflowed {
+                    tHi, tHiOverflowed := overflowingAdd(tHi, 1)
                 }
-                if a_high_overflowed {
-                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE_P())
+                if tHiOverflowed {
+                    tHi, tHiOverflowed := overflowingAdd(tHi, sub(0, n))
                 }
-                // if a_high_overflowed {
-                //     a_high := add(a_high, MONTGOMERY_ONE_P())
-                // }
-                S := a_high
+                S := tHi
 
-                if iszero(lt(a_high, P())) {
-                    S := sub(a_high, P())
-                }
-            }
-
-            function REDCN(lowest_half_of_T, higher_half_of_T) -> S {
-                let m := mul(lowest_half_of_T, N_PRIME())
-                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(m, N()))
-                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(m, N()))
-                if a_high_overflowed {
-                    // TODO: Check if this addition could overflow.
-                    a_high := add(a_high, MONTGOMERY_ONE_N())
-                }
-                if a_low_overflowed {
-                    a_high, a_high_overflowed := overflowingAdd(a_high, 1)
-                }
-                if a_high_overflowed {
-                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE_N())
-                }
-                S := a_high
-
-                if iszero(lt(a_high, N())) {
-                    S := sub(a_high, N())
+                if iszero(lt(tHi, n)) {
+                    S := sub(tHi, n)
                 }
             }
 
@@ -246,7 +222,7 @@ object "P256VERIFY" {
             function intoMontgomeryFormP(a) -> ret {
                     let higher_half_of_a := getHighestHalfOfMultiplication(a, R2_MOD_P())
                     let lowest_half_of_a := mul(a, R2_MOD_P())
-                    ret := REDCP(lowest_half_of_a, higher_half_of_a)
+                    ret := REDC(lowest_half_of_a, higher_half_of_a, P(), P_PRIME())
             }
 
             function intoMontgomeryFormN(a) -> ret {
@@ -254,7 +230,7 @@ object "P256VERIFY" {
                 let aModN := mod(a, N())
                 let higher_half_of_a := getHighestHalfOfMultiplication(aModN, R2_MOD_N())
                 let lowest_half_of_a := mul(aModN, R2_MOD_N())
-                ret := REDCN(lowest_half_of_a, higher_half_of_a)
+                ret := REDC(lowest_half_of_a, higher_half_of_a, N(), N_PRIME())
             }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
@@ -264,13 +240,13 @@ object "P256VERIFY" {
             function outOfMontgomeryFormP(m) -> ret {
                     let higher_half_of_m := 0
                     let lowest_half_of_m := m 
-                    ret := REDCP(lowest_half_of_m, higher_half_of_m)
+                    ret := REDC(lowest_half_of_m, higher_half_of_m, P(), P_PRIME())
             }
 
             function outOfMontgomeryFormN(m) -> ret {
                 let higher_half_of_m := 0
                 let lowest_half_of_m := m 
-                ret := REDCN(lowest_half_of_m, higher_half_of_m)
+                ret := REDC(lowest_half_of_m, higher_half_of_m, N(), N_PRIME())
             }
 
             /// @notice Computes the Montgomery addition.
@@ -297,13 +273,13 @@ object "P256VERIFY" {
             function montgomeryMulP(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
                 let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDCP(lowest_half_of_product, higher_half_of_product)
+                ret := REDC(lowest_half_of_product, higher_half_of_product, P(), P_PRIME())
             }
 
             function montgomeryMulN(multiplicand, multiplier) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
                 let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDCN(lowest_half_of_product, higher_half_of_product)
+                ret := REDC(lowest_half_of_product, higher_half_of_product, N(), N_PRIME())
             }
 
             /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
