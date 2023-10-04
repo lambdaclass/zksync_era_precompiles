@@ -492,6 +492,11 @@ object "Playground" {
                 bit_size := add(bit_size, uint_bit_size(limb))
             }
 
+            // @notice Performs in-place `x | 1` operation.
+            // @dev This function will mutate the memory space `mem[base_ptr...(base_ptr + n_limbs * 32)]`
+            // @dev It consumes constant time, aka `O(1)`.
+            // @param base_ptr Base pointer for a big unsigned integer.
+            // @param n_limbs Number of 32 Byte limbs composing the big unsigned integer.
             function big_uint_inplace_or_1(base_ptr, n_limbs) {
                 let offset := mul(sub(n_limbs, 1), 32)
                 let limb_ptr := add(base_ptr, offset)
@@ -555,6 +560,32 @@ object "Playground" {
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
+
+            console_log(0x7E575) // "tests"
+
+            // +-----------------------------------------------------------------------------------+
+            // | big_uint_inplace_or_1 tests                                                       |
+            // +-----------------------------------------------------------------------------------+
+
+            let p := 0x0
+            mstore(add(p, 0x00), 0x00) // v[0]
+            mstore(add(p, 0x20), 0x00) // v[1]
+            mstore(add(p, 0x40), 0xBADC0DE) // v[2] (For overflow checks).
+            // Test case n=1
+            big_uint_inplace_or_1(p, 1)
+            console_log(eq(mload(add(p, 0x00)), 0x1))
+            console_log(eq(mload(add(p, 0x20)), 0x0))
+            console_log(eq(mload(add(p, 0x40)), 0xBADC0DE)) // Overflow check.
+            // Test case n=2
+            big_uint_inplace_or_1(p, 2)
+            mstore(add(p, 0x00), 0x00) // Restore v[0]
+            console_log(eq(mload(add(p, 0x00)), 0x0))
+            console_log(eq(mload(add(p, 0x20)), 0x1))
+            console_log(eq(mload(add(p, 0x40)), 0xBADC0DE)) // Overflow check.
+
+            // +-----------------------------------------------------------------------------------+
+            // | bigUIntDivRem tests                                                               |
+            // +-----------------------------------------------------------------------------------+
 
             let nLimbs := 0x1
 
