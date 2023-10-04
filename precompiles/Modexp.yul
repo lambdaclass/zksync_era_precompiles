@@ -47,6 +47,17 @@ object "ModExp" {
                 overflowed := lt(sum, augend)
             }
 
+            /// @notice Computes the difference between two 256 bit number and keeps
+            /// account of the borrow bit.
+            /// @param minuend The left side of the difference (i.e. the a in a - b).
+            /// @param subtrahend The right side of the difference (i.e. the b in a - b).
+            /// @return difference i.e. the c in c = a - b.
+            /// @return overflowed If there was any borrow on the subtraction, is returned as 1.
+            function overflowingSubWithBorrow(minuend, subtrahend, borrow) -> difference, overflowed {
+                difference := sub(minuend, add(subtrahend, borrow))
+                overflowed := gt(difference, minuend)
+            }
+
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
             /// @param multiplier The multiplier.
@@ -59,7 +70,7 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is zero (true) or not (false).
-            function bigNumberIsZero(start, len) -> res {
+            function bigUIntIsZero(start, len) -> res {
                 // Initialize result as true, assuming the number is zero until proven otherwise.
                 res := true
 
@@ -96,16 +107,16 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is one (true) or not (false).
-            function bigNumberIsOne(start, len) -> res {
+            function bigUIntIsOne(start, len) -> res {
                 if len {
                     let lastBytePtr := sub(add(start, len), 1)
                     let lastByte := byte(0, calldataload(lastBytePtr))
 
                     // Check if the last byte is one.
                     let lastByteIsOne := eq(lastByte, 1)
-                    // Check if all other bytes are zero using the bigNumberIsZero function
+                    // Check if all other bytes are zero using the bigUIntIsZero function
                     // The length for this check is (len - 1) because we exclude the last byte.
-                    let otherBytesAreZeroes := bigNumberIsZero(start, sub(len, 1))
+                    let otherBytesAreZeroes := bigUIntIsZero(start, sub(len, 1))
 
                     // The number is one if the last byte is one and all other bytes are zero.
                     res := and(lastByteIsOne, otherBytesAreZeroes)
@@ -122,15 +133,14 @@ object "ModExp" {
             /// @param mask Either `0x0` or `0xFF...FF`.
             function bigUIntCondSelect(lhsPtr, rhsPtr, resPtr, nLimbs, mask) {
                 let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs)
-                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
-                {
-                    let ptr_lhs_i := add(lhsPtr, offset_i)
-                    let ptr_rhs_i := add(rhsPtr, offset_i)
-                    let ptr_res_i := add(resPtr, offset_i)
-                    let value_lhs_i := mload(ptr_lhs_i)
-                    let value_rhs_i := mload(ptr_rhs_i)
-                    let value_res_i := xor(value_lhs_i, and(mask, xor(value_lhs_i, value_rhs_i))) // a ^ (ct & (a ^ b))
-                    mstore(ptr_res_i, value_res_i)
+                for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
+                    let lhsCurrentPtr := add(lhsPtr, currentOffset)
+                    let rhsCurrentPtr := add(rhsPtr, currentOffset)
+                    let resCurrentPtr := add(resPtr, currentOffset)
+                    let lhsCurrentValue := mload(lhsCurrentPtr)
+                    let rhsCurrentValue := mload(rhsCurrentPtr)
+                    let resCurrentValue := xor(lhsCurrentValue, and(mask, xor(lhsCurrentValue, rhsCurrentValue))) // a ^ (ct & (a ^ b))
+                    mstore(resCurrentPtr, resCurrentValue)
                 }
             }
 
@@ -141,28 +151,15 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operands.
             /// @param resPtr The pointer to where you want the result to be stored
             function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-                // | Iteration  |       offset_i        |           ptr_lhs_i           |           ptr_rhs_i           |           ptr_res_i           |   value_lhs_i   |   value_rhs_i   |             value_res_i              |
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-                // | 0          | +0x00                 | lhsPtr + 0x00                 | rhsPtr + 0x00                 | resPtr + 0x00                 | lhs[0]          | rhs[0]          | or(lhs[0], rhs[0])                   |
-                // | 1          | +0x20                 | lhsPtr + 0x20                 | rhsPtr + 0x20                 | resPtr + 0x20                 | lhs[1]          | rhs[1]          | or(lhs[1], rhs[1])                   |
-                // | 2          | +0x40                 | lhsPtr + 0x40                 | rhsPtr + 0x40                 | resPtr + 0x40                 | lhs[2]          | rhs[2]          | or(lhs[2], rhs[2])                   |
-                // |            |                       |                               |                               |                               |                 |                 |                                      |
-                // | ...        | ...                   | ...                           | ...                           | ...                           | ...             | ...             | ...                                  |
-                // |            |                       |                               |                               |                               |                 |                 |                                      |
-                // | nLimbs - 1 | +(0x20 * (nLimbs - 1) | lhsPtr + (0x20 * (nLimbs - 1) | rhsPtr + (0x20 * (nLimbs - 1) | resPtr + (0x20 * (nLimbs - 1) | lhs[nLimbs - 1] | rhs[nLimbs - 1] | or(lhs[nLimbs - 1], rhs[nLimbs - 1]) |
-                // +------------+-----------------------+-------------------------------+-------------------------------+-------------------------------+-----------------+-----------------+--------------------------------------+
-
                 let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
-                for { let offset_i := 0 } lt(offset_i, finalOffset) { offset_i := add(offset_i, 0x20) }
-                {
-                    let ptr_lhs_i := add(lhsPtr, offset_i)
-                    let ptr_rhs_i := add(rhsPtr, offset_i)
-                    let ptr_res_i := add(resPtr, offset_i)
-                    let value_lhs_i := mload(ptr_lhs_i)
-                    let value_rhs_i := mload(ptr_rhs_i)
-                    let value_res_i := or(value_lhs_i, value_rhs_i)
-                    mstore(ptr_res_i, value_res_i)
+                for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
+                    let lhsCurrentPtr := add(lhsPtr, currentOffset)
+                    let rhsCurrentPtr := add(rhsPtr, currentOffset)
+                    let resCurrentPtr := add(resPtr, currentOffset)
+                    let lhsCurrentValue := mload(lhsCurrentPtr)
+                    let rhsCurrentValue := mload(rhsCurrentPtr)
+                    let resCurrentValue := or(lhsCurrentValue, rhsCurrentValue)
+                    mstore(resCurrentPtr, resCurrentValue)
                 }
             }
 
@@ -332,35 +329,35 @@ object "ModExp" {
             }
 
             /// @notice Add two big numbers.
-            /// @param lhsPtr The pointer where the big number on the left operand starts.
-            /// @param rhsPtr The pointer where the big number on right operand starts.
+            /// @param augendPtr The pointer where the big number on the left operand starts.
+            /// @param addendPtr The pointer where the big number on right operand starts.
             /// @param nLimbs The number of 32-byte words that the big numbers occupy.
-            /// @param resPtr The pointer where the result of the addition will be stored.
-            /// @return isOverflow A boolean indicating whether the addition overflowed (true) or not (false).
-            function bigUIntAdd(lhsPtr, rhsPtr, nLimbs, resPtr) -> isOverflow {
+            /// @param sumPtr The pointer where the result of the addition will be stored.
+            /// @return overflowed A boolean indicating whether the addition overflowed (true) or not (false).
+            function bigUIntAdd(augendPtr, addendPtr, nLimbs, sumPtr) -> overflowed {
                 let totalLength := mul(nLimbs, LIMB_SIZE_IN_BYTES())
                 let carry := 0
 
-                let lhsCurrentLimbPtr := add(lhsPtr, totalLength)
-                let rhsCurrentLimbPtr := add(rhsPtr, totalLength)
+                let augendCurrentLimbPtr := add(augendPtr, totalLength)
+                let addendCurrentLimbPtr := add(addendPtr, totalLength)
 
                 // Loop through each full 32-byte word to add the two big numbers.
-                for {let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
+                for { let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
-                    let actualLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
-                    lhsCurrentLimbPtr := sub(lhsCurrentLimbPtr, actualLimbOffset)
-                    rhsCurrentLimbPtr := sub(rhsCurrentLimbPtr, actualLimbOffset)
+                    let currentLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
+                    augendCurrentLimbPtr := sub(augendCurrentLimbPtr, currentLimbOffset)
+                    addendCurrentLimbPtr := sub(addendCurrentLimbPtr, currentLimbOffset)
                     
-                    let rhsLimb := mload(rhsCurrentLimbPtr)
-                    let lhsLimb := mload(lhsCurrentLimbPtr)
-                    let sumResult, overflow := overflowingAdd(lhsLimb, rhsLimb)
-                    let sumWithPreviousCarry, carrySumOverflow := overflowingAdd(sumResult, carry)
-                    sumResult := sumWithPreviousCarry
+                    let addendLimb := mload(addendCurrentLimbPtr)
+                    let augendLimb := mload(augendCurrentLimbPtr)
+                    let sum, overflow := overflowingAdd(augendLimb, addendLimb)
+                    let sumWithPreviousCarry, carrySumOverflow := overflowingAdd(sum, carry)
+                    sum := sumWithPreviousCarry
                     carry := or(overflow, carrySumOverflow)
-                    let limbResultPtr := sub(add(resPtr,totalLength),actualLimbOffset)
-                    mstore(limbResultPtr, sumResult)
+                    let limbResultPtr := sub(add(sumPtr,totalLength), currentLimbOffset)
+                    mstore(limbResultPtr, sum)
                 }
-                isOverflow := carry
+                overflowed := carry
 
             }
 
@@ -369,7 +366,7 @@ object "ModExp" {
             }
 
             function storeLimbValueAtOffset(limbPointer, anOffset, aValue) {
-                    mstore(add(limbPointer, anOffset), aValue)
+                mstore(add(limbPointer, anOffset), aValue)
             }
 
             /// @notice Computes the difference between two 256 bit number and keeps
@@ -388,34 +385,32 @@ object "ModExp" {
                 }
             }
             /// @notice Computes the BigUint subtraction between the number stored
-            /// in lshPointer and rhsPointer.
+            /// in minuendPtr and subtrahendPtr.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/element.rs#L795
-            /// @param lhsPointer The start of the left hand side subtraction Big Number.
-            /// @param rhsPointer The start of the right hand side subtraction Big Number.
-            /// @return numberOfLimbs The number of limbs of both numbers.
-            /// @return resultPointer Where the result will be stored.
-            function bigUintSubtractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
-                let leftIthLimbValue
-                let rightIthLimbValue
-                let ithLimbSubtractionResult
-                borrow := 0
+            /// @param minuendPtr The start of the left hand side subtraction Big Number.
+            /// @param subtrahendPtr The start of the right hand side subtraction Big Number.
+            /// @return nLimbs The number of limbs of both numbers.
+            /// @return differencePtr Where the result will be stored.
+            function bigUIntSubWithBorrow(minuendPtr, subtrahendPtr, nLimbs, differencePtr) -> borrow {
+                let minuendCurrentLimb
+                let subtrahendCurrentLimb
+                let differenceCurrentLimb
                 let limbOffset := 0
-                for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
+                for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
                     limbOffset := mul(sub(i,1), 32)
-                    leftIthLimbValue := getLimbValueAtOffset(lhsPointer, limbOffset)
-                    rightIthLimbValue := getLimbValueAtOffset(rhsPointer, limbOffset)
-                    ithLimbSubtractionResult, borrow :=
-                                               subLimbsWithBorrow(leftIthLimbValue, rightIthLimbValue, borrow)
-                    storeLimbValueAtOffset(resultPointer, limbOffset, ithLimbSubtractionResult)
-
+                    let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
+                    let subtrahendCurrentLimb := getLimbValueAtOffset(subtrahendPtr, limbOffset)
+                    let differenceCurrentLimb, borrow := overflowingSubWithBorrow(minuendCurrentLimb, subtrahendCurrentLimb, borrow)
+                    storeLimbValueAtOffset(differencePtr, limbOffset, differenceCurrentLimb)
                 }
             }
+
             /// @notice Performs the multiplication between two bigUInts
-            /// @dev The result is stored from `mulResultPtr` to `mulResultPtr + (LIMB_SIZE * nLimbs)`.
-            /// @param lhsPtr The start index in memory of the first number.
-            /// @param rhsPtr The start index in memory of the second number.
+            /// @dev The result is stored from `productPtr` to `productPtr + (LIMB_SIZE * nLimbs)`.
+            /// @param multiplicandPtr The start index in memory of the first number.
+            /// @param multiplierPtr The start index in memory of the second number.
             /// @param nLimbs The number of limbs needed to represent the operands.
-            function bigUIntMul(lhsPtr, rhsPtr, nLimbs, mulResultPtr) {
+            function bigUIntMul(multiplicandPtr, multiplierPtr, nLimbs, productPtr) {
                 let retIndex, retWordAfter, retWordBefore
                 // Iterating over each limb in the first number.
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
@@ -424,14 +419,14 @@ object "ModExp" {
                     // Iterating over each limb in the second number.
                     for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
                         // Loading the i-th and j-th limbs of the first and second numbers.
-                        let word1 := mload(add(lhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
-                        let word2 := mload(add(rhsPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
+                        let word1 := mload(add(multiplicandPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
+                        let word2 := mload(add(multiplierPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
 
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
 
                         // Calculate the index to store the product.
-                        retIndex := add(mulResultPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
+                        retIndex := add(productPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
                         retWordBefore := mload(retIndex) // Load the previous value at the result index.
                         retWordAfter, carryFlag := overflowingAdd(retWordBefore, product)
 
@@ -440,7 +435,7 @@ object "ModExp" {
                     }
 
                     // Store the last word which comes from the final carry.
-                    retIndex := add(mulResultPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
+                    retIndex := add(productPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
                     mstore(retIndex, carry)
                 }
             }
@@ -534,7 +529,7 @@ object "ModExp" {
 
                 for { } iszero(0) { } {
                     // LAMBDAWORKS : let (mut r, borrow) = rem.sbb(&c, 0);
-                    let r_ptr, borrow := bigUintSubtractionWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
+                    let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
 
                     // LAMBDAWORKS : rem = Self::ct_select(&r, &rem, borrow);
                     if iszero(borrow) {
@@ -587,7 +582,7 @@ object "ModExp" {
 
             // Note: This check covers the case where length of the modulo is zero.
             // base^exponent % 0 = 0
-            if bigNumberIsZero(modPtr, modLen) {
+            if bigUIntIsZero(modPtr, modLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -596,7 +591,7 @@ object "ModExp" {
             }
 
             // 1^exponent % modulus = 1
-            if bigNumberIsOne(basePtr, baseLen) {
+            if bigUIntIsOne(basePtr, baseLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -606,7 +601,7 @@ object "ModExp" {
             }
 
             // base^0 % modulus = 1
-            if bigNumberIsZero(expPtr, expLength) {
+            if bigUIntIsZero(expPtr, expLength) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
@@ -616,7 +611,7 @@ object "ModExp" {
             }
 
             // 0^exponent % modulus = 0
-            if bigNumberIsZero(basePtr, baseLen) {
+            if bigUIntIsZero(basePtr, baseLen) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
