@@ -305,10 +305,14 @@ object "P256VERIFY" {
                 let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
                 let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
                 if a_high_overflowed {
+                    // TODO: Check if this addition could overflow.
                     a_high := add(a_high, MONTGOMERY_ONE())
                 }
                 if a_low_overflowed {
-                    a_high := add(a_high, 1)
+                    a_high, a_high_overflowed := overflowingAdd(a_high, 1)
+                }
+                if a_high_overflowed {
+                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE())
                 }
                 S := a_high
                 if iszero(lt(a_high, P())) {
@@ -639,61 +643,71 @@ object "P256VERIFY" {
             }
 
             // Fallback
+            let a := 0x129321
+            let am := intoMontgomeryForm(a)
+            let am_inv := montgomeryModularInverse(am)
+            let one_m := montgomeryMul(am, am_inv)
 
-            let hash := calldataload(0)
-            let r := calldataload(32)
-            let s := calldataload(64)
-            let x := calldataload(96)
-            let y := calldataload(128)
+            console_log(a)
+            console_log(am)
+            console_log(am_inv)
+            console_log(one_m)
+            console_log(outOfMontgomeryForm(one_m))
 
-            if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
-                burnGas()
-            }
+            // let hash := calldataload(0)
+            // let r := calldataload(32)
+            // let s := calldataload(64)
+            // let x := calldataload(96)
+            // let y := calldataload(128)
 
-            if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
-                burnGas()
-            }
+            // if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
+            //     burnGas()
+            // }
 
-            x := intoMontgomeryForm(x)
-            y := intoMontgomeryForm(y)
+            // if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
+            //     burnGas()
+            // }
 
-            if iszero(affinePointIsOnCurve(x, y)) {
-                burnGas()
-            }
+            // x := intoMontgomeryForm(x)
+            // y := intoMontgomeryForm(y)
 
-            let z
-            x, y, z := projectiveFromAffine(x, y)
+            // if iszero(affinePointIsOnCurve(x, y)) {
+            //     burnGas()
+            // }
 
-            // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
+            // let z
+            // x, y, z := projectiveFromAffine(x, y)
 
-            hash := intoMontgomeryFormN(hash)
-            r := intoMontgomeryFormN(r)
-            s := intoMontgomeryFormN(s)
+            // // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            let s1 := montgomeryModularInverseN(s)
-            // let s1 := mod(exp(s, sub(N(), 2)), N())
+            // hash := intoMontgomeryFormN(hash)
+            // r := intoMontgomeryFormN(r)
+            // s := intoMontgomeryFormN(s)
 
-            let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
-            let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
-            // let t0 := mulmod(hash, s1, N())
-            // let t1 := mulmod(r, s1, N())
+            // let s1 := montgomeryModularInverseN(s)
+            // // let s1 := mod(exp(s, sub(N(), 2)), N())
 
-            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
+            // let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
+            // let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
+            // // let t0 := mulmod(hash, s1, N())
+            // // let t1 := mulmod(r, s1, N())
 
-            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
-            let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
-            let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
-            let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
+            // let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
-            // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
-            xr := outOfMontgomeryForm(xr)
+            // // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
+            // let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
+            // let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
+            // let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
-            xr := mod(xr, N())
-            r := mod(r, N())
+            // // As we only need xr in affine form, we can skip transforming the `y` coordinate.
+            // xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            // xr := outOfMontgomeryForm(xr)
 
-            mstore(0, eq(xr, r))
-            return(0, 32)
+            // xr := mod(xr, N())
+            // r := mod(r, N())
+
+            // mstore(0, eq(xr, r))
+            // return(0, 32)
         }
     }
 }
