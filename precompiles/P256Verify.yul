@@ -342,15 +342,6 @@ object "P256VERIFY" {
                 invmod := binaryExtendedEuclideanAlgorithm(a, N(), R2_MOD_N())
             }
 
-            /// @notice Computes the Montgomery division.
-            /// @dev The Montgomery division is computed by multiplying the dividend by the modular inverse of the divisor.
-            /// @param dividend The dividend in Montgomery form.
-            /// @param divisor The divisor in Montgomery form.
-            /// @return quotient The result of the Montgomery division.
-            function montgomeryDiv(dividend, divisor) -> quotient {
-                quotient := montgomeryMul(dividend, montgomeryModularInverseP(divisor))
-            }
-
             // CURVE ARITHMETICS
 
             /// @notice Checks if a field element is on the curve group order.
