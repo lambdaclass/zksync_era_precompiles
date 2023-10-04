@@ -11,7 +11,7 @@ fn main() {
     let signature: Signature = signing_key.sign(message);
 
     let mut hasher = Sha256::new();
-    hasher.update(signature.to_bytes());
+    hasher.update(message);
     let hash = hex::encode(hasher.finalize());
 
     let r = signature.r();

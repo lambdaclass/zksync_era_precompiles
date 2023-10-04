@@ -68,13 +68,21 @@ object "P256VERIFY" {
                 ret := 134799733323198995502561713907086292154532538166959272814710328655875
             }
 
+            function R2_MOD_N() -> ret {
+                ret := 46533765739406314298121036767150998762426774378559716911348521029833835802274
+            }
+
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
             /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value N'.
-            function N_PRIME() -> ret {
+            function P_PRIME() -> ret {
                 ret := 115792089210356248768974548684794254293921932838497980611635986753331132366849
+            }
+
+            function N_PRIME() -> ret {
+                ret := 43790243024438006127650828685417305984841428635278707415088219106730833919055
             }
 
             // Function Helpers
@@ -176,6 +184,82 @@ object "P256VERIFY" {
                 }
             }
 
+            function binaryExtendedEuclideanAlgorithmN(base) -> inv {
+                // Precomputation of 1 << 255
+                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
+                let modulus := N()
+                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
+                let modulusHasSpareBits := iszero(and(modulus, mask))
+
+                let u := base
+                let v := modulus
+                // Avoids unnecessary reduction step.
+                let b := R2_MOD_N()
+                let c := 0
+
+                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+                    for {} iszero(and(u, 1)) {} {
+                        u := shr(1, u)
+                        let current_b := b
+                        let current_b_is_odd := and(current_b, 1)
+                        if iszero(current_b_is_odd) {
+                            b := shr(1, b)
+                        }
+                        if current_b_is_odd {
+                            let new_b := add(b, modulus)
+                            let carry := or(lt(new_b, b), lt(new_b, modulus))
+                            b := shr(1, new_b)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                b := or(b, mask)
+                            }
+                        }
+                    }
+
+                    for {} iszero(and(v, 1)) {} {
+                        v := shr(1, v)
+                        let current_c := c
+                        let current_c_is_odd := and(current_c, 1)
+                        if iszero(current_c_is_odd) {
+                            c := shr(1, c)
+                        }
+                        if current_c_is_odd {
+                            let new_c := add(c, modulus)
+                            let carry := or(lt(new_c, c), lt(new_c, modulus))
+                            c := shr(1, new_c)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                c := or(c, mask)
+                            }
+                        }
+                    }
+
+                    switch gt(v, u)
+                    case 0 {
+                        u := sub(u, v)
+                        if lt(b, c) {
+                            b := add(b, modulus)
+                        }
+                        b := sub(b, c)
+                    }
+                    case 1 {
+                        v := sub(v, u)
+                        if lt(c, b) {
+                            c := add(c, modulus)
+                        }
+                        c := sub(c, b)
+                    }
+                }
+
+                switch eq(u, 1)
+                case 0 {
+                    inv := c
+                }
+                case 1 {
+                    inv := b
+                }
+            }
+
             /// @notice Computes an addition and checks for overflow.
             /// @param augend The value to add to.
             /// @param addend The value to add.
@@ -200,7 +284,7 @@ object "P256VERIFY" {
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
-                let q := mul(lowest_half_of_T, N_PRIME())
+                let q := mul(lowest_half_of_T, P_PRIME())
                 let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
                 let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
                 if a_high_overflowed {
@@ -215,6 +299,22 @@ object "P256VERIFY" {
                 }
             }
 
+            function REDCN(lowest_half_of_T, higher_half_of_T) -> S {
+                let q := mul(lowest_half_of_T, N_PRIME())
+                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, N()))
+                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, N()))
+                if a_high_overflowed {
+                    a_high := add(a_high, MONTGOMERY_ONE())
+                }
+                if a_low_overflowed {
+                    a_high := add(a_high, 1)
+                }
+                S := a_high
+                if iszero(lt(a_high, N())) {
+                    S := sub(a_high, N())
+                }
+            }
+
             /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
@@ -225,6 +325,12 @@ object "P256VERIFY" {
                     ret := REDC(lowest_half_of_a, higher_half_of_a)
             }
 
+            function intoMontgomeryFormN(a) -> ret {
+                let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, N()), R2_MOD_N())
+                let lowest_half_of_a := mul(mod(a, N()), R2_MOD_N())
+                ret := REDC(lowest_half_of_a, higher_half_of_a)
+        }
+
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
@@ -233,6 +339,12 @@ object "P256VERIFY" {
                     let higher_half_of_m := 0
                     let lowest_half_of_m := m 
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
+            }
+
+            function outOfMontgomeryFormN(m) -> ret {
+                let higher_half_of_m := 0
+                let lowest_half_of_m := m 
+                ret := REDCN(lowest_half_of_m, higher_half_of_m)
             }
 
             /// @notice Computes the Montgomery addition.
@@ -262,6 +374,12 @@ object "P256VERIFY" {
                 ret := REDC(lowest_half_of_product, higher_half_of_product)
             }
 
+            function montgomeryMulN(multiplicand, multiplier) -> ret {
+                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                let lowest_half_of_product := mul(multiplicand, multiplier)
+                ret := REDCN(lowest_half_of_product, higher_half_of_product)
+            }
+
             /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
             /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
@@ -269,6 +387,10 @@ object "P256VERIFY" {
             /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
             function montgomeryModularInverse(a) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a)
+            }
+
+            function montgomeryModularInverseN(a) -> invmod {
+                invmod := binaryExtendedEuclideanAlgorithmN(a)
             }
 
             /// @notice Computes the Montgomery division.
@@ -527,17 +649,17 @@ object "P256VERIFY" {
 
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            // hash := intoMontgomeryForm(hash)
-            // r := intoMontgomeryForm(r)
-            // s := intoMontgomeryForm(s)
+            hash := intoMontgomeryFormN(hash)
+            r := intoMontgomeryFormN(r)
+            s := intoMontgomeryFormN(s)
 
-            // let s1 := montgomeryModularInverse(s)
-            let s1 := mod(exp(s, sub(N(), 2)), N())
+            let s1 := montgomeryModularInverseN(s)
+            // let s1 := mod(exp(s, sub(N(), 2)), N())
 
-            // let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1))
-            // let t1 := outOfMontgomeryForm(montgomeryMul(r, s1))
-            let t0 := mulmod(hash, s1, N())
-            let t1 := mulmod(r, s1, N())
+            let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
+            let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
+            // let t0 := mulmod(hash, s1, N())
+            // let t1 := mulmod(r, s1, N())
 
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
