@@ -20,7 +20,7 @@ object "P256VERIFY" {
             /// @notice Constant function for value one in Montgomery form.
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
-            function MONTGOMERY_ONE() -> m_one {
+            function MONTGOMERY_ONE_P() -> m_one {
                 m_one := 26959946660873538059280334323183841250350249843923952699046031785985
             }
 
@@ -28,18 +28,18 @@ object "P256VERIFY" {
                 m_one := 26959946660873538059280334323273029441504803697035324946844617595567
             }
 
-            function MONTGOMERY_A() -> m_a {
+            function MONTGOMERY_A_P() -> m_a {
                 m_a := 115792089129476408780076832771566570560534619664239564663761773211729002495996
             }
 
-            function MONTGOMERY_B() -> m_b {
+            function MONTGOMERY_B_P() -> m_b {
                 m_b := 99593677540221402957765480916910020772520766868399186769503856397241456836063
             }
 
-            function MONTGOMERY_PROJECTIVE_G() -> m_gx, m_gy, m_gz {
+            function MONTGOMERY_PROJECTIVE_G_P() -> m_gx, m_gy, m_gz {
                 m_gx := 0x18905F76A53755C679FB732B7762251075BA95FC5FEDB60179E730D418A9143C
                 m_gy := 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
-                m_gz := MONTGOMERY_ONE()
+                m_gz := MONTGOMERY_ONE_P()
             }
 
             /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
@@ -200,16 +200,16 @@ object "P256VERIFY" {
                 let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(m, P()))
                 if a_high_overflowed {
                     // TODO: Check if this addition could overflow.
-                    a_high := add(a_high, MONTGOMERY_ONE())
+                    a_high := add(a_high, MONTGOMERY_ONE_P())
                 }
                 if a_low_overflowed {
                     a_high, a_high_overflowed := overflowingAdd(a_high, 1)
                 }
                 if a_high_overflowed {
-                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE())
+                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE_P())
                 }
                 // if a_high_overflowed {
-                //     a_high := add(a_high, MONTGOMERY_ONE())
+                //     a_high := add(a_high, MONTGOMERY_ONE_P())
                 // }
                 S := a_high
 
@@ -356,7 +356,7 @@ object "P256VERIFY" {
             // @return ret True if the point is on the curve, false otherwise.
             function affinePointIsOnCurve(xp, yp) -> ret {
                 let left := montgomeryMulP(yp, yp)
-                let right := montgomeryAddP(montgomeryMulP(xp, montgomeryMulP(xp, xp)), montgomeryAddP(montgomeryMulP(MONTGOMERY_A(), xp), MONTGOMERY_B()))
+                let right := montgomeryAddP(montgomeryMulP(xp, montgomeryMulP(xp, xp)), montgomeryAddP(montgomeryMulP(MONTGOMERY_A_P(), xp), MONTGOMERY_B_P()))
                 ret := eq(left, right)
             }
 
@@ -372,7 +372,7 @@ object "P256VERIFY" {
             function projectiveFromAffine(xp, yp) -> xr, yr, zr {
                 xr := xp
                 yr := yp
-                zr := MONTGOMERY_ONE()
+                zr := MONTGOMERY_ONE_P()
             }
 
             /// @notice Converts a point in projective coordinates to affine coordinates in Montgomery form.
@@ -413,7 +413,7 @@ object "P256VERIFY" {
             function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
                 let x_squared := montgomeryMulP(xp, xp)
                 let z_squared := montgomeryMulP(zp, zp)
-                let az_squared := montgomeryMulP(MONTGOMERY_A(), z_squared)
+                let az_squared := montgomeryMulP(MONTGOMERY_A_P(), z_squared)
                 let t := montgomeryAddP(montgomeryAddP(x_squared, montgomeryAddP(x_squared, x_squared)), az_squared)
                 let yz := montgomeryMulP(yp, zp)
                 let u := montgomeryAddP(yz, yz)
@@ -448,7 +448,7 @@ object "P256VERIFY" {
                 if and(pIsInfinity, qIsInfinity) {
                     // Infinity + Infinity = Infinity
                     xr := 0
-                    yr := MONTGOMERY_ONE()
+                    yr := MONTGOMERY_ONE_P()
                     zr := 0
                     flag := 0
                 }
@@ -469,7 +469,7 @@ object "P256VERIFY" {
                 if and(flag, and(and(eq(xp, xq), eq(montgomerySubP(0, yp), yq)), eq(zp, zq))) {
                     // P + (-P) = Infinity
                     xr := 0
-                    yr := MONTGOMERY_ONE()
+                    yr := MONTGOMERY_ONE_P()
                     zr := 0
                     flag := 0
                 }
@@ -505,7 +505,7 @@ object "P256VERIFY" {
                     let yq := yp
                     let zq := zp
                     xr := 0
-                    yr := MONTGOMERY_ONE()
+                    yr := MONTGOMERY_ONE_P()
                     zr := 0
                     for {} scalar {} {
                         if lsbIsOne(scalar) {
@@ -580,7 +580,7 @@ object "P256VERIFY" {
             let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
             let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
 
-            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
+            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G_P()
 
             // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
