@@ -238,9 +238,9 @@ object "P256VERIFY" {
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryFormP(m) -> ret {
-                    let higher_half_of_m := 0
-                    let lowest_half_of_m := m 
-                    ret := REDC(lowest_half_of_m, higher_half_of_m, P(), P_PRIME())
+                let higher_half_of_m := 0
+                let lowest_half_of_m := m 
+                ret := REDC(lowest_half_of_m, higher_half_of_m, P(), P_PRIME())
             }
 
             function outOfMontgomeryFormN(m) -> ret {
