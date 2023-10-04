@@ -278,7 +278,7 @@ object "P256VERIFY" {
                 let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, N()), R2_MOD_N())
                 let lowest_half_of_a := mul(mod(a, N()), R2_MOD_N())
                 ret := REDCN(lowest_half_of_a, higher_half_of_a)
-        }
+            }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
