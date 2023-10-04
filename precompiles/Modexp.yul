@@ -395,12 +395,13 @@ object "ModExp" {
                 let minuendCurrentLimb
                 let subtrahendCurrentLimb
                 let differenceCurrentLimb
+                borrow := 0
                 let limbOffset := 0
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
                     limbOffset := mul(sub(i,1), 32)
                     let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
                     let subtrahendCurrentLimb := getLimbValueAtOffset(subtrahendPtr, limbOffset)
-                    let differenceCurrentLimb, borrow := overflowingSubWithBorrow(minuendCurrentLimb, subtrahendCurrentLimb, borrow)
+                    differenceCurrentLimb, borrow := overflowingSubWithBorrow(minuendCurrentLimb, subtrahendCurrentLimb, borrow)
                     storeLimbValueAtOffset(differencePtr, limbOffset, differenceCurrentLimb)
                 }
             }
