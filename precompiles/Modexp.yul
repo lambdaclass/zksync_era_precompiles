@@ -21,11 +21,10 @@ object "ModExp" {
                }
             }
 
-            function zeroWithLimbSizeAt(limbSize, address) {
-               let pointerToZero :=  address
-               for{let i := limbSize} gt(i, 0) { i := sub(i, 1)} {
-                  let offset := add(mul(i, 32), pointerToZero)
-                  mstore(offset, 0x0)
+            function zeroWithLimbSizeAt(n_limbs, base_ptr) {
+               for { let i := 0 } lt(i, n_limbs) { i := add(i, 1) } {
+                   let offset := mul(i, 32)
+                   mstore(add(base_ptr, offset), 0)
                }
             }
 
@@ -33,7 +32,7 @@ object "ModExp" {
                for{let i := 0} lt(i, limbSize) { i := add(i, 1)} {
                   let fromOffset := add(mul(i, 32), fromAddress)
                   let toOffset := add(mul(i, 32), toAddress)
-                  mstore(mload(fromOffset), toOffset)
+                  mstore(toOffset, mload(fromOffset))
                }
             }
             // HELPER FUNCTIONS
@@ -479,28 +478,94 @@ object "ModExp" {
                 bit_size := add(bit_size, uint_bit_size(limb))
             }
 
+            // @notice Performs in-place `x | 1` operation.
+            // @dev This function will mutate the memory space `mem[base_ptr...(base_ptr + n_limbs * 32)]`
+            // @dev It consumes constant time, aka `O(1)`.
+            // @param base_ptr Base pointer for a big unsigned integer.
+            // @param n_limbs Number of 32 Byte limbs composing the big unsigned integer.
+            function big_uint_inplace_or_1(base_ptr, n_limbs) {
+                let offset := mul(sub(n_limbs, 1), 32)
+                let limb_ptr := add(base_ptr, offset)
+                let limb := mload(limb_ptr)
+                mstore(limb_ptr, or(limb, 0x1))
+            }
+
+            function big_uint_shift_left_by_one_in_place(ptr_base, n_limbs) {
+                let p := add(ptr_base, shl(5, n_limbs)) // ptr_base + 32 * n_limbs
+                let carry_bit := 0
+                for {  } lt(ptr_base, p) {  } {
+                    p := sub(p, 32)
+                    let limb := mload(p)
+                    let msb := shr(255, limb) // most significant bit.
+                    limb := or(shl(1, limb), carry_bit)
+                    mstore(p, limb)
+                    carry_bit := msb
+                }
+            }
+
+            function big_uint_shift_right_by_one_in_place(base_ptr, n_limbs) {
+                let ptr_overflow := add(base_ptr, shl(5, n_limbs))
+                let carry_bit := 0
+                for { let p := base_ptr } lt(p, ptr_overflow) { p := add(p, 32) } {
+                    let limb := mload(p)
+                    let lsb := and(limb, 1) // Least significant bit.
+                    limb := or(shr(1, limb), carry_bit)
+                    carry_bit := shl(255, lsb)
+                    mstore(p, limb)
+                }
+            }
+
             /// @notice Performs the big unsigned integer square of big unsigned integers with an arbitrary amount of limbs.
-            /// @dev The quotient is stored from `quotientPtr` to `quotientPtr + (WORD_SIZE * nLimbs)`.
-            /// @dev The reminder is stored from `reminderPtr` to `reminderPtr + (WORD_SIZE * nLimbs)`.
-            function bigUIntDivRem(lhsPtr, rhsPtr, nLimbs, quotientPtr, reminderPtr) {
-                let mb := big_uint_bit_size(rhsPtr, nLimbs)
-                let bd := sub(mul(nLimbs, 256), mb)
-                let quo := zeroWithLimbSizeAt(nLimbs, quotientPtr)
-                let one := oneWithLimbSizeAt(nLimbs, 0x500)
-                let cPtr := 0x900
-                let subtractionResultPtr := 0x700 
-                let borrow := 0
-                let remPtr := copyBigUint(nLimbs, lhsPtr, reminderPtr)
-                bigUIntShr(bd, copyBigUint(nLimbs, rhsPtr, cPtr),  nLimbs, cPtr)
-                copyBigUint(nLimbs, rhsPtr, cPtr)
-                bigUIntShr(bd, cPtr ,  nLimbs, cPtr)
-                for {let bd := sub(mul(nLimbs, 256), mb)} gt(bd, 0) {bd := sub(bd, 1)} {
-                    subtractionResultPtr, borrow := bigUintSubtractionWithBorrow(remPtr, rhsPtr, nLimbs, subtractionResultPtr) 
-                    bigUIntCondSelect(subtractionResultPtr, remPtr, remPtr, nLimbs, borrow)
-                    bigUIntBitOr(remPtr, one, nLimbs, subtractionResultPtr)
-                    bigUIntCondSelect(subtractionResultPtr, quo, quo, nLimbs, borrow)
-                    bigUIntShr(1, cPtr, nLimbs, cPtr)
-                    bigUIntShr(1, quo, nLimbs, quo)
+            /// @dev The quotient is stored from `quotient_ptr` to `quotient_ptr + (WORD_SIZE * nLimbs)`.
+            /// @dev The reminder is stored from `rem_ptr` to `rem_ptr + (WORD_SIZE * nLimbs)`.
+            function bigUIntDivRem(dividend_ptr, divisor_ptr, n_limbs, quotient_ptr, rem_ptr) {
+                // Init pointers for internal use buffers.
+                // FIXME This is ok for development purposes, but fix it before publishing the code.
+                let c_ptr := 0x900 // FIXME don't use a hardcoded address!
+                let r_ptr := 0x700 // FIXME don't use a hardcoded address!
+
+                copyBigUint(n_limbs, dividend_ptr, rem_ptr) // rem = dividend 
+
+                // Init quotient to 0.
+                zeroWithLimbSizeAt(n_limbs, quotient_ptr) // quotient = 0
+
+                let mb := big_uint_bit_size(divisor_ptr, n_limbs)
+                let bd := sub(mul(n_limbs, 256), mb)
+                bigUIntShl(bd, divisor_ptr, n_limbs, c_ptr) // c == divisor << bd
+
+                for { } iszero(0) { } {
+                    // LAMBDAWORKS : let (mut r, borrow) = rem.sbb(&c, 0);
+                    let r_ptr, borrow := bigUintSubtractionWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
+
+                    // LAMBDAWORKS : rem = Self::ct_select(&r, &rem, borrow);
+                    if iszero(borrow) {
+                        copyBigUint(n_limbs, r_ptr, rem_ptr)
+                    }
+
+                    // LAMBDAWORKS : r = quo.bitor(Self::from_u64(1));
+                    copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
+                    big_uint_inplace_or_1(r_ptr, n_limbs) // r = quotient | 1
+
+                    // LAMBDAWORKS : quo = Self::ct_select(&r, &quo, borrow);
+                    if iszero(borrow) {
+                        copyBigUint(n_limbs, r_ptr, quotient_ptr)
+                    }
+
+                    // LAMBDAWORKS: if bd == 0 { break; }
+                    if iszero(bd) {
+                        break
+                    }
+
+                    bd := sub(bd, 1)
+                    big_uint_shift_right_by_one_in_place(c_ptr, n_limbs) // c = c >> 1
+                    big_uint_shift_left_by_one_in_place(quotient_ptr, n_limbs) // q[] = q[] << 1
+                }
+
+                // LAMBDAWORKS
+                //     let is_some = Self::ct_is_nonzero(mb as u64);
+                //     quo = Self::ct_select(&Self::from_u64(0), &quo, is_some);
+                if iszero(mb) {
+                    zeroWithLimbSizeAt(n_limbs, quotient_ptr)
                 }
             }
 
