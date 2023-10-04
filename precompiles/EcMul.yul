@@ -57,18 +57,18 @@ object "EcMul" {
             // ////////////////////////////////////////////////////////////////
 
             /// @dev Executes the `precompileCall` opcode.
-            function precompileCall(precompileParams, gasToBurn) -> ret {
-                // Compiler simulation for calling `precompileCall` opcode
-                ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
-            }
+			function precompileCall(precompileParams, gasToBurn) -> ret {
+				// Compiler simulation for calling `precompileCall` opcode
+				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
+			}
 
             /// @notice Burns remaining gas until revert.
             /// @dev This function is used to burn gas in the case of a failed precompile call.
-            function burnGas() {
-                // Precompiles that do not have a circuit counterpart
-                // will burn the provided gas by calling this function.
-                precompileCall(0, gas())
-            }
+			function burnGas() {
+				// Precompiles that do not have a circuit counterpart
+				// will burn the provided gas by calling this function.
+				precompileCall(0, gas())
+		  	}
 
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
@@ -95,6 +95,21 @@ object "EcMul" {
                 ret := and(x, 1)
             }
 
+            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
+            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod P() being `a` the base number (not in Montgomery Form)
+            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
+            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
+            /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
+            /// @dev and a^(-1)*R mod P() respectively).
+            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod P(),
+            /// @dev but we want it to be a^(-1)*R mod P().
+            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod P()
+            /// @dev to get R^2*a^(-1)*R^(-1) mod P() = a^(-1)*R mod P() as the desired result in Montgomery Form.
+            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
+            /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
+            /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
+            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
                 let modulus := P()
                 let u := base
@@ -155,7 +170,7 @@ object "EcMul" {
             }
 
             /// @notice Implementation of the Montgomery reduction algorithm (a.k.a. REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
@@ -173,7 +188,7 @@ object "EcMul" {
             }
 
             /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a) -> ret {
@@ -183,7 +198,7 @@ object "EcMul" {
             }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m) -> ret {
@@ -192,16 +207,29 @@ object "EcMul" {
                 ret := REDC(lo, hi)
             }
 
+            /// @notice Computes the Montgomery addition.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param augend The augend in Montgomery form.
+            /// @param addend The addend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend) -> ret {
-                ret := addmod(augend, addend, P())
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
             }
 
+            /// @notice Computes the Montgomery subtraction.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param minuend The minuend in Montgomery form.
+            /// @param subtrahend The subtrahend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
-            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param multiplicand The multiplicand in Montgomery form.
             /// @param multiplier The multiplier in Montgomery form.
             /// @return ret The result of the Montgomery multiplication.
@@ -307,16 +335,11 @@ object "EcMul" {
             /// @return xr The x coordinate of the point P in affine coordinates in Montgomery form.
             /// @return yr The y coordinate of the point P in affine coordinates in Montgomery form.
             function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
-                switch zp
-                case 0 {
-                    xr := 0
-                    yr := 0
-                }
-                default {
-                    let zp_inv := montgomeryModularInverse(zp)
-                    xr := montgomeryMul(xp, zp_inv)
-                    yr := montgomeryMul(yp, zp_inv)
-                }
+                if zp {
+                     let zp_inv := montgomeryModularInverse(zp)
+                     xr := montgomeryMul(xp, zp_inv)
+                     yr := montgomeryMul(yp, zp_inv)
+                 }
             }
 
             /// @notice Doubles a point in projective coordinates in Montgomery form.
@@ -364,6 +387,8 @@ object "EcMul" {
 
             if affinePointIsInfinity(x, y) {
                 // Infinity * scalar = Infinity
+                mstore(0x00, 0x00)
+                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
 
@@ -377,6 +402,8 @@ object "EcMul" {
 
             if eq(scalar, 0) {
                 // P * 0 = Infinity
+                mstore(0x00, 0x00)
+                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
             if eq(scalar, 1) {
