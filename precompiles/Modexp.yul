@@ -384,7 +384,7 @@ object "ModExp" {
                 let rightPlusBorrow := add(rightLimb, limbBorrow)
                 subtractionResult := sub(leftLimb, rightPlusBorrow)
                 if gt(subtractionResult, leftLimb) {
-                 returnBorrow := 1
+                    returnBorrow := 1
                 }
             }
             /// @notice Computes the BigUint subtraction between the number stored
@@ -397,9 +397,8 @@ object "ModExp" {
             function bigUintSubtractionWithBorrow(lhsPointer, rhsPointer, numberOfLimbs, resultPointer) -> resultPointer, borrow {
                 let leftIthLimbValue
                 let rightIthLimbValue
-                let ithLimbBorrowResult
                 let ithLimbSubtractionResult
-                let borrow := 0
+                borrow := 0
                 let limbOffset := 0
                 for {let i := numberOfLimbs} gt(i, 0) {i := sub(i, 1)} {
                     limbOffset := mul(sub(i,1), 32)
