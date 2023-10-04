@@ -45,6 +45,14 @@ object "P256VERIFY" {
                 m_one := 26959946660873538059280334323183841250350249843923952699046031785985
             }
 
+            function MONTGOMERY_ONE_N() -> m_one {
+                m_one := 26959946660873538059280334323273029441504803697035324946844617595567
+            }
+
+            function R_MINUS_P() -> ret {
+                ret := 26959946660873538059280334323183841250350249843923952699046031785985
+            }
+
             function MONTGOMERY_A() -> m_a {
                 m_a := 115792089129476408780076832771566570560534619664239564663761773211729002495996
             }
@@ -125,6 +133,65 @@ object "P256VERIFY" {
             /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
             /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
             /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
+            // function binaryExtendedEuclideanAlgorithm(base) -> inv {
+            //     let modulus := P()
+            //     let u := base
+            //     let v := modulus
+            //     // Avoids unnecessary reduction step.
+            //     let b := R2_MOD_P()
+            //     let c := 0
+
+            //     for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+            //         for {} iszero(and(u, 1)) {} {
+            //             u := shr(1, u)
+            //             let current := b
+            //             switch and(current, 1)
+            //             case 0 {
+            //                 b := shr(1, b)
+            //             }
+            //             case 1 {
+            //                 b := shr(1, add(b, modulus))
+            //             }
+            //         }
+
+            //         for {} iszero(and(v, 1)) {} {
+            //             v := shr(1, v)
+            //             let current := c
+            //             switch and(current, 1)
+            //             case 0 {
+            //                 c := shr(1, c)
+            //             }
+            //             case 1 {
+            //                 c := shr(1, add(c, modulus))
+            //             }
+            //         }
+
+            //         switch gt(v, u)
+            //         case 0 {
+            //             u := sub(u, v)
+            //             if lt(b, c) {
+            //                 b := add(b, modulus)
+            //             }
+            //             b := sub(b, c)
+            //         }
+            //         case 1 {
+            //             v := sub(v, u)
+            //             if lt(c, b) {
+            //                 c := add(c, modulus)
+            //             }
+            //             c := sub(c, b)
+            //         }
+            //     }
+
+            //     switch eq(u, 1)
+            //     case 0 {
+            //         inv := c
+            //     }
+            //     case 1 {
+            //         inv := b
+            //     }
+            // }
+
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
                 // Precomputation of 1 << 255
                 let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
@@ -136,20 +203,20 @@ object "P256VERIFY" {
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_P()
-                let c := 0
+                let c := 0x0
 
-                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
-                    for {} iszero(and(u, 1)) {} {
+                for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
+                    for {} iszero(and(u, 0x1)) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, 1)
-                        if iszero(current_b_is_odd) {
+                        let currentB := b
+                        switch and(currentB, 0x1)
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
+                        case 1 {
+                            let newB := add(b, modulus)
+                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 b := or(b, mask)
@@ -157,17 +224,17 @@ object "P256VERIFY" {
                         }
                     }
 
-                    for {} iszero(and(v, 1)) {} {
+                    for {} iszero(and(v, 0x1)) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, 1)
-                        if iszero(current_c_is_odd) {
+                        let currentC := c
+                        switch and(currentC, 0x1)
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
+                        case 1 {
+                            let newC := add(c, modulus)
+                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 c := or(c, mask)
@@ -192,7 +259,7 @@ object "P256VERIFY" {
                     }
                 }
 
-                switch eq(u, 1)
+                switch eq(u, 0x1)
                 case 0 {
                     inv := c
                 }
@@ -212,20 +279,20 @@ object "P256VERIFY" {
                 let v := modulus
                 // Avoids unnecessary reduction step.
                 let b := R2_MOD_N()
-                let c := 0
+                let c := 0x0
 
-                for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
-                    for {} iszero(and(u, 1)) {} {
+                for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
+                    for {} iszero(and(u, 0x1)) {} {
                         u := shr(1, u)
-                        let current_b := b
-                        let current_b_is_odd := and(current_b, 1)
-                        if iszero(current_b_is_odd) {
+                        let currentB := b
+                        switch and(currentB, 0x1)
+                        case 0 {
                             b := shr(1, b)
                         }
-                        if current_b_is_odd {
-                            let new_b := add(b, modulus)
-                            let carry := or(lt(new_b, b), lt(new_b, modulus))
-                            b := shr(1, new_b)
+                        case 1 {
+                            let newB := add(b, modulus)
+                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 b := or(b, mask)
@@ -233,17 +300,17 @@ object "P256VERIFY" {
                         }
                     }
 
-                    for {} iszero(and(v, 1)) {} {
+                    for {} iszero(and(v, 0x1)) {} {
                         v := shr(1, v)
-                        let current_c := c
-                        let current_c_is_odd := and(current_c, 1)
-                        if iszero(current_c_is_odd) {
+                        let currentC := c
+                        switch and(currentC, 0x1)
+                        case 0 {
                             c := shr(1, c)
                         }
-                        if current_c_is_odd {
-                            let new_c := add(c, modulus)
-                            let carry := or(lt(new_c, c), lt(new_c, modulus))
-                            c := shr(1, new_c)
+                        case 1 {
+                            let newC := add(c, modulus)
+                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
                                 c := or(c, mask)
@@ -268,7 +335,7 @@ object "P256VERIFY" {
                     }
                 }
 
-                switch eq(u, 1)
+                switch eq(u, 0x1)
                 case 0 {
                     inv := c
                 }
@@ -276,6 +343,82 @@ object "P256VERIFY" {
                     inv := b
                 }
             }
+
+            // function binaryExtendedEuclideanAlgorithmN(base) -> inv {
+            //     // Precomputation of 1 << 255
+            //     let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
+            //     let modulus := N()
+            //     // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
+            //     let modulusHasSpareBits := iszero(and(modulus, mask))
+
+            //     let u := base
+            //     let v := modulus
+            //     // Avoids unnecessary reduction step.
+            //     let b := R2_MOD_N()
+            //     let c := 0
+
+            //     for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
+            //         for {} iszero(and(u, 1)) {} {
+            //             u := shr(1, u)
+            //             let current_b := b
+            //             let current_b_is_odd := and(current_b, 1)
+            //             if iszero(current_b_is_odd) {
+            //                 b := shr(1, b)
+            //             }
+            //             if current_b_is_odd {
+            //                 let new_b := add(b, modulus)
+            //                 let carry := or(lt(new_b, b), lt(new_b, modulus))
+            //                 b := shr(1, new_b)
+
+            //                 if and(iszero(modulusHasSpareBits), carry) {
+            //                     b := or(b, mask)
+            //                 }
+            //             }
+            //         }
+
+            //         for {} iszero(and(v, 1)) {} {
+            //             v := shr(1, v)
+            //             let current_c := c
+            //             let current_c_is_odd := and(current_c, 1)
+            //             if iszero(current_c_is_odd) {
+            //                 c := shr(1, c)
+            //             }
+            //             if current_c_is_odd {
+            //                 let new_c := add(c, modulus)
+            //                 let carry := or(lt(new_c, c), lt(new_c, modulus))
+            //                 c := shr(1, new_c)
+
+            //                 if and(iszero(modulusHasSpareBits), carry) {
+            //                     c := or(c, mask)
+            //                 }
+            //             }
+            //         }
+
+            //         switch gt(v, u)
+            //         case 0 {
+            //             u := sub(u, v)
+            //             if lt(b, c) {
+            //                 b := add(b, modulus)
+            //             }
+            //             b := sub(b, c)
+            //         }
+            //         case 1 {
+            //             v := sub(v, u)
+            //             if lt(c, b) {
+            //                 c := add(c, modulus)
+            //             }
+            //             c := sub(c, b)
+            //         }
+            //     }
+
+            //     switch eq(u, 1)
+            //     case 0 {
+            //         inv := c
+            //     }
+            //     case 1 {
+            //         inv := b
+            //     }
+            // }
 
             /// @notice Computes an addition and checks for overflow.
             /// @param augend The value to add to.
@@ -300,10 +443,13 @@ object "P256VERIFY" {
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
+            // T es T
+            // N es P, N' es P'
+            // R es 2^256
             function REDC(lowest_half_of_T, higher_half_of_T) -> S {
-                let q := mul(lowest_half_of_T, P_PRIME())
-                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, P()))
-                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, P()))
+                let m := mul(lowest_half_of_T, P_PRIME())
+                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(m, P()))
+                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(m, P()))
                 if a_high_overflowed {
                     // TODO: Check if this addition could overflow.
                     a_high := add(a_high, MONTGOMERY_ONE())
@@ -314,23 +460,32 @@ object "P256VERIFY" {
                 if a_high_overflowed {
                     a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE())
                 }
+                // if a_high_overflowed {
+                //     a_high := add(a_high, MONTGOMERY_ONE())
+                // }
                 S := a_high
+
                 if iszero(lt(a_high, P())) {
                     S := sub(a_high, P())
                 }
             }
 
             function REDCN(lowest_half_of_T, higher_half_of_T) -> S {
-                let q := mul(lowest_half_of_T, N_PRIME())
-                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(q, N()))
-                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(q, N()))
+                let m := mul(lowest_half_of_T, N_PRIME())
+                let a_high, a_high_overflowed := overflowingAdd(higher_half_of_T, getHighestHalfOfMultiplication(m, N()))
+                let a_low, a_low_overflowed := overflowingAdd(lowest_half_of_T, mul(m, N()))
                 if a_high_overflowed {
-                    a_high := add(a_high, MONTGOMERY_ONE())
+                    // TODO: Check if this addition could overflow.
+                    a_high := add(a_high, MONTGOMERY_ONE_N())
                 }
                 if a_low_overflowed {
-                    a_high := add(a_high, 1)
+                    a_high, a_high_overflowed := overflowingAdd(a_high, 1)
+                }
+                if a_high_overflowed {
+                    a_high, a_high_overflowed := overflowingAdd(a_high, MONTGOMERY_ONE_N())
                 }
                 S := a_high
+
                 if iszero(lt(a_high, N())) {
                     S := sub(a_high, N())
                 }
@@ -349,7 +504,7 @@ object "P256VERIFY" {
             function intoMontgomeryFormN(a) -> ret {
                 let higher_half_of_a := getHighestHalfOfMultiplication(mod(a, N()), R2_MOD_N())
                 let lowest_half_of_a := mul(mod(a, N()), R2_MOD_N())
-                ret := REDC(lowest_half_of_a, higher_half_of_a)
+                ret := REDCN(lowest_half_of_a, higher_half_of_a)
         }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
@@ -648,66 +803,59 @@ object "P256VERIFY" {
             let am_inv := montgomeryModularInverse(am)
             let one_m := montgomeryMul(am, am_inv)
 
-            console_log(a)
-            console_log(am)
-            console_log(am_inv)
-            console_log(one_m)
-            console_log(outOfMontgomeryForm(one_m))
+            let hash := calldataload(0)
+            let r := calldataload(32)
+            let s := calldataload(64)
+            let x := calldataload(96)
+            let y := calldataload(128)
 
-            // let hash := calldataload(0)
-            // let r := calldataload(32)
-            // let s := calldataload(64)
-            // let x := calldataload(96)
-            // let y := calldataload(128)
+            if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
+                burnGas()
+            }
 
-            // if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
-            //     burnGas()
-            // }
+            if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
+                burnGas()
+            }
 
-            // if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
-            //     burnGas()
-            // }
+            x := intoMontgomeryForm(x)
+            y := intoMontgomeryForm(y)
 
-            // x := intoMontgomeryForm(x)
-            // y := intoMontgomeryForm(y)
+            if iszero(affinePointIsOnCurve(x, y)) {
+                burnGas()
+            }
 
-            // if iszero(affinePointIsOnCurve(x, y)) {
-            //     burnGas()
-            // }
+            let z
+            x, y, z := projectiveFromAffine(x, y)
 
-            // let z
-            // x, y, z := projectiveFromAffine(x, y)
+            // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
-            // // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
+            hash := intoMontgomeryFormN(hash)
+            r := intoMontgomeryFormN(r)
+            s := intoMontgomeryFormN(s)
 
-            // hash := intoMontgomeryFormN(hash)
-            // r := intoMontgomeryFormN(r)
-            // s := intoMontgomeryFormN(s)
+            let s1 := montgomeryModularInverseN(s)
+            let result := outOfMontgomeryFormN(montgomeryMulN(s, s1))
 
-            // let s1 := montgomeryModularInverseN(s)
-            // // let s1 := mod(exp(s, sub(N(), 2)), N())
+            let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
+            let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
 
-            // let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
-            // let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
-            // // let t0 := mulmod(hash, s1, N())
-            // // let t1 := mulmod(r, s1, N())
+            let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
 
-            // let gx, gy, gz := MONTGOMERY_PROJECTIVE_G()
+            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
+            let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
+            let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
+            let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
-            // // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
-            // let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
-            // let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
-            // let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
+            // As we only need xr in affine form, we can skip transforming the `y` coordinate.
+            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            xr := outOfMontgomeryForm(xr)
+            r := outOfMontgomeryFormN(r)
 
-            // // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            // xr := montgomeryMul(xr, montgomeryModularInverse(zr))
-            // xr := outOfMontgomeryForm(xr)
+            xr := mod(xr, N())
+            r := mod(r, N())
 
-            // xr := mod(xr, N())
-            // r := mod(r, N())
-
-            // mstore(0, eq(xr, r))
-            // return(0, 32)
+            mstore(0, eq(xr, r))
+            return(0, 32)
         }
     }
 }

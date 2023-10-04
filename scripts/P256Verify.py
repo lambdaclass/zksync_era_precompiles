@@ -90,6 +90,9 @@ def main():
     s = (k_inv * (z + r * da)) % n
     assert s != 0
 
+    print(hex(r))
+    print(hex(s))
+
     # z = 0x5ad83880e16658d7521d4e878521defaf6b43dec1dbd69e514c09ab8f1f2ffe2
     # r = 0xBE2B5B76B868F64F255F8CF666EA3B0B17EE8A2C352757B9454DD4979539D7DE
     # s = 0x93973E2948748003BC6C947D56A47411EA1C812B358BE9D0189E2BD0A0B9D11E
@@ -97,6 +100,9 @@ def main():
     # public_key_y = 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
 
     public_key_x, public_key_y = escalarMul((gx, gy), da)
+
+    print(hex(public_key_x))
+    print(hex(public_key_y))
 
     # Check generators
     assert((0,0) == escalarMul((gx, gy), n))
