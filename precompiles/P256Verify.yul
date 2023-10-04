@@ -118,91 +118,16 @@ object "P256VERIFY" {
 
             // MONTGOMERY
 
-            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
-            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
-            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod P() being `a` the base number (not in Montgomery Form)
-            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P()
-            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
-            /// @dev In our case N is P(), and we'd like the input and output to be in Montgomery Form (a*R mod P() 
-            /// @dev and a^(-1)*R mod P() respectively).
-            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod P(),
-            /// @dev but we want it to be a^(-1)*R mod P().
-            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod P()
-            /// @dev to get R^2*a^(-1)*R^(-1) mod P() = a^(-1)*R mod P() as the desired result in Montgomery Form.
-            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
-            /// @dev multiplying `b` or `c` by R^2 mod P() results on starting their values as b = R2_MOD_P() and c = 0.
-            /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
-            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
-            // function binaryExtendedEuclideanAlgorithm(base) -> inv {
-            //     let modulus := P()
-            //     let u := base
-            //     let v := modulus
-            //     // Avoids unnecessary reduction step.
-            //     let b := R2_MOD_P()
-            //     let c := 0
-
-            //     for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
-            //         for {} iszero(and(u, 1)) {} {
-            //             u := shr(1, u)
-            //             let current := b
-            //             switch and(current, 1)
-            //             case 0 {
-            //                 b := shr(1, b)
-            //             }
-            //             case 1 {
-            //                 b := shr(1, add(b, modulus))
-            //             }
-            //         }
-
-            //         for {} iszero(and(v, 1)) {} {
-            //             v := shr(1, v)
-            //             let current := c
-            //             switch and(current, 1)
-            //             case 0 {
-            //                 c := shr(1, c)
-            //             }
-            //             case 1 {
-            //                 c := shr(1, add(c, modulus))
-            //             }
-            //         }
-
-            //         switch gt(v, u)
-            //         case 0 {
-            //             u := sub(u, v)
-            //             if lt(b, c) {
-            //                 b := add(b, modulus)
-            //             }
-            //             b := sub(b, c)
-            //         }
-            //         case 1 {
-            //             v := sub(v, u)
-            //             if lt(c, b) {
-            //                 c := add(c, modulus)
-            //             }
-            //             c := sub(c, b)
-            //         }
-            //     }
-
-            //     switch eq(u, 1)
-            //     case 0 {
-            //         inv := c
-            //     }
-            //     case 1 {
-            //         inv := b
-            //     }
-            // }
-
-            function binaryExtendedEuclideanAlgorithm(base) -> inv {
+            function binaryExtendedEuclideanAlgorithm(base, modulus, d) -> inv {
                 // Precomputation of 1 << 255
                 let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
-                let modulus := P()
                 // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
                 let modulusHasSpareBits := iszero(and(modulus, mask))
 
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
-                let b := R2_MOD_P()
+                let b := d
                 let c := 0x0
 
                 for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
@@ -267,158 +192,6 @@ object "P256VERIFY" {
                     inv := b
                 }
             }
-
-            function binaryExtendedEuclideanAlgorithmN(base) -> inv {
-                // Precomputation of 1 << 255
-                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
-                let modulus := N()
-                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-                let modulusHasSpareBits := iszero(and(modulus, mask))
-
-                let u := base
-                let v := modulus
-                // Avoids unnecessary reduction step.
-                let b := R2_MOD_N()
-                let c := 0x0
-
-                for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
-                    for {} iszero(and(u, 0x1)) {} {
-                        u := shr(1, u)
-                        let currentB := b
-                        switch and(currentB, 0x1)
-                        case 0 {
-                            b := shr(1, b)
-                        }
-                        case 1 {
-                            let newB := add(b, modulus)
-                            let carry := or(lt(newB, b), lt(newB, modulus))
-                            b := shr(1, newB)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                b := or(b, mask)
-                            }
-                        }
-                    }
-
-                    for {} iszero(and(v, 0x1)) {} {
-                        v := shr(1, v)
-                        let currentC := c
-                        switch and(currentC, 0x1)
-                        case 0 {
-                            c := shr(1, c)
-                        }
-                        case 1 {
-                            let newC := add(c, modulus)
-                            let carry := or(lt(newC, c), lt(newC, modulus))
-                            c := shr(1, newC)
-
-                            if and(iszero(modulusHasSpareBits), carry) {
-                                c := or(c, mask)
-                            }
-                        }
-                    }
-
-                    switch gt(v, u)
-                    case 0 {
-                        u := sub(u, v)
-                        if lt(b, c) {
-                            b := add(b, modulus)
-                        }
-                        b := sub(b, c)
-                    }
-                    case 1 {
-                        v := sub(v, u)
-                        if lt(c, b) {
-                            c := add(c, modulus)
-                        }
-                        c := sub(c, b)
-                    }
-                }
-
-                switch eq(u, 0x1)
-                case 0 {
-                    inv := c
-                }
-                case 1 {
-                    inv := b
-                }
-            }
-
-            // function binaryExtendedEuclideanAlgorithmN(base) -> inv {
-            //     // Precomputation of 1 << 255
-            //     let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
-            //     let modulus := N()
-            //     // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
-            //     let modulusHasSpareBits := iszero(and(modulus, mask))
-
-            //     let u := base
-            //     let v := modulus
-            //     // Avoids unnecessary reduction step.
-            //     let b := R2_MOD_N()
-            //     let c := 0
-
-            //     for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
-            //         for {} iszero(and(u, 1)) {} {
-            //             u := shr(1, u)
-            //             let current_b := b
-            //             let current_b_is_odd := and(current_b, 1)
-            //             if iszero(current_b_is_odd) {
-            //                 b := shr(1, b)
-            //             }
-            //             if current_b_is_odd {
-            //                 let new_b := add(b, modulus)
-            //                 let carry := or(lt(new_b, b), lt(new_b, modulus))
-            //                 b := shr(1, new_b)
-
-            //                 if and(iszero(modulusHasSpareBits), carry) {
-            //                     b := or(b, mask)
-            //                 }
-            //             }
-            //         }
-
-            //         for {} iszero(and(v, 1)) {} {
-            //             v := shr(1, v)
-            //             let current_c := c
-            //             let current_c_is_odd := and(current_c, 1)
-            //             if iszero(current_c_is_odd) {
-            //                 c := shr(1, c)
-            //             }
-            //             if current_c_is_odd {
-            //                 let new_c := add(c, modulus)
-            //                 let carry := or(lt(new_c, c), lt(new_c, modulus))
-            //                 c := shr(1, new_c)
-
-            //                 if and(iszero(modulusHasSpareBits), carry) {
-            //                     c := or(c, mask)
-            //                 }
-            //             }
-            //         }
-
-            //         switch gt(v, u)
-            //         case 0 {
-            //             u := sub(u, v)
-            //             if lt(b, c) {
-            //                 b := add(b, modulus)
-            //             }
-            //             b := sub(b, c)
-            //         }
-            //         case 1 {
-            //             v := sub(v, u)
-            //             if lt(c, b) {
-            //                 c := add(c, modulus)
-            //             }
-            //             c := sub(c, b)
-            //         }
-            //     }
-
-            //     switch eq(u, 1)
-            //     case 0 {
-            //         inv := c
-            //     }
-            //     case 1 {
-            //         inv := b
-            //     }
-            // }
 
             /// @notice Computes an addition and checks for overflow.
             /// @param augend The value to add to.
@@ -561,12 +334,12 @@ object "P256VERIFY" {
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
             /// @param a The field element in Montgomery form to compute the modular inverse of.
             /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
-            function montgomeryModularInverse(a) -> invmod {
-                invmod := binaryExtendedEuclideanAlgorithm(a)
+            function montgomeryModularInverseP(a) -> invmod {
+                invmod := binaryExtendedEuclideanAlgorithm(a, P(), R2_MOD_P())
             }
 
             function montgomeryModularInverseN(a) -> invmod {
-                invmod := binaryExtendedEuclideanAlgorithmN(a)
+                invmod := binaryExtendedEuclideanAlgorithm(a, N(), R2_MOD_N())
             }
 
             /// @notice Computes the Montgomery division.
@@ -575,7 +348,7 @@ object "P256VERIFY" {
             /// @param divisor The divisor in Montgomery form.
             /// @return quotient The result of the Montgomery division.
             function montgomeryDiv(dividend, divisor) -> quotient {
-                quotient := montgomeryMul(dividend, montgomeryModularInverse(divisor))
+                quotient := montgomeryMul(dividend, montgomeryModularInverseP(divisor))
             }
 
             // CURVE ARITHMETICS
@@ -649,7 +422,7 @@ object "P256VERIFY" {
                     yr := 0
                 }
                 default {
-                    let zp_inv := montgomeryModularInverse(zp)
+                    let zp_inv := montgomeryModularInverseP(zp)
                     xr := montgomeryMul(xp, zp_inv)
                     yr := montgomeryMul(yp, zp_inv)
                 }
@@ -800,7 +573,7 @@ object "P256VERIFY" {
             // Fallback
             let a := 0x129321
             let am := intoMontgomeryForm(a)
-            let am_inv := montgomeryModularInverse(am)
+            let am_inv := montgomeryModularInverseP(am)
             let one_m := montgomeryMul(am, am_inv)
 
             let hash := calldataload(0)
@@ -847,7 +620,7 @@ object "P256VERIFY" {
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMul(xr, montgomeryModularInverse(zr))
+            xr := montgomeryMul(xr, montgomeryModularInverseP(zr))
             xr := outOfMontgomeryForm(xr)
             r := outOfMontgomeryFormN(r)
 
