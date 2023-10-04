@@ -126,7 +126,12 @@ object "P256VERIFY" {
             /// @param base A number `a` in Montgomery Form, then base = a*R mod P().
             /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod P().
             function binaryExtendedEuclideanAlgorithm(base) -> inv {
+                // Precomputation of 1 << 255
+                let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 let modulus := P()
+                // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
+                let modulusHasSpareBits := iszero(and(modulus, mask))
+
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
@@ -136,25 +141,37 @@ object "P256VERIFY" {
                 for {} and(iszero(eq(u, 1)), iszero(eq(v, 1))) {} {
                     for {} iszero(and(u, 1)) {} {
                         u := shr(1, u)
-                        let current := b
-                        switch and(current, 1)
-                        case 0 {
+                        let current_b := b
+                        let current_b_is_odd := and(current_b, 1)
+                        if iszero(current_b_is_odd) {
                             b := shr(1, b)
                         }
-                        case 1 {
-                            b := shr(1, add(b, modulus))
+                        if current_b_is_odd {
+                            let new_b := add(b, modulus)
+                            let carry := or(lt(new_b, b), lt(new_b, modulus))
+                            b := shr(1, new_b)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                b := or(b, mask)
+                            }
                         }
                     }
 
                     for {} iszero(and(v, 1)) {} {
                         v := shr(1, v)
-                        let current := c
-                        switch and(current, 1)
-                        case 0 {
+                        let current_c := c
+                        let current_c_is_odd := and(current_c, 1)
+                        if iszero(current_c_is_odd) {
                             c := shr(1, c)
                         }
-                        case 1 {
-                            c := shr(1, add(c, modulus))
+                        if current_c_is_odd {
+                            let new_c := add(c, modulus)
+                            let carry := or(lt(new_c, c), lt(new_c, modulus))
+                            c := shr(1, new_c)
+
+                            if and(iszero(modulusHasSpareBits), carry) {
+                                c := or(c, mask)
+                            }
                         }
                     }
 
