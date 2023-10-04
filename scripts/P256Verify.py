@@ -93,13 +93,15 @@ def main():
     # z = 0x5ad83880e16658d7521d4e878521defaf6b43dec1dbd69e514c09ab8f1f2ffe2
     # r = 0xBE2B5B76B868F64F255F8CF666EA3B0B17EE8A2C352757B9454DD4979539D7DE
     # s = 0x93973E2948748003BC6C947D56A47411EA1C812B358BE9D0189E2BD0A0B9D11E
-    # x = 0x18905F76A53755C679FB732B7762251075BA95FC5FEDB60179E730D418A9143C
-    # y = 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
+    # public_key_x = 0x18905F76A53755C679FB732B7762251075BA95FC5FEDB60179E730D418A9143C
+    # public_key_y = 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
+
+    public_key_x, public_key_y = escalarMul((gx, gy), da)
 
     # Check generators
     assert((0,0) == escalarMul((gx, gy), n))
     # Check Public key
-    assert((0,0) == escalarMul((x, y), n))
+    assert((0,0) == escalarMul((public_key_x, public_key_y), n))
 
     # Verification
     s_inv = pow(s, n-2, n)
@@ -108,7 +110,7 @@ def main():
     u1 = (z * s_inv) % n
     u2 = (r * s_inv) % n
 
-    x1, y1 = point_add(*escalarMul((gx, gy), u1),*escalarMul((x, y), u2))
+    x1, y1 = point_add(*escalarMul((gx, gy), u1),*escalarMul((public_key_x, public_key_y), u2))
     x1 = x1 % n
     r = r % n
 
