@@ -114,8 +114,7 @@ object "P256VERIFY" {
                             b := shr(1, b)
                         }
                         case 1 {
-                            let newB := add(b, modulus)
-                            let carry := or(lt(newB, b), lt(newB, modulus))
+                            let newB, carry := overflowingAdd(b, modulus)
                             b := shr(1, newB)
 
                             if and(iszero(modulusHasSpareBits), carry) {
@@ -132,8 +131,7 @@ object "P256VERIFY" {
                             c := shr(1, c)
                         }
                         case 1 {
-                            let newC := add(c, modulus)
-                            let carry := or(lt(newC, c), lt(newC, modulus))
+                            let newC, carry := overflowingAdd(c, modulus)
                             c := shr(1, newC)
 
                             if and(iszero(modulusHasSpareBits), carry) {
@@ -175,7 +173,7 @@ object "P256VERIFY" {
             /// @return overflowed True if the addition overflowed, false otherwise.
             function overflowingAdd(augend, addend) -> sum, overflowed {
                 sum := add(augend, addend)
-                overflowed := or(lt(sum, augend), lt(sum, addend))
+                overflowed := lt(sum, augend)
             }
 
             /// @notice Retrieves the highest half of the multiplication result.
@@ -220,9 +218,9 @@ object "P256VERIFY" {
             /// @param a The field element to encode.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a, n, nPrime, r2) -> ret {
-                let higher_half_of_a := getHighestHalfOfMultiplication(a, r2)
-                let lowest_half_of_a := mul(a, r2)
-                ret := REDC(lowest_half_of_a, higher_half_of_a, n, nPrime)
+                let hi := getHighestHalfOfMultiplication(a, r2)
+                let lo := mul(a, r2)
+                ret := REDC(lo, hi, n, nPrime)
             }
 
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
@@ -230,9 +228,9 @@ object "P256VERIFY" {
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m, n, nPrime) -> ret {
-                let higher_half_of_m := 0
-                let lowest_half_of_m := m
-                ret := REDC(lowest_half_of_m, higher_half_of_m, n, nPrime)
+                let hi := 0
+                let lo := m
+                ret := REDC(lo, hi, n, nPrime)
             }
 
             /// @notice Computes the Montgomery addition.
@@ -257,9 +255,9 @@ object "P256VERIFY" {
             /// @param multiplier The multiplier in Montgomery form.
             /// @return ret The result of the Montgomery multiplication.
             function montgomeryMul(multiplicand, multiplier, n, nPrime) -> ret {
-                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
-                let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDC(lowest_half_of_product, higher_half_of_product, n, nPrime)
+                let hi := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                let lo := mul(multiplicand, multiplier)
+                ret := REDC(lo, hi, n, nPrime)
             }
 
             /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
@@ -279,6 +277,14 @@ object "P256VERIFY" {
             /// @return ret True if the field element is in the range, false otherwise.
             function fieldElementIsOnFieldOrder(felt) -> ret {
                 ret := lt(felt, P())
+            }
+
+            /// @notice Checks if a field element is on the subgroup order.
+            /// @dev A field element is on the subgroup order if it is on the range [0, subgroupOrder).
+            /// @param felt The field element to check.
+            /// @return ret True if the field element is in the range, false otherwise.
+            function fieldElementIsOnSubgroupOrder(felt) -> ret {
+                ret := lt(felt, N())
             }
 
             /// @notice Checks if affine coordinates are on the curve group order.
@@ -336,12 +342,7 @@ object "P256VERIFY" {
             /// @return xr The x coordinate of the point P in affine coordinates in Montgomery form.
             /// @return yr The y coordinate of the point P in affine coordinates in Montgomery form.
             function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
-                switch zp
-                case 0 {
-                    xr := 0
-                    yr := 0
-                }
-                default {
+                if zp {
                     let zp_inv := montgomeryModularInverse(zp, P(), R2_MOD_P())
                     xr := montgomeryMul(xp, zp_inv, P(), P_PRIME())
                     yr := montgomeryMul(yp, zp_inv, P(), P_PRIME())
@@ -474,35 +475,14 @@ object "P256VERIFY" {
                 }
             }
 
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := mload(0x600)
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
             // Fallback
-            let a := 0x129321
-            let am := intoMontgomeryForm(a, P(), P_PRIME(), R2_MOD_P())
-            let am_inv := montgomeryModularInverse(am, P(), R2_MOD_P())
-            let one_m := montgomeryMul(am, am_inv, P(), P_PRIME())
-
             let hash := calldataload(0)
             let r := calldataload(32)
             let s := calldataload(64)
             let x := calldataload(96)
             let y := calldataload(128)
 
-            if or(iszero(fieldElementIsOnFieldOrder(r)), iszero(fieldElementIsOnFieldOrder(s))) {
+            if or(iszero(fieldElementIsOnSubgroupOrder(r)), iszero(fieldElementIsOnSubgroupOrder(s))) {
                 burnGas()
             }
 
