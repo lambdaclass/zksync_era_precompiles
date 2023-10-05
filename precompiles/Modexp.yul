@@ -492,7 +492,7 @@ object "ModExp" {
             /// @dev It consumes constant time, aka `O(1)`.
             /// @param basePtr Base pointer for a big unsigned integer.
             /// @param nLimbs Number of 32 Byte limbs composing the big unsigned integer.
-            function bigUIntOrWith1(basePtr, nLimbs) {
+            function bigUIntInPlaceOrWith1(basePtr, nLimbs) {
                 let offset := mul(sub(nLimbs, 1), 32)
                 let limbPtr := add(basePtr, offset)
                 let limb := mload(limbPtr)
@@ -558,7 +558,7 @@ object "ModExp" {
                     }
 
                     copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
-                    bigUIntOrWith1(r_ptr, n_limbs) // r = quotient | 1
+                    bigUIntInPlaceOrWith1(r_ptr, n_limbs) // r = quotient | 1
 
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, quotient_ptr)
