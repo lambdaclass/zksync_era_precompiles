@@ -617,7 +617,6 @@ object "ModExp" {
                let extended_modulo_ptr := 0x800 // Fix: Do not hardcode this
                big_uint_duplicate_n_limbs(modulo_ptr, n_limbs, extended_modulo_ptr) 
                bigUIntDivRem(result_ptr, extended_modulo_ptr)
-               // result = lhs*rhs
             }
 
             ////////////////////////////////////////////////////////////////
