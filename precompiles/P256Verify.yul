@@ -6,43 +6,64 @@ object "P256VERIFY" {
 
             // CURVE CONSTANTS
 
+            /// @notice Constant function for curve reduced elliptic group order.
+            /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
+            /// @return p The curve reduced elliptic group order.
             function P() -> p {
                 p := 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
             }
 
-            // order of the subgroup
-            function N() -> p {
-                p := 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+            /// @notice Constant function for curve subgroup order.
+            /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
+            /// @return n The curve subgroup order.
+            function N() -> n {
+                n := 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
             }
 
             // MONTGOMERY CONSTANTS
 
-            /// @notice Constant function for value one in Montgomery form.
+            /// @notice Constant function for value one in Montgomery form for modulus P().
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE_P() -> m_one {
                 m_one := 26959946660873538059280334323183841250350249843923952699046031785985
             }
 
+            /// @notice Constant function for value one in Montgomery form for modulus N().
+            /// @dev This value was precomputed using Python.
+            /// @return m_one The value one in Montgomery form for modulus N().
             function MONTGOMERY_ONE_N() -> m_one {
                 m_one := 26959946660873538059280334323273029441504803697035324946844617595567
             }
 
+            /// @notice Constant function curve parameter `a` in Montgomery form for modulus P().
+            /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
+            /// @dev This value was precomputed using Python.
+            /// @return m_a The curve parameter `a` in Montgomery form for modulus P().
             function MONTGOMERY_A_P() -> m_a {
                 m_a := 115792089129476408780076832771566570560534619664239564663761773211729002495996
             }
 
+            /// @notice Constant function curve parameter `b` in Montgomery form for modulus P().
+            /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
+            /// @dev This value was precomputed using Python.
+            /// @return m_b The curve parameter `b` in Montgomery form for modulus P().
             function MONTGOMERY_B_P() -> m_b {
                 m_b := 99593677540221402957765480916910020772520766868399186769503856397241456836063
             }
 
+            /// @notice Constant function for the generator point in Montgomery form for modulus P() in projective form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_gx The x projective coordinate of the generator point in Montgomery form for modulus P().
+            /// @return m_gy The y projective coordinate of the generator point in Montgomery form for modulus P().
+            /// @return m_gz The z projective coordinate of the generator point in Montgomery form for modulus P().
             function MONTGOMERY_PROJECTIVE_G_P() -> m_gx, m_gy, m_gz {
                 m_gx := 0x18905F76A53755C679FB732B7762251075BA95FC5FEDB60179E730D418A9143C
                 m_gy := 0x8571FF1825885D85D2E88688DD21F3258B4AB8E4BA19E45CDDF25357CE95560A
                 m_gz := MONTGOMERY_ONE_P()
             }
 
-            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @notice Constant function for the pre-computation of R^2 % P for the Montgomery REDC algorithm.
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
@@ -51,8 +72,22 @@ object "P256VERIFY" {
                 ret := 134799733323198995502561713907086292154532538166959272814710328655875
             }
 
+            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @dev R^2 is the Montgomery residue of the value 2^512.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_N() -> ret {
                 ret := 46533765739406314298121036767150998762426774378559716911348521029833835802274
+            }
+
+            /// @notice Constant function for the pre-computation of P' for the Montgomery REDC algorithm.
+            /// @dev P' is a value such that PP' = -1 mod R, with N being the curve group order.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value P'.
+            function P_PRIME() -> ret {
+                ret := 115792089210356248768974548684794254293921932838497980611635986753331132366849
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
@@ -60,10 +95,6 @@ object "P256VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
             /// @return ret The value N'.
-            function P_PRIME() -> ret {
-                ret := 115792089210356248768974548684794254293921932838497980611635986753331132366849
-            }
-
             function N_PRIME() -> ret {
                 ret := 43790243024438006127650828685417305984841428635278707415088219106730833919055
             }
@@ -93,7 +124,22 @@ object "P256VERIFY" {
 
             // MONTGOMERY
 
-            function binaryExtendedEuclideanAlgorithm(base, modulus, d) -> inv {
+            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
+            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod modulus being `a` the base number (not in Montgomery Form)
+            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod modulus
+            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
+            /// @dev In our case N is modulus, and we'd like the input and output to be in Montgomery Form (a*R mod modulus 
+            /// @dev and a^(-1)*R mod modulus respectively).
+            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod modulus,
+            /// @dev but we want it to be a^(-1)*R mod modulus.
+            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod modulus
+            /// @dev to get R^2*a^(-1)*R^(-1) mod modulus = a^(-1)*R mod modulus as the desired result in Montgomery Form.
+            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
+            /// @dev multiplying `b` or `c` by R^2 mod modulus results on starting their values as b = R^2 mod modulus and c = 0.
+            /// @param base A number `a` in Montgomery Form, then base = a*R mod modulus.
+            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod modulus.
+            function binaryExtendedEuclideanAlgorithm(base, modulus, r2) -> inv {
                 // Precomputation of 1 << 255
                 let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
                 // modulus >> 255 == 0 -> modulus & 1 << 255 == 0
@@ -102,7 +148,7 @@ object "P256VERIFY" {
                 let u := base
                 let v := modulus
                 // Avoids unnecessary reduction step.
-                let b := d
+                let b := r2
                 let c := 0x0
 
                 for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
@@ -189,9 +235,6 @@ object "P256VERIFY" {
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
             /// @return S The result of the Montgomery reduction.
-            // T es T
-            // N es P, N' es P'
-            // R es 2^256
             function REDC(TLo, THi, n, nPrime) -> S {
                 let m := mul(TLo, nPrime)
                 let tHi, tHiOverflowed := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
@@ -204,7 +247,8 @@ object "P256VERIFY" {
                     tHi, tHiOverflowed := overflowingAdd(tHi, 1)
                 }
                 if tHiOverflowed {
-                    tHi, tHiOverflowed := overflowingAdd(tHi, sub(0, n))
+                    // TODO: Check if this addition could overflow.
+                    tHi := add(tHi, sub(0, n))
                 }
                 S := tHi
 
@@ -299,8 +343,8 @@ object "P256VERIFY" {
             /// @notice Checks if a point in affine coordinates is the point at infinity.
             /// @dev The point at infinity is defined as the point (0, 0).
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
-            /// @param xp The x coordinate of the point P in Montgomery form.
-            /// @param yp The y coordinate of the point P in Montgomery form.
+            /// @param xp The x coordinate of the point P in Montgomery form for modulus P().
+            /// @param yp The y coordinate of the point P in Montgomery form for modulus P().
             /// @return ret True if the point is the point at infinity, false otherwise.
             function affinePointIsInfinity(xp, yp) -> ret {
                 ret := iszero(or(xp, yp))
@@ -309,8 +353,8 @@ object "P256VERIFY" {
             // @notice Checks if a point in affine coordinates in Montgomery form is on the curve.
             // @dev The curve in question is the secp256r1 curve.
             // @dev The Short Weierstrass equation of the curve is y^2 = x^3 + ax + b.
-            // @param xp The x coordinate of the point P in Montgomery form.
-            // @param yp The y coordinate of the point P in Montgomery form.
+            // @param xp The x coordinate of the point P in Montgomery form for modulus P().
+            // @param yp The y coordinate of the point P in Montgomery form for modulus P().
             // @return ret True if the point is on the curve, false otherwise.
             function affinePointIsOnCurve(xp, yp) -> ret {
                 let left := montgomeryMul(yp, yp, P(), P_PRIME())
@@ -318,7 +362,7 @@ object "P256VERIFY" {
                 ret := eq(left, right)
             }
 
-            /// @notice Converts a point in affine coordinates to projective coordinates in Montgomery form.
+            /// @notice Converts a point in affine coordinates to projective coordinates in Montgomery form for modulus P().
             /// @dev The point at infinity is defined as the point (0, 0, 0).
             /// @dev For performance reasons, the point is assumed to be previously checked to be on the 
             /// @dev curve and not the point at infinity.
@@ -333,7 +377,7 @@ object "P256VERIFY" {
                 zr := MONTGOMERY_ONE_P()
             }
 
-            /// @notice Converts a point in projective coordinates to affine coordinates in Montgomery form.
+            /// @notice Converts a point in projective coordinates to affine coordinates in Montgomery form for modulus P().
             /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
             /// @dev Reverts if the point is not on the curve.
             /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
@@ -349,11 +393,17 @@ object "P256VERIFY" {
                 }
             }
 
+            /// @notice Checks if a point in projective coordinates is the point at infinity.
+            /// @dev The point at infinity is defined as the point (0, 0, 0).
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return ret True if the point is the point at infinity, false otherwise.
             function projectivePointIsInfinity(xp, yp, zp) -> ret {
                 ret := iszero(zp)
             }
 
-            /// @notice Doubles a point in projective coordinates in Montgomery form.
+            /// @notice Doubles a point in projective coordinates in Montgomery form for modulus P().
             /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
             /// @dev For performance reasons, the point is assumed to be previously checked to be on the
             /// @dev curve and not the point at infinity.
@@ -381,7 +431,7 @@ object "P256VERIFY" {
                 zr := montgomeryMul(u, montgomeryMul(u, u, P(), P_PRIME()), P(), P_PRIME())
             }
 
-            /// @notice Adds two points in projective coordinates in Montgomery form.
+            /// @notice Adds two points in projective coordinates in Montgomery form for modulus P().
             /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
             /// @dev For performance reasons, the points are assumed to be previously checked to be on the
             /// @dev curve and not the point at infinity.
@@ -451,6 +501,14 @@ object "P256VERIFY" {
                 }
             }
 
+            /// @notice Computes the scalar multiplication of a point in projective coordinates in Montgomery form for modulus P().
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param scalar The scalar to multiply the point by.
+            /// @return xr The x coordinate of the point scalar*P in projective coordinates in Montgomery form.
+            /// @return yr The y coordinate of the point scalar*P in projective coordinates in Montgomery form.
+            /// @return zr The z coordinate of the point scalar*P in projective coordinates in Montgomery form.
             function projectiveScalarMul(xp, yp, zp, scalar) -> xr, yr, zr {
                 switch eq(scalar, 2)
                 case 0 {
