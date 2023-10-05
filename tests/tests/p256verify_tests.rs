@@ -3,9 +3,13 @@ use zksync_web3_rs::{types::Bytes, zks_utils::P256VERIFTY_PRECOMPILE_ADDRESS};
 mod test_utils;
 use test_utils::era_call;
 
-const RESPONSE_VALID: [u8;32] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-const RESPONSE_INVALID: [u8;32] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const RESPONSE_ERROR: [u8;1] = [0];
+const RESPONSE_VALID: [u8; 32] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+];
+const RESPONSE_INVALID: [u8; 32] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+const RESPONSE_ERROR: [u8; 1] = [0];
 
 // Puts the given data into the P256VERIFTY precompile
 #[tokio::test]
@@ -29,7 +33,7 @@ async fn p256verify_valid_signature_two() {
     )
     .await
     .unwrap();
-assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
