@@ -485,27 +485,35 @@ object "ModExp" {
                 mstore(limb_ptr, or(limb, 0x1))
             }
 
-            function big_uint_shift_left_by_one_in_place(ptr_base, n_limbs) {
-                let p := add(ptr_base, shl(5, n_limbs)) // ptr_base + 32 * n_limbs
-                let carry_bit := 0
-                for {  } lt(ptr_base, p) {  } {
+            /// @notice Performs one shift to the left for a big unsigned integer (<<).
+            /// @dev The shift is performed in-place, mutating the memory space of the number.
+            /// @param numberPtr The pointer to the MSB of the number to shift.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            function bigUIntOneShiftLeft(numberPtr, nLimbs) {
+                let p := add(numberPtr, shl(5, nLimbs)) // numberPtr + 32 * nLimbs
+                let carryBit := 0
+                for {  } lt(numberPtr, p) {  } {
                     p := sub(p, 32)
                     let limb := mload(p)
-                    let msb := shr(255, limb) // most significant bit.
-                    limb := or(shl(1, limb), carry_bit)
+                    let msb := shr(255, limb)
+                    limb := or(shl(1, limb), carryBit)
                     mstore(p, limb)
-                    carry_bit := msb
+                    carryBit := msb
                 }
             }
 
-            function big_uint_shift_right_by_one_in_place(base_ptr, n_limbs) {
-                let ptr_overflow := add(base_ptr, shl(5, n_limbs))
-                let carry_bit := 0
-                for { let p := base_ptr } lt(p, ptr_overflow) { p := add(p, 32) } {
+            /// @notice Performs one shift to the right for a big unsigned integer (>>).
+            /// @dev The shift is performed in-place, mutating the memory space of the number.
+            /// @param numberPtr The pointer to the MSB of the number to shift.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            function bigUIntOneShiftRight(numberPtr, nLimbs) {
+                let overflowPtr := add(numberPtr, shl(5, nLimbs))
+                let carryBit := 0
+                for { let p := numberPtr } lt(p, overflowPtr) { p := add(p, 32) } {
                     let limb := mload(p)
-                    let lsb := and(limb, 1) // Least significant bit.
-                    limb := or(shr(1, limb), carry_bit)
-                    carry_bit := shl(255, lsb)
+                    let lsb := and(limb, 1)
+                    limb := or(shr(1, limb), carryBit)
+                    carryBit := shl(255, lsb)
                     mstore(p, limb)
                 }
             }
@@ -552,8 +560,8 @@ object "ModExp" {
                     }
 
                     bd := sub(bd, 1)
-                    big_uint_shift_right_by_one_in_place(c_ptr, n_limbs) // c = c >> 1
-                    big_uint_shift_left_by_one_in_place(quotient_ptr, n_limbs) // q[] = q[] << 1
+                    bigUIntOneShiftRight(c_ptr, n_limbs) // c = c >> 1
+                    bigUIntOneShiftLeft(quotient_ptr, n_limbs) // q[] = q[] << 1
                 }
 
                 // LAMBDAWORKS
