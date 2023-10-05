@@ -247,8 +247,8 @@ object "P256VERIFY" {
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
             /// @return ret The result of the Montgomery subtraction.
-            function montgomerySubP(minuend, subtrahend) -> ret {
-                ret := montgomeryAdd(minuend, sub(P(), subtrahend), P())
+            function montgomerySub(minuend, subtrahend, n) -> ret {
+                ret := montgomeryAdd(minuend, sub(n, subtrahend), n)
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
@@ -371,12 +371,12 @@ object "P256VERIFY" {
                 let u := montgomeryAdd(yz, yz, P())
                 let uxy := montgomeryMul(u, montgomeryMul(xp, yp, P(), P_PRIME()), P(), P_PRIME())
                 let v := montgomeryAdd(uxy, uxy, P())
-                let w := montgomerySubP(montgomeryMul(t, t, P(), P_PRIME()), montgomeryAdd(v, v, P()))
+                let w := montgomerySub(montgomeryMul(t, t, P(), P_PRIME()), montgomeryAdd(v, v, P()), P())
 
                 xr := montgomeryMul(u, w, P(), P_PRIME())
                 let uy := montgomeryMul(u, yp, P(), P_PRIME())
                 let uy_squared := montgomeryMul(uy, uy, P(), P_PRIME())
-                yr := montgomerySubP(montgomeryMul(t, montgomerySubP(v, w), P(), P_PRIME()), montgomeryAdd(uy_squared, uy_squared, P()))
+                yr := montgomerySub(montgomeryMul(t, montgomerySub(v, w, P()), P(), P_PRIME()), montgomeryAdd(uy_squared, uy_squared, P()), P())
                 zr := montgomeryMul(u, montgomeryMul(u, u, P(), P_PRIME()), P(), P_PRIME())
             }
 
@@ -418,7 +418,7 @@ object "P256VERIFY" {
                     zr := zp
                     flag := 0
                 }
-                if and(flag, and(and(eq(xp, xq), eq(montgomerySubP(0, yp), yq)), eq(zp, zq))) {
+                if and(flag, and(and(eq(xp, xq), eq(montgomerySub(0, yp, P()), yq)), eq(zp, zq))) {
                     // P + (-P) = Infinity
                     xr := 0
                     yr := MONTGOMERY_ONE_P()
@@ -435,17 +435,17 @@ object "P256VERIFY" {
                 if flag {
                     let t0 := montgomeryMul(yq, zp, P(), P_PRIME())
                     let t1 := montgomeryMul(yp, zq, P(), P_PRIME())
-                    let t := montgomerySubP(t0, t1)
+                    let t := montgomerySub(t0, t1, P())
                     let u0 := montgomeryMul(xq, zp, P(), P_PRIME())
                     let u1 := montgomeryMul(xp, zq, P(), P_PRIME())
-                    let u := montgomerySubP(u0, u1)
+                    let u := montgomerySub(u0, u1, P())
                     let u2 := montgomeryMul(u, u, P(), P_PRIME())
                     let u3 := montgomeryMul(u2, u, P(), P_PRIME())
                     let v := montgomeryMul(zq, zp, P(), P_PRIME())
-                    let w := montgomerySubP(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAdd(u0, u1, P()), P(), P_PRIME()))
+                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAdd(u0, u1, P()), P(), P_PRIME()), P())
     
                     xr := montgomeryMul(u, w, P(), P_PRIME())
-                    yr := montgomerySubP(montgomeryMul(t, montgomerySubP(montgomeryMul(u0, u2, P(), P_PRIME()), w), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()))
+                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2, P(), P_PRIME()), w, P()), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()), P())
                     zr := montgomeryMul(u3, v, P(), P_PRIME())
                 }
             }
