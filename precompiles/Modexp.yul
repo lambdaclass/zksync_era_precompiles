@@ -598,6 +598,27 @@ object "ModExp" {
                     zeroWithLimbSizeAt(n_limbs, quotient_ptr)
                 }
             }
+            function big_uint_duplicate_n_limbs(from_ptr, n_limbs, to_ptr) {}
+
+            function bigUIntMulMod(lhs_ptr, rhs_ptr, modulo_ptr, n_limbs, result_ptr) {
+               // Algorithm: 
+               // lhs, rhs = u ints of size n_limbs
+               // result = (lhs*rhs) mod modulo
+               // 1. result = lhs*rhs
+               // 2. result can have size 2*(n_limbs),
+               //    so zero extend modulo to 2*(n_libms)
+               // 3. q, result = (result/modulo),
+               // 4 return result 
+
+               // result = lhs*rhs
+               bigUIntMul(lhsPtr, rhsPtr, n_limbs, result_ptr)
+               // bigUIntMul doubles the limb size of the result,
+               // so result now points to a 2*n_limbs number
+               let extended_modulo_ptr := 0x800 // Fix: Do not hardcode this
+               big_uint_duplicate_n_limbs(modulo_ptr, n_limbs, extended_modulo_ptr) 
+               bigUIntDivRem(result_ptr, extended_modulo_ptr)
+               // result = lhs*rhs
+            }
 
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
