@@ -287,12 +287,8 @@ object "P256VERIFY" {
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
             /// @param a The field element in Montgomery form to compute the modular inverse of.
             /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
-            function montgomeryModularInverseP(a) -> invmod {
-                invmod := binaryExtendedEuclideanAlgorithm(a, P(), R2_MOD_P())
-            }
-
-            function montgomeryModularInverseN(a) -> invmod {
-                invmod := binaryExtendedEuclideanAlgorithm(a, N(), R2_MOD_N())
+            function montgomeryModularInverse(a, n, r2) -> invmod {
+                invmod := binaryExtendedEuclideanAlgorithm(a, n, r2)
             }
 
             // CURVE ARITHMETICS
@@ -366,7 +362,7 @@ object "P256VERIFY" {
                     yr := 0
                 }
                 default {
-                    let zp_inv := montgomeryModularInverseP(zp)
+                    let zp_inv := montgomeryModularInverse(zp, P(), R2_MOD_P())
                     xr := montgomeryMulP(xp, zp_inv)
                     yr := montgomeryMulP(yp, zp_inv)
                 }
@@ -517,7 +513,7 @@ object "P256VERIFY" {
             // Fallback
             let a := 0x129321
             let am := intoMontgomeryForm(a, P(), P_PRIME(), R2_MOD_P())
-            let am_inv := montgomeryModularInverseP(am)
+            let am_inv := montgomeryModularInverse(am, P(), R2_MOD_P())
             let one_m := montgomeryMulP(am, am_inv)
 
             let hash := calldataload(0)
@@ -550,7 +546,7 @@ object "P256VERIFY" {
             r := intoMontgomeryForm(r, N(), N_PRIME(), R2_MOD_N())
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
-            let s1 := montgomeryModularInverseN(s)
+            let s1 := montgomeryModularInverse(s, N(), R2_MOD_N())
             let result := outOfMontgomeryFormN(montgomeryMulN(s, s1))
 
             let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
@@ -564,7 +560,7 @@ object "P256VERIFY" {
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMulP(xr, montgomeryModularInverseP(zr))
+            xr := montgomeryMulP(xr, montgomeryModularInverse(zr, P(), R2_MOD_P()))
             xr := outOfMontgomeryFormP(xr)
             r := outOfMontgomeryFormN(r)
 
