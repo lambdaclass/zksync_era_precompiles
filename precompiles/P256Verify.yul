@@ -256,16 +256,10 @@ object "P256VERIFY" {
             /// @param multiplicand The multiplicand in Montgomery form.
             /// @param multiplier The multiplier in Montgomery form.
             /// @return ret The result of the Montgomery multiplication.
-            function montgomeryMulP(multiplicand, multiplier) -> ret {
+            function montgomeryMul(multiplicand, multiplier, n, nPrime) -> ret {
                 let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
                 let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDC(lowest_half_of_product, higher_half_of_product, P(), P_PRIME())
-            }
-
-            function montgomeryMulN(multiplicand, multiplier) -> ret {
-                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
-                let lowest_half_of_product := mul(multiplicand, multiplier)
-                ret := REDC(lowest_half_of_product, higher_half_of_product, N(), N_PRIME())
+                ret := REDC(lowest_half_of_product, higher_half_of_product, n, nPrime)
             }
 
             /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
@@ -313,8 +307,8 @@ object "P256VERIFY" {
             // @param yp The y coordinate of the point P in Montgomery form.
             // @return ret True if the point is on the curve, false otherwise.
             function affinePointIsOnCurve(xp, yp) -> ret {
-                let left := montgomeryMulP(yp, yp)
-                let right := montgomeryAddP(montgomeryMulP(xp, montgomeryMulP(xp, xp)), montgomeryAddP(montgomeryMulP(MONTGOMERY_A_P(), xp), MONTGOMERY_B_P()))
+                let left := montgomeryMul(yp, yp, P(), P_PRIME())
+                let right := montgomeryAddP(montgomeryMul(xp, montgomeryMul(xp, xp, P(), P_PRIME()), P(), P_PRIME()), montgomeryAddP(montgomeryMul(MONTGOMERY_A_P(), xp, P(), P_PRIME()), MONTGOMERY_B_P()))
                 ret := eq(left, right)
             }
 
@@ -349,8 +343,8 @@ object "P256VERIFY" {
                 }
                 default {
                     let zp_inv := montgomeryModularInverse(zp, P(), R2_MOD_P())
-                    xr := montgomeryMulP(xp, zp_inv)
-                    yr := montgomeryMulP(yp, zp_inv)
+                    xr := montgomeryMul(xp, zp_inv, P(), P_PRIME())
+                    yr := montgomeryMul(yp, zp_inv, P(), P_PRIME())
                 }
             }
 
@@ -369,21 +363,21 @@ object "P256VERIFY" {
             /// @return yr The y coordinate of the point 2P in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the point 2P in projective coordinates in Montgomery form.
             function projectiveDouble(xp, yp, zp) -> xr, yr, zr {
-                let x_squared := montgomeryMulP(xp, xp)
-                let z_squared := montgomeryMulP(zp, zp)
-                let az_squared := montgomeryMulP(MONTGOMERY_A_P(), z_squared)
+                let x_squared := montgomeryMul(xp, xp, P(), P_PRIME())
+                let z_squared := montgomeryMul(zp, zp, P(), P_PRIME())
+                let az_squared := montgomeryMul(MONTGOMERY_A_P(), z_squared, P(), P_PRIME())
                 let t := montgomeryAddP(montgomeryAddP(x_squared, montgomeryAddP(x_squared, x_squared)), az_squared)
-                let yz := montgomeryMulP(yp, zp)
+                let yz := montgomeryMul(yp, zp, P(), P_PRIME())
                 let u := montgomeryAddP(yz, yz)
-                let uxy := montgomeryMulP(u, montgomeryMulP(xp, yp))
+                let uxy := montgomeryMul(u, montgomeryMul(xp, yp, P(), P_PRIME()), P(), P_PRIME())
                 let v := montgomeryAddP(uxy, uxy)
-                let w := montgomerySubP(montgomeryMulP(t, t), montgomeryAddP(v, v))
+                let w := montgomerySubP(montgomeryMul(t, t, P(), P_PRIME()), montgomeryAddP(v, v))
 
-                xr := montgomeryMulP(u, w)
-                let uy := montgomeryMulP(u, yp)
-                let uy_squared := montgomeryMulP(uy, uy)
-                yr := montgomerySubP(montgomeryMulP(t, montgomerySubP(v, w)), montgomeryAddP(uy_squared, uy_squared))
-                zr := montgomeryMulP(u, montgomeryMulP(u, u))
+                xr := montgomeryMul(u, w, P(), P_PRIME())
+                let uy := montgomeryMul(u, yp, P(), P_PRIME())
+                let uy_squared := montgomeryMul(uy, uy, P(), P_PRIME())
+                yr := montgomerySubP(montgomeryMul(t, montgomerySubP(v, w), P(), P_PRIME()), montgomeryAddP(uy_squared, uy_squared))
+                zr := montgomeryMul(u, montgomeryMul(u, u, P(), P_PRIME()), P(), P_PRIME())
             }
 
             /// @notice Adds two points in projective coordinates in Montgomery form.
@@ -439,20 +433,20 @@ object "P256VERIFY" {
 
                 // P1 + P2 = P3
                 if flag {
-                    let t0 := montgomeryMulP(yq, zp)
-                    let t1 := montgomeryMulP(yp, zq)
+                    let t0 := montgomeryMul(yq, zp, P(), P_PRIME())
+                    let t1 := montgomeryMul(yp, zq, P(), P_PRIME())
                     let t := montgomerySubP(t0, t1)
-                    let u0 := montgomeryMulP(xq, zp)
-                    let u1 := montgomeryMulP(xp, zq)
+                    let u0 := montgomeryMul(xq, zp, P(), P_PRIME())
+                    let u1 := montgomeryMul(xp, zq, P(), P_PRIME())
                     let u := montgomerySubP(u0, u1)
-                    let u2 := montgomeryMulP(u, u)
-                    let u3 := montgomeryMulP(u2, u)
-                    let v := montgomeryMulP(zq, zp)
-                    let w := montgomerySubP(montgomeryMulP(montgomeryMulP(t, t), v), montgomeryMulP(u2, montgomeryAddP(u0, u1)))
+                    let u2 := montgomeryMul(u, u, P(), P_PRIME())
+                    let u3 := montgomeryMul(u2, u, P(), P_PRIME())
+                    let v := montgomeryMul(zq, zp, P(), P_PRIME())
+                    let w := montgomerySubP(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAddP(u0, u1), P(), P_PRIME()))
     
-                    xr := montgomeryMulP(u, w)
-                    yr := montgomerySubP(montgomeryMulP(t, montgomerySubP(montgomeryMulP(u0, u2), w)), montgomeryMulP(t0, u3))
-                    zr := montgomeryMulP(u3, v)
+                    xr := montgomeryMul(u, w, P(), P_PRIME())
+                    yr := montgomerySubP(montgomeryMul(t, montgomerySubP(montgomeryMul(u0, u2, P(), P_PRIME()), w), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()))
+                    zr := montgomeryMul(u3, v, P(), P_PRIME())
                 }
             }
 
@@ -500,7 +494,7 @@ object "P256VERIFY" {
             let a := 0x129321
             let am := intoMontgomeryForm(a, P(), P_PRIME(), R2_MOD_P())
             let am_inv := montgomeryModularInverse(am, P(), R2_MOD_P())
-            let one_m := montgomeryMulP(am, am_inv)
+            let one_m := montgomeryMul(am, am_inv, P(), P_PRIME())
 
             let hash := calldataload(0)
             let r := calldataload(32)
@@ -533,10 +527,10 @@ object "P256VERIFY" {
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
             let s1 := montgomeryModularInverse(s, N(), R2_MOD_N())
-            let result := outOfMontgomeryForm(montgomeryMulN(s, s1), N(), N_PRIME())
+            let result := outOfMontgomeryForm(montgomeryMul(s, s1, N(), N_PRIME()), N(), N_PRIME())
 
-            let t0 := outOfMontgomeryForm(montgomeryMulN(hash, s1), N(), N_PRIME())
-            let t1 := outOfMontgomeryForm(montgomeryMulN(r, s1), N(), N_PRIME())
+            let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1, N(), N_PRIME()), N(), N_PRIME())
+            let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
 
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G_P()
 
@@ -546,7 +540,7 @@ object "P256VERIFY" {
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMulP(xr, montgomeryModularInverse(zr, P(), R2_MOD_P()))
+            xr := montgomeryMul(xr, montgomeryModularInverse(zr, P(), R2_MOD_P()), P(), P_PRIME())
             xr := outOfMontgomeryForm(xr, P(), P_PRIME())
             r := outOfMontgomeryForm(r, N(), N_PRIME())
 
