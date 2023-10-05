@@ -239,8 +239,8 @@ object "P256VERIFY" {
             /// @param augend The augend in Montgomery form.
             /// @param addend The addend in Montgomery form.
             /// @return ret The result of the Montgomery addition.
-            function montgomeryAddP(augend, addend) -> ret {
-                ret := addmod(augend, addend, P())
+            function montgomeryAdd(augend, addend, n) -> ret {
+                ret := addmod(augend, addend, n)
             }
 
             /// @notice Computes the Montgomery subtraction.
@@ -248,7 +248,7 @@ object "P256VERIFY" {
             /// @param subtrahend The subtrahend in Montgomery form.
             /// @return ret The result of the Montgomery subtraction.
             function montgomerySubP(minuend, subtrahend) -> ret {
-                ret := montgomeryAddP(minuend, sub(P(), subtrahend))
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend), P())
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
@@ -308,7 +308,7 @@ object "P256VERIFY" {
             // @return ret True if the point is on the curve, false otherwise.
             function affinePointIsOnCurve(xp, yp) -> ret {
                 let left := montgomeryMul(yp, yp, P(), P_PRIME())
-                let right := montgomeryAddP(montgomeryMul(xp, montgomeryMul(xp, xp, P(), P_PRIME()), P(), P_PRIME()), montgomeryAddP(montgomeryMul(MONTGOMERY_A_P(), xp, P(), P_PRIME()), MONTGOMERY_B_P()))
+                let right := montgomeryAdd(montgomeryMul(xp, montgomeryMul(xp, xp, P(), P_PRIME()), P(), P_PRIME()), montgomeryAdd(montgomeryMul(MONTGOMERY_A_P(), xp, P(), P_PRIME()), MONTGOMERY_B_P(), P()), P())
                 ret := eq(left, right)
             }
 
@@ -366,17 +366,17 @@ object "P256VERIFY" {
                 let x_squared := montgomeryMul(xp, xp, P(), P_PRIME())
                 let z_squared := montgomeryMul(zp, zp, P(), P_PRIME())
                 let az_squared := montgomeryMul(MONTGOMERY_A_P(), z_squared, P(), P_PRIME())
-                let t := montgomeryAddP(montgomeryAddP(x_squared, montgomeryAddP(x_squared, x_squared)), az_squared)
+                let t := montgomeryAdd(montgomeryAdd(x_squared, montgomeryAdd(x_squared, x_squared, P()), P()), az_squared, P())
                 let yz := montgomeryMul(yp, zp, P(), P_PRIME())
-                let u := montgomeryAddP(yz, yz)
+                let u := montgomeryAdd(yz, yz, P())
                 let uxy := montgomeryMul(u, montgomeryMul(xp, yp, P(), P_PRIME()), P(), P_PRIME())
-                let v := montgomeryAddP(uxy, uxy)
-                let w := montgomerySubP(montgomeryMul(t, t, P(), P_PRIME()), montgomeryAddP(v, v))
+                let v := montgomeryAdd(uxy, uxy, P())
+                let w := montgomerySubP(montgomeryMul(t, t, P(), P_PRIME()), montgomeryAdd(v, v, P()))
 
                 xr := montgomeryMul(u, w, P(), P_PRIME())
                 let uy := montgomeryMul(u, yp, P(), P_PRIME())
                 let uy_squared := montgomeryMul(uy, uy, P(), P_PRIME())
-                yr := montgomerySubP(montgomeryMul(t, montgomerySubP(v, w), P(), P_PRIME()), montgomeryAddP(uy_squared, uy_squared))
+                yr := montgomerySubP(montgomeryMul(t, montgomerySubP(v, w), P(), P_PRIME()), montgomeryAdd(uy_squared, uy_squared, P()))
                 zr := montgomeryMul(u, montgomeryMul(u, u, P(), P_PRIME()), P(), P_PRIME())
             }
 
@@ -442,7 +442,7 @@ object "P256VERIFY" {
                     let u2 := montgomeryMul(u, u, P(), P_PRIME())
                     let u3 := montgomeryMul(u2, u, P(), P_PRIME())
                     let v := montgomeryMul(zq, zp, P(), P_PRIME())
-                    let w := montgomerySubP(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAddP(u0, u1), P(), P_PRIME()))
+                    let w := montgomerySubP(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAdd(u0, u1, P()), P(), P_PRIME()))
     
                     xr := montgomeryMul(u, w, P(), P_PRIME())
                     yr := montgomerySubP(montgomeryMul(t, montgomerySubP(montgomeryMul(u0, u2, P(), P_PRIME()), w), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()))
