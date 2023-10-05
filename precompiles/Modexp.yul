@@ -40,10 +40,12 @@ object "ModExp" {
             /// @param fromAddress The pointer to the MSB of the number to copy.
             /// @param toAddress The pointer to the MSB of the destination.
             function copyBigUint(nLimbs, fromAddress, toAddress) {
+                let offset := 0
                 for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                    let fromOffset := add(mul(i, 32), fromAddress)
-                    let toOffset := add(mul(i, 32), toAddress)
+                    let fromOffset := add(offset, fromAddress)
+                    let toOffset := add(offset, toAddress)
                     mstore(toOffset, mload(fromOffset))
+                    offset := add(offset, LIMB_SIZE_IN_BYTES())
                 }
             }
 
