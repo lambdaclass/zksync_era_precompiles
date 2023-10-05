@@ -1,7 +1,12 @@
-use zksync_web3_rs::{types::Bytes, zks_utils::P256VERIFTY_PRECOMPILE_ADDRESS};
+use zksync_web3_rs::types::{Address, Bytes, H160};
 
 mod test_utils;
 use test_utils::era_call;
+
+pub const P256VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x19,
+]);
 
 const RESPONSE_VALID: [u8; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
