@@ -604,6 +604,7 @@ object "ModExp" {
                // Algorithm: 
                // lhs, rhs = u ints of size n_limbs
                // result = (lhs*rhs) mod modulo
+               // bigUintMulMod(lhs, rhs) -> result
                // 1. result = lhs*rhs
                // 2. result can have size 2*(n_limbs),
                //    so zero extend modulo to 2*(n_libms)
