@@ -565,7 +565,6 @@ object "P256VERIFY" {
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
             let s1 := montgomeryModularInverse(s, N(), R2_MOD_N())
-            let result := outOfMontgomeryForm(montgomeryMul(s, s1, N(), N_PRIME()), N(), N_PRIME())
 
             let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1, N(), N_PRIME()), N(), N_PRIME())
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
