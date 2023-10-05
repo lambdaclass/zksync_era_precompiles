@@ -390,9 +390,7 @@ object "ModExp" {
             function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> subtractionResult, returnBorrow {
                 let rightPlusBorrow := add(rightLimb, limbBorrow)
                 subtractionResult := sub(leftLimb, rightPlusBorrow)
-                if gt(subtractionResult, leftLimb) {
-                    returnBorrow := 1
-                }
+                returnBorrow := gt(subtractionResult, leftLimb)
             }
             /// @notice Computes the BigUint subtraction between the number stored
             /// in minuendPtr and subtrahendPtr.
