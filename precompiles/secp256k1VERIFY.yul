@@ -6,43 +6,56 @@ object "SECP256K1VERIFY" {
 
             // CURVE CONSTANTS
 
+            /// @notice Constant function for curve reduced elliptic group order.
+            /// @dev See https://neuromancer.sk/std/secg/secp256k1 for further details.
+            /// @return p The curve reduced elliptic group order.
             function P() -> p {
                 p := 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
             }
 
-            // order of the subgroup
+            /// @notice Constant function for curve subgroup order.
+            /// @dev See https://neuromancer.sk/std/secg/secp256k1 for further details.
+            /// @return n The curve subgroup order.
             function N() -> n {
                 n := 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
             }
 
             // MONTGOMERY CONSTANTS
 
-            /// @notice Constant function for value one in Montgomery form.
+            /// @notice Constant function for value one in Montgomery form for modulus P().
             /// @dev This value was precomputed using Python.
             /// @return m_one The value one in Montgomery form.
             function MONTGOMERY_ONE_P() -> m_one {
                 m_one := 4294968273
             }
 
+            /// @notice Constant function for value one in Montgomery form for modulus N().
+            /// @dev This value was precomputed using Python.
+            /// @return m_one The value one in Montgomery form for modulus N().
             function MONTGOMERY_ONE_N() -> m_one {
                 m_one := 432420386565659656852420866394968145599
             }
 
-            function MONTGOMERY_A_P() -> m_a {
-                m_a := 0
-            }
-
+            /// @notice Constant function curve parameter `b` in Montgomery form for modulus P().
+            /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
+            /// @dev This value was precomputed using Python.
+            /// @return m_b The curve parameter `b` in Montgomery form for modulus P().
             function MONTGOMERY_B_P() -> m_b {
                 m_b := 30064777911
             }
 
+            /// @notice Constant function for the generator point in Montgomery form for modulus P() in projective form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_gx The x projective coordinate of the generator point in Montgomery form for modulus P().
+            /// @return m_gy The y projective coordinate of the generator point in Montgomery form for modulus P().
+            /// @return m_gz The z projective coordinate of the generator point in Montgomery form for modulus P().
             function MONTGOMERY_PROJECTIVE_G_P() -> m_gx, m_gy, m_gz {
                 m_gx := 69433378337113668455105412783699478161510570509662971881309371014080806920343
                 m_gy := 93740989812233943577428291822008373258935927472951925563046116858250011585506
                 m_gz := MONTGOMERY_ONE_P()
             }
 
-            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @notice Constant function for the pre-computation of R^2 % P for the Montgomery REDC algorithm.
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
@@ -51,19 +64,28 @@ object "SECP256K1VERIFY" {
                 ret := 18446752466076602529
             }
 
+            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @dev R^2 is the Montgomery residue of the value 2^512.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^2 modulus the curve group order.
             function R2_MOD_N() -> ret {
                 ret := 71195301480278335217902614543643724933430614355449737089222010364394701574464
+            }
+
+            /// @notice Constant function for the pre-computation of P' for the Montgomery REDC algorithm.
+            /// @dev P' is a value such that PP' = -1 mod R, with N being the curve group order.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value P'.
+            function P_PRIME() -> ret {
+                ret := 91248989341183975618893650062416139444822672217621753343178995607987479196977
             }
 
             /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
             /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
             /// @dev This value was precomputed using Python.
-            /// @return ret The value N'.
-            function P_PRIME() -> ret {
-                ret := 91248989341183975618893650062416139444822672217621753343178995607987479196977
-            }
-
             function N_PRIME() -> ret {
                 ret := 98562742561918706241446412617699626731532222289571144322335133855687966765375
             }
@@ -93,6 +115,23 @@ object "SECP256K1VERIFY" {
 
             // MONTGOMERY
 
+            /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
+            /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
+            /// @dev Let `base` be a number in Montgomery Form, then base = a*R mod modulus being `a` the base number (not in Montgomery Form)
+            /// @dev Let `inv` be the inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod modulus
+            /// @dev The original binary extended euclidean algorithms takes a number a and returns a^(-1) mod N
+            /// @dev In our case N is modulus, and we'd like the input and output to be in Montgomery Form (a*R mod modulus 
+            /// @dev and a^(-1)*R mod modulus respectively).
+            /// @dev If we just pass the input as a number in Montgomery Form the result would be a^(-1)*R^(-1) mod modulus,
+            /// @dev but we want it to be a^(-1)*R mod modulus.
+            /// @dev For that, we take advantage of the algorithm's linearity and multiply the result by R^2 mod modulus
+            /// @dev to get R^2*a^(-1)*R^(-1) mod modulus = a^(-1)*R mod modulus as the desired result in Montgomery Form.
+            /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
+            /// @dev multiplying `b` or `c` by R^2 mod modulus results on starting their values as b = R^2 mod modulus and c = 0.
+            /// @param base A number `a` in Montgomery Form, then base = a*R mod modulus.
+            /// @param modulus The modulus.
+            /// @param d The pre-computed value of R^2 mod modulus.
+            /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod modulus.
             function binaryExtendedEuclideanAlgorithm(base, modulus, d) -> inv {
                 // Precomputation of 1 << 255
                 let mask := 57896044618658097711785492504343953926634992332820282019728792003956564819968
@@ -188,10 +227,9 @@ object "SECP256K1VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N'.
             /// @return S The result of the Montgomery reduction.
-            // T es T
-            // N es P, N' es P'
-            // R es 2^256
             function REDC(TLo, THi, n, nPrime) -> S {
                 let m := mul(TLo, nPrime)
                 let tHi, tHiOverflowed := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
@@ -216,6 +254,9 @@ object "SECP256K1VERIFY" {
             /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
+            /// @param r2 The pre-computed value of R^2 mod n.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a, n, nPrime, r2) -> ret {
                 let hi := getHighestHalfOfMultiplication(a, r2)
@@ -226,6 +267,8 @@ object "SECP256K1VERIFY" {
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m, n, nPrime) -> ret {
                 let hi := 0
@@ -236,6 +279,7 @@ object "SECP256K1VERIFY" {
             /// @notice Computes the Montgomery addition.
             /// @param augend The augend in Montgomery form.
             /// @param addend The addend in Montgomery form.
+            /// @param n The modulus.
             /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend, n) -> ret {
                 ret := addmod(augend, addend, n)
@@ -244,6 +288,7 @@ object "SECP256K1VERIFY" {
             /// @notice Computes the Montgomery subtraction.
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
+            /// @param n The modulus.
             /// @return ret The result of the Montgomery subtraction.
             function montgomerySub(minuend, subtrahend, n) -> ret {
                 ret := montgomeryAdd(minuend, sub(n, subtrahend), n)
@@ -253,6 +298,8 @@ object "SECP256K1VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param multiplicand The multiplicand in Montgomery form.
             /// @param multiplier The multiplier in Montgomery form.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
             /// @return ret The result of the Montgomery multiplication.
             function montgomeryMul(multiplicand, multiplier, n, nPrime) -> ret {
                 let hi := getHighestHalfOfMultiplication(multiplicand, multiplier)
@@ -264,6 +311,8 @@ object "SECP256K1VERIFY" {
             /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
             /// @param a The field element in Montgomery form to compute the modular inverse of.
+            /// @param n The modulus.
+            /// @param r2 The pre-computed value of R^2 mod n.
             /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
             function montgomeryModularInverse(a, n, r2) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a, n, r2)
@@ -349,6 +398,12 @@ object "SECP256K1VERIFY" {
                 }
             }
 
+            /// @notice Checks if a point in projective coordinates is the point at infinity.
+            /// @dev The point at infinity is defined as the point (0, 0, 0).
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @return ret True if the point is the point at infinity, false otherwise.
             function projectivePointIsInfinity(xp, yp, zp) -> ret {
                 ret := iszero(zp)
             }
@@ -449,6 +504,14 @@ object "SECP256K1VERIFY" {
                 }
             }
 
+            /// @notice Computes the scalar multiplication of a point in projective coordinates in Montgomery form for modulus P().
+            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
+            /// @param scalar The scalar to multiply the point by.
+            /// @return xr The x coordinate of the point scalar*P in projective coordinates in Montgomery form.
+            /// @return yr The y coordinate of the point scalar*P in projective coordinates in Montgomery form.
+            /// @return zr The z coordinate of the point scalar*P in projective coordinates in Montgomery form.
             function projectiveScalarMul(xp, yp, zp, scalar) -> xr, yr, zr {
                 switch eq(scalar, 2)
                 case 0 {
