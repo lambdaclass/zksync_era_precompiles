@@ -29,9 +29,9 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param toAddress The pointer to the MSB of the destination.
             function zeroWithLimbSizeAt(nLimbs, toAddress) {
-                for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                    let offset := mul(i, 32)
-                    mstore(add(toAddress, offset), 0)
+                let overflow := add(toAddress, shl(5, nLimbs))
+                for { } lt(toAddress, overflow) { toAddress := add(toAddress, LIMB_SIZE_IN_BYTES()) } {
+                    mstore(toAddress, 0)
                 }
             }
             
@@ -40,10 +40,12 @@ object "ModExp" {
             /// @param fromAddress The pointer to the MSB of the number to copy.
             /// @param toAddress The pointer to the MSB of the destination.
             function copyBigUint(nLimbs, fromAddress, toAddress) {
+                let offset := 0
                 for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                    let fromOffset := add(mul(i, 32), fromAddress)
-                    let toOffset := add(mul(i, 32), toAddress)
+                    let fromOffset := add(offset, fromAddress)
+                    let toOffset := add(offset, toAddress)
                     mstore(toOffset, mload(fromOffset))
+                    offset := add(offset, LIMB_SIZE_IN_BYTES())
                 }
             }
 
@@ -390,9 +392,7 @@ object "ModExp" {
             function subLimbsWithBorrow(leftLimb, rightLimb, limbBorrow) -> subtractionResult, returnBorrow {
                 let rightPlusBorrow := add(rightLimb, limbBorrow)
                 subtractionResult := sub(leftLimb, rightPlusBorrow)
-                if gt(subtractionResult, leftLimb) {
-                    returnBorrow := 1
-                }
+                returnBorrow := gt(subtractionResult, leftLimb)
             }
             /// @notice Computes the BigUint subtraction between the number stored
             /// in minuendPtr and subtrahendPtr.
@@ -472,10 +472,12 @@ object "ModExp" {
 
                 // Iterate until finding the most significant limb or reach the end of the limbs.
                 let limb := 0
+                let offset := 0
                 for { let i := 0 } and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
                     bitSize := sub(bitSize, 256) // Decrement one limb worth of bits.
-                    let ptr_i := add(basePtr, shl(5, i)) // = basePtr + i * 32 bytes
+                    let ptr_i := add(basePtr, offset) // = basePtr + i * 32 bytes
                     limb := mload(ptr_i)
+                    offset := add(offset, LIMB_SIZE_IN_BYTES())
                 }
 
                 // At this point, `limb == limbs[i - 1]`. Where `i` equals the
@@ -493,7 +495,7 @@ object "ModExp" {
             /// @param basePtr Base pointer for a big unsigned integer.
             /// @param nLimbs Number of 32 Byte limbs composing the big unsigned integer.
             function bigUIntInPlaceOrWith1(basePtr, nLimbs) {
-                let offset := mul(sub(nLimbs, 1), 32)
+                let offset := shl(5, sub(nLimbs, 1))
                 let limbPtr := add(basePtr, offset)
                 let limb := mload(limbPtr)
                 mstore(limbPtr, or(limb, 0x1))
@@ -598,6 +600,7 @@ object "ModExp" {
                     zeroWithLimbSizeAt(n_limbs, quotient_ptr)
                 }
             }
+            
             function big_uint_duplicate_n_limbs(from_ptr, n_limbs, to_ptr) {
                 let finalLimbs := add(n_limbs, n_limbs)
                 for { let i := 0 } lt(i, finalLimbs) { i := add(i, 1) } {
