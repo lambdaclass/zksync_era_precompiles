@@ -11,31 +11,41 @@ object "ModExp" {
             function LIMB_SIZE_IN_BITS() -> limbSize {
                 limbSize := 0x100
             }
-
-            function oneWithLimbSizeAt(limbSize, address) {
-               let pointerToOne :=  address
-               mstore(pointerToOne, 0x1)
-               for{let i := sub(limbSize, 1)} gt(i, 0) { i := sub(i, 1)} {
-                  let offset := add(mul(i, 32), pointerToOne)
-                  mstore(offset, 0x0)
-               }
-            }
-
-            function zeroWithLimbSizeAt(n_limbs, base_ptr) {
-               for { let i := 0 } lt(i, n_limbs) { i := add(i, 1) } {
-                   let offset := mul(i, 32)
-                   mstore(add(base_ptr, offset), 0)
-               }
-            }
-
-            function copyBigUint(limbSize, fromAddress, toAddress) -> toAddress {
-               for{let i := 0} lt(i, limbSize) { i := add(i, 1)} {
-                  let fromOffset := add(mul(i, 32), fromAddress)
-                  let toOffset := add(mul(i, 32), toAddress)
-                  mstore(toOffset, mload(fromOffset))
-               }
-            }
             // HELPER FUNCTIONS
+
+            /// @notice Stores a one in big unsigned integer form in memory.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            /// @param toAddress The pointer to the MSB of the destination.
+            function oneWithLimbSizeAt(nLimbs, toAddress) {
+                let pointerToOne :=  toAddress
+                mstore(pointerToOne, 0x1)
+                for { let i := sub(nLimbs, 1) } gt(i, 0) { i := sub(i, 1) } {
+                   let offset := add(mul(i, 32), pointerToOne)
+                   mstore(offset, 0x0)
+                }
+             }
+            
+            /// @notice Stores a zero in big unsigned integer form in memory.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            /// @param toAddress The pointer to the MSB of the destination.
+            function zeroWithLimbSizeAt(nLimbs, toAddress) {
+                for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
+                    let offset := mul(i, 32)
+                    mstore(add(toAddress, offset), 0)
+                }
+            }
+            
+            /// @notice Copy a big unsigned integer from one memory location to another.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            /// @param fromAddress The pointer to the MSB of the number to copy.
+            /// @param toAddress The pointer to the MSB of the destination.
+            function copyBigUint(nLimbs, fromAddress, toAddress) {
+                for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
+                    let fromOffset := add(mul(i, 32), fromAddress)
+                    let toOffset := add(mul(i, 32), toAddress)
+                    mstore(toOffset, mload(fromOffset))
+                }
+            }
 
             /// @notice Computes an addition and checks for overflow.
             /// @param augend The value to add to.
@@ -442,47 +452,51 @@ object "ModExp" {
             }
 
             // @notice Computes the bit size of an unsigned integer.
-            // @dev Return value boundary: `0 <= bit_size <= 256`
-            // @param x An unsigned integer value.
-            // @return bit_size Number of bits required to represent `x`.
-            function uint_bit_size(x) -> bit_size {
-                // Increment bit_size until there are no significant bits left.
-                bit_size := 0
-                for { let shift_me := x } lt(0, shift_me) { shift_me := shr(1, shift_me) } {
-                    bit_size := add(bit_size, 1)
+            // @dev Return value boundary: `0 <= bitSize <= 256`
+            // @param number An unsigned integer value.
+            // @return bitSize Number of bits required to represent `number`.
+            function UIntBitSize(number) -> bitSize {
+                // Increment bitSize until there are no significant bits left.
+                bitSize := 0
+                for { let shift_me := number } lt(0, shift_me) { shift_me := shr(1, shift_me) } {
+                    bitSize := add(bitSize, 1)
                 }
             }
 
-            function big_uint_bit_size(base_ptr, n_limbs) -> bit_size {
-                bit_size := shl(8, n_limbs)
+            /// @notice Computes the bit size of a big unsigned integer.
+            /// @param basePtr Base pointer for a big unsigned integer.
+            /// @param nLimbs The number of limbs needed to represent the operand.
+            /// @return bitSize Number of bits of the big unsigned integer.
+            function bigUIntBitSize(basePtr, nLimbs) -> bitSize {
+                bitSize := shl(8, nLimbs)
 
-                // Iterate until finding the most significant limb or reach
+                // Iterate until finding the most significant limb or reach the end of the limbs.
                 let limb := 0
-                for { let i := 0 } and(lt(i, n_limbs), iszero(limb)) { i := add(i, 1) } {
-                    bit_size := sub(bit_size, 256) // Decrement one limb worth of bits.
-                    let ptr_i := add(base_ptr, shl(5, i)) // = base_ptr + i * 32 bytes
+                for { let i := 0 } and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
+                    bitSize := sub(bitSize, 256) // Decrement one limb worth of bits.
+                    let ptr_i := add(basePtr, shl(5, i)) // = basePtr + i * 32 bytes
                     limb := mload(ptr_i)
                 }
 
                 // At this point, `limb == limbs[i - 1]`. Where `i` equals the
                 // last value it took.
 
-                // At this point, `bit_size` equals the amount of bits in the
+                // At this point, `bitSize` equals the amount of bits in the
                 // limbs following the most significant limb.
 
-                bit_size := add(bit_size, uint_bit_size(limb))
+                bitSize := add(bitSize, UIntBitSize(limb))
             }
 
-            // @notice Performs in-place `x | 1` operation.
-            // @dev This function will mutate the memory space `mem[base_ptr...(base_ptr + n_limbs * 32)]`
-            // @dev It consumes constant time, aka `O(1)`.
-            // @param base_ptr Base pointer for a big unsigned integer.
-            // @param n_limbs Number of 32 Byte limbs composing the big unsigned integer.
-            function big_uint_inplace_or_1(base_ptr, n_limbs) {
-                let offset := mul(sub(n_limbs, 1), 32)
-                let limb_ptr := add(base_ptr, offset)
-                let limb := mload(limb_ptr)
-                mstore(limb_ptr, or(limb, 0x1))
+            /// @notice Performs in-place `x | 1` operation.
+            /// @dev This function will mutate the memory space `mem[basePtr...(basePtr + nLimbs * 32)]`
+            /// @dev It consumes constant time, aka `O(1)`.
+            /// @param basePtr Base pointer for a big unsigned integer.
+            /// @param nLimbs Number of 32 Byte limbs composing the big unsigned integer.
+            function bigUIntOrWith1(basePtr, nLimbs) {
+                let offset := mul(sub(nLimbs, 1), 32)
+                let limbPtr := add(basePtr, offset)
+                let limb := mload(limbPtr)
+                mstore(limbPtr, or(limb, 0x1))
             }
 
             /// @notice Performs one shift to the left for a big unsigned integer (<<).
@@ -532,29 +546,24 @@ object "ModExp" {
                 // Init quotient to 0.
                 zeroWithLimbSizeAt(n_limbs, quotient_ptr) // quotient = 0
 
-                let mb := big_uint_bit_size(divisor_ptr, n_limbs)
+                let mb := bigUIntBitSize(divisor_ptr, n_limbs)
                 let bd := sub(mul(n_limbs, 256), mb)
                 bigUIntShl(bd, divisor_ptr, n_limbs, c_ptr) // c == divisor << bd
 
                 for { } iszero(0) { } {
-                    // LAMBDAWORKS : let (mut r, borrow) = rem.sbb(&c, 0);
                     let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
 
-                    // LAMBDAWORKS : rem = Self::ct_select(&r, &rem, borrow);
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, rem_ptr)
                     }
 
-                    // LAMBDAWORKS : r = quo.bitor(Self::from_u64(1));
                     copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
-                    big_uint_inplace_or_1(r_ptr, n_limbs) // r = quotient | 1
+                    bigUIntOrWith1(r_ptr, n_limbs) // r = quotient | 1
 
-                    // LAMBDAWORKS : quo = Self::ct_select(&r, &quo, borrow);
                     if iszero(borrow) {
                         copyBigUint(n_limbs, r_ptr, quotient_ptr)
                     }
 
-                    // LAMBDAWORKS: if bd == 0 { break; }
                     if iszero(bd) {
                         break
                     }
@@ -564,9 +573,6 @@ object "ModExp" {
                     bigUIntOneShiftLeft(quotient_ptr, n_limbs) // q[] = q[] << 1
                 }
 
-                // LAMBDAWORKS
-                //     let is_some = Self::ct_is_nonzero(mb as u64);
-                //     quo = Self::ct_select(&Self::from_u64(0), &quo, is_some);
                 if iszero(mb) {
                     zeroWithLimbSizeAt(n_limbs, quotient_ptr)
                 }
