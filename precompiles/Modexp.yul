@@ -491,7 +491,7 @@ object "ModExp" {
             /// @param basePtr Base pointer for a big unsigned integer.
             /// @param nLimbs Number of 32 Byte limbs composing the big unsigned integer.
             function bigUIntInPlaceOrWith1(basePtr, nLimbs) {
-                let offset := mul(sub(nLimbs, 1), 32)
+                let offset := shl(5, sub(nLimbs, 1))
                 let limbPtr := add(basePtr, offset)
                 let limb := mload(limbPtr)
                 mstore(limbPtr, or(limb, 0x1))
