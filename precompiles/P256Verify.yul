@@ -138,6 +138,8 @@ object "P256VERIFY" {
             /// @dev `inv` takes the value of `b` or `c` being the result sometimes `b` and sometimes `c`. In paper
             /// @dev multiplying `b` or `c` by R^2 mod modulus results on starting their values as b = R^2 mod modulus and c = 0.
             /// @param base A number `a` in Montgomery Form, then base = a*R mod modulus.
+            /// @param modulus The modulus.
+            /// @param r2 The pre-computed value of R^2 mod n.
             /// @return inv The inverse of a number `a` in Montgomery Form, then inv = a^(-1)*R mod modulus.
             function binaryExtendedEuclideanAlgorithm(base, modulus, r2) -> inv {
                 // Precomputation of 1 << 255
@@ -234,6 +236,8 @@ object "P256VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm
             /// @param lowestHalfOfT The lowest half of the value T.
             /// @param higherHalfOfT The higher half of the value T.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
             /// @return S The result of the Montgomery reduction.
             function REDC(TLo, THi, n, nPrime) -> S {
                 let m := mul(TLo, nPrime)
@@ -260,6 +264,9 @@ object "P256VERIFY" {
             /// @notice Encodes a field element into the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithmfor further details on transforming a field element into the Montgomery form.
             /// @param a The field element to encode.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
+            /// @param r2 The pre-computed value of R^2 mod n.
             /// @return ret The field element in Montgomery form.
             function intoMontgomeryForm(a, n, nPrime, r2) -> ret {
                 let hi := getHighestHalfOfMultiplication(a, r2)
@@ -270,6 +277,8 @@ object "P256VERIFY" {
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
             /// @return ret The decoded field element.
             function outOfMontgomeryForm(m, n, nPrime) -> ret {
                 let hi := 0
@@ -280,6 +289,7 @@ object "P256VERIFY" {
             /// @notice Computes the Montgomery addition.
             /// @param augend The augend in Montgomery form.
             /// @param addend The addend in Montgomery form.
+            /// @param n The modulus.
             /// @return ret The result of the Montgomery addition.
             function montgomeryAdd(augend, addend, n) -> ret {
                 ret := addmod(augend, addend, n)
@@ -288,6 +298,7 @@ object "P256VERIFY" {
             /// @notice Computes the Montgomery subtraction.
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
+            /// @param n The modulus.
             /// @return ret The result of the Montgomery subtraction.
             function montgomerySub(minuend, subtrahend, n) -> ret {
                 ret := montgomeryAdd(minuend, sub(n, subtrahend), n)
@@ -297,6 +308,8 @@ object "P256VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param multiplicand The multiplicand in Montgomery form.
             /// @param multiplier The multiplier in Montgomery form.
+            /// @param n The modulus.
+            /// @param nPrime The pre-computed value of N' for the Montgomery REDC algorithm.
             /// @return ret The result of the Montgomery multiplication.
             function montgomeryMul(multiplicand, multiplier, n, nPrime) -> ret {
                 let hi := getHighestHalfOfMultiplication(multiplicand, multiplier)
@@ -308,6 +321,8 @@ object "P256VERIFY" {
             /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
             /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
             /// @param a The field element in Montgomery form to compute the modular inverse of.
+            /// @param n The modulus.
+            /// @param r2 The pre-computed value of R^2 mod n.
             /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
             function montgomeryModularInverse(a, n, r2) -> invmod {
                 invmod := binaryExtendedEuclideanAlgorithm(a, n, r2)
