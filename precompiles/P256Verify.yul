@@ -229,16 +229,10 @@ object "P256VERIFY" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
             /// @return ret The decoded field element.
-            function outOfMontgomeryFormP(m) -> ret {
+            function outOfMontgomeryForm(m, n, nPrime) -> ret {
                 let higher_half_of_m := 0
-                let lowest_half_of_m := m 
-                ret := REDC(lowest_half_of_m, higher_half_of_m, P(), P_PRIME())
-            }
-
-            function outOfMontgomeryFormN(m) -> ret {
-                let higher_half_of_m := 0
-                let lowest_half_of_m := m 
-                ret := REDC(lowest_half_of_m, higher_half_of_m, N(), N_PRIME())
+                let lowest_half_of_m := m
+                ret := REDC(lowest_half_of_m, higher_half_of_m, n, nPrime)
             }
 
             /// @notice Computes the Montgomery addition.
@@ -539,10 +533,10 @@ object "P256VERIFY" {
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
             let s1 := montgomeryModularInverse(s, N(), R2_MOD_N())
-            let result := outOfMontgomeryFormN(montgomeryMulN(s, s1))
+            let result := outOfMontgomeryForm(montgomeryMulN(s, s1), N(), N_PRIME())
 
-            let t0 := outOfMontgomeryFormN(montgomeryMulN(hash, s1))
-            let t1 := outOfMontgomeryFormN(montgomeryMulN(r, s1))
+            let t0 := outOfMontgomeryForm(montgomeryMulN(hash, s1), N(), N_PRIME())
+            let t1 := outOfMontgomeryForm(montgomeryMulN(r, s1), N(), N_PRIME())
 
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G_P()
 
@@ -553,8 +547,8 @@ object "P256VERIFY" {
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             xr := montgomeryMulP(xr, montgomeryModularInverse(zr, P(), R2_MOD_P()))
-            xr := outOfMontgomeryFormP(xr)
-            r := outOfMontgomeryFormN(r)
+            xr := outOfMontgomeryForm(xr, P(), P_PRIME())
+            r := outOfMontgomeryForm(r, N(), N_PRIME())
 
             xr := mod(xr, N())
             r := mod(r, N())
