@@ -1,4 +1,4 @@
-use zksync_web3_rs::types::{Bytes, Address, H160};
+use zksync_web3_rs::types::{Address, Bytes, H160};
 
 pub const SECP256K1VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -8,9 +8,13 @@ pub const SECP256K1VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
 mod test_utils;
 use test_utils::era_call;
 
-const RESPONSE_VALID: [u8;32] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1];
-const RESPONSE_INVALID: [u8;32] = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
-const RESPONSE_ERROR: [u8;1] = [0];
+const RESPONSE_VALID: [u8; 32] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+];
+const RESPONSE_INVALID: [u8; 32] = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+const RESPONSE_ERROR: [u8; 1] = [0];
 
 // Puts the given data into the P256VERIFTY precompile
 #[tokio::test]
@@ -34,7 +38,7 @@ async fn secpt256k1verify_valid_signature_two() {
     )
     .await
     .unwrap();
-assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
@@ -121,13 +125,11 @@ async fn secpt256k1verify_public_key_not_in_curve() {
     assert_eq!(era_response, Bytes::from(RESPONSE_ERROR))
 }
 
-
 // 1899fa5c2e77910f63db2d279ae19dea9ec0d2f3b0c8c532c572fe27cd1bedba
 // 8c5056f413489ee720b4683ce930cad9c3b7e24a4d66b86a9aadaf1b8894bf8c
 // 18d9533e1720ec3431130907948cc742587258045569caf86880b3e3d5aa66e0
 // b6e56e53302271f0c7917f53fe06ed6b0ee407b17df4fb31a5cafad9d1f2f4b9
 // 7cc9a1235fcb1392136e67f8590d1dbad166e2706dad4fdf9535b9d98ce760a0
-
 
 // 0x1899fa5c2e77910f63db2d279ae19dea9ec0d2f3b0c8c532c572fe27cd1bedba
 // 0x57e35a941054db36dd621975f9b35ceec81f3ffa9471c046115a3428edf0ee9c
