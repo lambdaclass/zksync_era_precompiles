@@ -18,7 +18,7 @@ const RESPONSE_ERROR: [u8; 1] = [0];
 
 // Puts the given data into the P256VERIFTY precompile
 #[tokio::test]
-async fn secpt256k1verify_valid_signature_one() {
+async fn secp256k1verify_valid_signature_one() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -30,7 +30,7 @@ async fn secpt256k1verify_valid_signature_one() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_valid_signature_two() {
+async fn secp256k1verify_valid_signature_two() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -42,7 +42,7 @@ async fn secpt256k1verify_valid_signature_two() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_invalid_signature() {
+async fn secp256k1verify_invalid_signature() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -54,7 +54,7 @@ async fn secpt256k1verify_invalid_signature() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_invalid_r() {
+async fn secp256k1verify_invalid_r() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -66,7 +66,7 @@ async fn secpt256k1verify_invalid_r() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_invalid_s() {
+async fn secp256k1verify_invalid_s() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -78,7 +78,7 @@ async fn secpt256k1verify_invalid_s() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_public_key_inf() {
+async fn secp256k1verify_public_key_inf() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -90,7 +90,7 @@ async fn secpt256k1verify_public_key_inf() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_public_key_x_not_in_field() {
+async fn secp256k1verify_public_key_x_not_in_field() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -102,7 +102,7 @@ async fn secpt256k1verify_public_key_x_not_in_field() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_public_key_y_not_in_field() {
+async fn secp256k1verify_public_key_y_not_in_field() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -114,7 +114,7 @@ async fn secpt256k1verify_public_key_y_not_in_field() {
 }
 
 #[tokio::test]
-async fn secpt256k1verify_public_key_not_in_curve() {
+async fn secp256k1verify_public_key_not_in_curve() {
     let era_response = era_call(
         SECP256K1VERIFTY_PRECOMPILE_ADDRESS,
         None,
