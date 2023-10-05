@@ -472,10 +472,12 @@ object "ModExp" {
 
                 // Iterate until finding the most significant limb or reach the end of the limbs.
                 let limb := 0
+                let offset := 0
                 for { let i := 0 } and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
                     bitSize := sub(bitSize, 256) // Decrement one limb worth of bits.
-                    let ptr_i := add(basePtr, shl(5, i)) // = basePtr + i * 32 bytes
+                    let ptr_i := add(basePtr, offset) // = basePtr + i * 32 bytes
                     limb := mload(ptr_i)
+                    offset := add(offset, LIMB_SIZE_IN_BYTES())
                 }
 
                 // At this point, `limb == limbs[i - 1]`. Where `i` equals the
