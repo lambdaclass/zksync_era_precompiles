@@ -473,22 +473,6 @@ object "SECP256K1VERIFY" {
                 }
             }
 
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := 0x600
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
             // Fallback
             let hash := calldataload(0)
             let r := calldataload(32)
@@ -496,45 +480,36 @@ object "SECP256K1VERIFY" {
             let x := calldataload(96)
             let y := calldataload(128)
 
-            console_log(0xaca0)
 
             if or(iszero(fieldElementIsOnSubgroupOrder(r)), iszero(fieldElementIsOnSubgroupOrder(s))) {
                 burnGas()
             }
-            console_log(0xaca1)
 
             if or(affinePointIsInfinity(x, y), iszero(affinePointCoordinatesAreOnFieldOrder(x, y))) {
                 burnGas()
             }
-            console_log(0xaca2)
 
             x := intoMontgomeryForm(x, P(), P_PRIME(), R2_MOD_P())
             y := intoMontgomeryForm(y, P(), P_PRIME(), R2_MOD_P())
-            console_log(0xaca3)
 
             if iszero(affinePointIsOnCurve(x, y)) {
                 burnGas()
             }
-            console_log(0xaca4)
 
             let z
             x, y, z := projectiveFromAffine(x, y)
 
-            console_log(0xaca5)
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
             hash := intoMontgomeryForm(hash, N(), N_PRIME(), R2_MOD_N())
             r := intoMontgomeryForm(r, N(), N_PRIME(), R2_MOD_N())
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
-            console_log(0xaca6)
 
             let s1 := montgomeryModularInverse(s, N(), R2_MOD_N())
             let result := outOfMontgomeryForm(montgomeryMul(s, s1, N(), N_PRIME()), N(), N_PRIME())
-            console_log(0xaca7)
 
             let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1, N(), N_PRIME()), N(), N_PRIME())
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
-            console_log(0xaca8)
 
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G_P()
 
@@ -542,19 +517,14 @@ object "SECP256K1VERIFY" {
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
             let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
-            console_log(0xaca9)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             let z_inv := montgomeryModularInverse(zr, P(), R2_MOD_P())
-            console_log(0xaca10)
             xr := montgomeryMul(xr, z_inv, P(), P_PRIME())
-            console_log(0xaca11)
             xr := outOfMontgomeryForm(xr, P(), P_PRIME())
-            console_log(0xaca12)
 
             r := outOfMontgomeryForm(r, N(), N_PRIME())
             xr := mod(xr, N())
-            console_log(0xaca13)
 
             mstore(0, eq(xr, r))
             return(0, 32)
