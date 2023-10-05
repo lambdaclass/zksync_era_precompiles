@@ -540,12 +540,12 @@ object "P256VERIFY" {
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
-            xr := montgomeryMul(xr, montgomeryModularInverse(zr, P(), R2_MOD_P()), P(), P_PRIME())
+            let z_inv := montgomeryModularInverse(zr, P(), R2_MOD_P())
+            xr := montgomeryMul(xr, z_inv, P(), P_PRIME())
             xr := outOfMontgomeryForm(xr, P(), P_PRIME())
-            r := outOfMontgomeryForm(r, N(), N_PRIME())
 
+            r := outOfMontgomeryForm(r, N(), N_PRIME())
             xr := mod(xr, N())
-            r := mod(r, N())
 
             mstore(0, eq(xr, r))
             return(0, 32)
