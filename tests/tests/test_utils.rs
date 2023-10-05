@@ -20,6 +20,7 @@ pub fn era_provider() -> Provider<Http> {
     Provider::try_from(url).unwrap()
 }
 
+#[allow(dead_code)]
 pub async fn eth_call(
     precompile_address: Address,
     inputs: Option<&[&str]>,
