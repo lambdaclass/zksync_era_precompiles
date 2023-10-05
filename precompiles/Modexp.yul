@@ -29,9 +29,9 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param toAddress The pointer to the MSB of the destination.
             function zeroWithLimbSizeAt(nLimbs, toAddress) {
-                for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                    let offset := mul(i, 32)
-                    mstore(add(toAddress, offset), 0)
+                let overflow := add(toAddress, shl(5, nLimbs))
+                for { } lt(toAddress, overflow) { toAddress := add(toAddress, LIMB_SIZE_IN_BYTES()) } {
+                    mstore(toAddress, 0)
                 }
             }
             
