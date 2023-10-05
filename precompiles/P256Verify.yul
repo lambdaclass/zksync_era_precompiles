@@ -225,14 +225,6 @@ object "P256VERIFY" {
                 ret := REDC(lowest_half_of_a, higher_half_of_a, n, nPrime)
             }
 
-            function intoMontgomeryFormN(a) -> ret {
-                // Note: mod(a, N()) is left because `hash` could not be in the range [0, N()).
-                let aModN := mod(a, N())
-                let higher_half_of_a := getHighestHalfOfMultiplication(aModN, R2_MOD_N())
-                let lowest_half_of_a := mul(aModN, R2_MOD_N())
-                ret := REDC(lowest_half_of_a, higher_half_of_a, N(), N_PRIME())
-            }
-
             /// @notice Decodes a field element out of the Montgomery form using the Montgomery reduction algorithm (REDC).
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication//The_REDC_algorithm for further details on transforming a field element out of the Montgomery form.
             /// @param m The field element in Montgomery form to decode.
