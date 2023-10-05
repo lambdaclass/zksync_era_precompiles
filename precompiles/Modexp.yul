@@ -532,14 +532,35 @@ object "ModExp" {
                 }
             }
 
-            /// @notice Performs the big unsigned integer square of big unsigned integers with an arbitrary amount of limbs.
-            /// @dev The quotient is stored from `quotient_ptr` to `quotient_ptr + (WORD_SIZE * nLimbs)`.
-            /// @dev The reminder is stored from `rem_ptr` to `rem_ptr + (WORD_SIZE * nLimbs)`.
-            function bigUIntDivRem(dividend_ptr, divisor_ptr, n_limbs, quotient_ptr, rem_ptr) {
-                // Init pointers for internal use buffers.
-                // FIXME This is ok for development purposes, but fix it before publishing the code.
-                let c_ptr := 0x900 // FIXME don't use a hardcoded address!
-                let r_ptr := 0x700 // FIXME don't use a hardcoded address!
+            /// @notice Computes the quotiend and reminder of dividing two big unsigned integers.
+            /// @dev
+            /// @dev Temporary buffers:
+            /// @dev ------------------
+            /// @dev
+            /// @dev This function requires two temporary buffers for internal storage:
+            /// @dev - Both buffers must provide `n_limbs * 32` bytes of writable memory space.
+            /// @dev - Neither buffer should overlap with each other.
+            /// @dev - Neither needs to be initialized to any particular value.
+            /// @dev - Consider the written values as undefined after the function returns.
+            /// @dev
+            /// @dev Return values:
+            /// @dev --------------
+            /// @dev
+            /// @dev - resulting `quotient` will be written `mem[base_ptr, base_ptr + 32 * n_limbs)`
+            /// @dev - resulting `reminder` will be written `mem[base_ptr, base_ptr + 32 * n_limbs)`
+            /// @dev
+            /// @param dividend_ptr Base pointer for a big unsigned integer representing the dividend.
+            /// @param divisor_ptr  Base pointer for a big unsigned integer representing the divisor.
+            /// @param tmp_ptr_1    Base pointer for a contiguous memory space of `n_limbs` for internal usage. Will be overwritten.
+            /// @param tmp_ptr_2    Base pointer for a contiguous memory space of `n_limbs` for internal usage. Will be overwritten.
+            /// @param n_limbs      Amount of limbs for each big unsigned integer.
+            /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
+            /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
+            function bigUIntDivRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, n_limbs, quotient_ptr, rem_ptr) {
+                // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
+                // parameters to prevent the leakage of implementation details.
+                let c_ptr := tmp_ptr_1
+                let r_ptr := tmp_ptr_2
 
                 copyBigUint(n_limbs, dividend_ptr, rem_ptr) // rem = dividend 
 
