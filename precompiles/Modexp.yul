@@ -3,7 +3,6 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
             // CONSTANTS
-
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
             }
@@ -599,6 +598,48 @@ object "ModExp" {
                 if iszero(mb) {
                     zeroWithLimbSizeAt(n_limbs, quotient_ptr)
                 }
+            }
+            
+            /// @notice Inplace zero extend to the left a big uint,
+            /// the result will have size of 2 times the original limbs.
+            function bigUIntDuplicateNLimbs(fromPtr, nLimbs) {
+                let finalLimbs := add(nLimbs, nLimbs)
+                for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
+                    if or(eq(i, nLimbs), lt(i, nLimbs)) {
+                        mstore(add(fromPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), 0)
+                    }
+                    if gt(i, nLimbs) {
+                        mstore(add(fromPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), mload(add(fromPtr, mul(sub(sub(i, 1), nLimbs), LIMB_SIZE_IN_BYTES()))))
+                    }
+                }
+            }
+
+            /// @notice Inplace removal of the first half of limbs from a big uint.
+            function bigUIntDivideNLimbsByTwo(fromPtr, nLimbs) {
+                let finalLimbs := div(nLimbs, 2)
+                for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
+                   mstore(add(fromPtr, mul(sub(finalLimbs, i), LIMB_SIZE_IN_BYTES())), mload(add(fromPtr, mul(sub(nLimbs, i), LIMB_SIZE_IN_BYTES()))))
+                }
+            }
+
+            /// @notice Computes c = (a*b) mod n, where a,b are big uints of
+            /// nLimbs size each, starting on lshPtr and rhsPtr, respectively,
+            /// and moduloPtr points to the start of the big uint n.
+            function bigUIntMulMod(lhsPtr, rhsPtr, moduloPtr, nLimbs, resultPtr) {
+
+                // result = lhs*rhs
+                let resultPtrMul := 0x200 // FIXME: Do not hardcode this
+                let quoResultPtr := 0x1000 // FIXME: Do not hardcode this
+                let auxPtr1 := 0x400 // FIXME: Do not hardcode this
+                let auxPtr2 := 0x600 // FIXME: Do not hardcode this
+
+                bigUIntMul(lhsPtr, rhsPtr, nLimbs, resultPtrMul)
+                // bigUIntMul doubles the limb size of the result,
+                // so result now points to a 2*n_limbs number
+                bigUIntDuplicateNLimbs(moduloPtr, nLimbs)
+                bigUIntDivRem(resultPtrMul, moduloPtr, auxPtr1, auxPtr2, add(nLimbs, nLimbs), quoResultPtr, resultPtr)
+                // divide limb size of result by 2 to get the final result
+                bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
             }
 
             ////////////////////////////////////////////////////////////////
