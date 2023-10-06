@@ -600,6 +600,8 @@ object "ModExp" {
                 }
             }
             
+            /// @notice Inplace zero extend to the left a big uint,
+            /// the result will have size of 2 times the original limbs.
             function bigUIntDuplicateNLimbs(fromPtr, nLimbs) {
                 let finalLimbs := add(nLimbs, nLimbs)
                 for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
@@ -612,6 +614,7 @@ object "ModExp" {
                 }
             }
 
+            /// @notice Remove the first half of lims from a big uint.
             function bigUIntDivideNLimbsByTwo(fromPtr, nLimbs) {
                 let finalLimbs := div(nLimbs, 2)
                 for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
@@ -619,6 +622,9 @@ object "ModExp" {
                 }
             }
 
+            /// @notice Computes c = (a*b) mod n, where a,b are big uints of
+            /// nLimbs size each, starting on lshPtr and rhsPtr, respectively,
+            /// and moduloPtr points to the start of the big uint n.
             function bigUIntMulMod(lhsPtr, rhsPtr, moduloPtr, nLimbs, resultPtr) {
 
                 // result = lhs*rhs
