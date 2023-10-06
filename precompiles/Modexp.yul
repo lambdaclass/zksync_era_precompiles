@@ -689,7 +689,7 @@ object "ModExp" {
 
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
-                            big_uint_mul_mod_inplace(n_limbs, result_ptr, base_ptr, modulus_ptr) // Fixme: not yet implemented. 
+                            bigUIntMulMod(result_ptr, base_ptr, modulus_ptr, n_limbs, result_ptr) 
 
                         }
 
