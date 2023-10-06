@@ -641,6 +641,32 @@ object "ModExp" {
                 // divide limb size of result by 2 to get the final result
                 bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
             }
+            function parseCalldata(start, len, dataPtr) -> res {
+                let resPtr := dataPtr
+                // Calculate the ending pointer of the big number in memory.
+                let end := add(start, len)
+                // Calculate the number of bytes in the last (potentially partial) word of the big number.
+                let lastWordBytes := mod(len, 32)
+                // Calculate the ending pointer of the last full 32-byte word.
+                let endOfLastFullWord := sub(end, lastWordBytes)
+
+                // Loop through each full 32-byte word to check for non-zero bytes.
+                for { let ptr := start } lt(ptr, endOfLastFullWord) { ptr := add(ptr, 32) } {
+                    let word := calldataload(ptr)
+                    mstore(resPtr, word)
+                    resPtr := add(resPtr, LIMB_SIZE_IN_BYTES())
+                }
+
+                // Check if the last partial word has any non-zero bytes.
+                if lastWordBytes {
+                    // Create a mask that isolates the valid bytes in the last word.
+                    // The mask has its first `lastWordBytes` bytes set to `0xff`.
+                    let mask := sub(shl(mul(lastWordBytes, 8), 1), 1)
+                    let word := calldataload(endOfLastFullWord)
+                    mstore(resPtr, word)
+                    resPtr := add(resPtr, LIMB_SIZE_IN_BYTES())
+                }
+            }
 
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
