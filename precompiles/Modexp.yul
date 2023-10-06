@@ -614,7 +614,7 @@ object "ModExp" {
                 }
             }
 
-            /// @notice Remove the first half of lims from a big uint.
+            /// @notice Inplace removal of the first half of limbs from a big uint.
             function bigUIntDivideNLimbsByTwo(fromPtr, nLimbs) {
                 let finalLimbs := div(nLimbs, 2)
                 for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
