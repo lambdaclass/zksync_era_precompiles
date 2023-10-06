@@ -39,16 +39,19 @@ In the next weeks we will add more optimizations and benchmarks.
 
 ## [Gas Consumption](./docs/src/gas_consumption.md)
 
-# Used algorithms
+## Used Algorithms
 
-|  | Unoptimized |  |  | Optimized |  |  |
+|  |  | **Precompile** |  |  |  |  |
 | --- | --- | --- | --- | --- | --- | --- |
-| Operation | ecAdd | ecMul | modexp | ecAdd | ecMul | modexp |
-| Modular Addition | addmod | addmod | addmod | addmod + Montgomery form | addmod + Montgomery form | addmod + Montgomery form |
-| Modular Subtraction | addmod | addmod | addmod | addmod + Montgomery form | addmod + Montgomery form | addmod + Montgomery form |
-| Modular Multiplication | mulmod | mulmod | mulmod | Montgomery multiplication | Montgomery multiplication | Montgomery multiplication |
-| Modular Exponentiation | Binary exponentiation | Binary exponentiation | Binary exponentiation | Binary exponentiation + Montgomery form | Binary exponentiation + Montgomery form | Binary exponentiation + Montgomery form |
-| Modular Inversion | Fermat’s little theorem | Fermat’s little theorem | None | Binary Extended GCD + Montgomery form | Binary Extended GCD + Montgomery form |  |
+| **Arithmetic** | **Operation** | **ecAdd** | **ecMul** | **modexp** | **P256VERIFY** | **secp256k1VERIFY** |
+| **Prime Field Arithmetic** | **Addition** | Montgomery Modular Addition | Montgomery Modular Addition | Big Unsigned Integer Addition | Montgomery Modular Addition | Montgomery Modular Addition |
+|  | **Subtraction** | Montgomery Modular Subtraction | Montgomery Modular Subtraction | Big Unsigned Integer Subtraction With Borrow | Montgomery Modular Subtraction | Montgomery Modular Subtraction |
+|  | **Multiplication** | Montgomery Modular Multiplication | Montgomery multiplication | Big Unsigned Integer Multiplication | Montgomery multiplication | Montgomery multiplication |
+|  | **Exponentiation** | - | - | Binary exponentiation | - | - |
+|  | **Inversion** | Modified Binary Extended GCD (adapted for Montgomery Form) | Modified Binary Extended GCD (adapted for Montgomery Form) | - | Modified Binary Extended GCD (adapted for Montgomery Form) | Modified Binary Extended GCD (adapted for Montgomery Form) |
+| **Elliptic Curve Arithmetic** | **Addition** | Addition in Affine Form | Addition in Homogeneous Projective Form | - | Addition in Homogeneous Projective Form | Addition in Homogeneous Projective Form |
+|  | **Double** | Double in Affine Form | Double in Homogeneous Projective Form | - | Double in Homogeneous Projective Form | Double in Homogeneous Projective Form |
+|  | **Scalar Multiplication** | - | Double-and-add | - | Double-and-add | Double-and-add |
 
 ## Resources
 
