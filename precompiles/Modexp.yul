@@ -601,22 +601,22 @@ object "ModExp" {
                 }
             }
             
-            function big_uint_duplicate_n_limbs(from_ptr, n_limbs, to_ptr) {
+            function big_uint_duplicate_n_limbs(from_ptr, n_limbs) {
                 let finalLimbs := add(n_limbs, n_limbs)
-                for { let i := 0 } lt(i, finalLimbs) { i := add(i, 1) } {
-                    if lt(i, n_limbs) {
-                        mstore(add(to_ptr, mul(i, LIMB_SIZE_IN_BYTES())), 0)
+                for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
+                    if or(eq(i, n_limbs), lt(i, n_limbs)) {
+                        mstore(add(from_ptr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), 0)
                     }
-                    if or(eq(i, n_limbs), gt(i, n_limbs)) {
-                        mstore(add(to_ptr, mul(i, LIMB_SIZE_IN_BYTES())), mload(add(from_ptr, mul(sub(i, n_limbs), LIMB_SIZE_IN_BYTES()))))
+                    if gt(i, n_limbs) {
+                        mstore(add(from_ptr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), mload(add(from_ptr, mul(sub(sub(i, 1), n_limbs), LIMB_SIZE_IN_BYTES()))))
                     }
                 }
             }
-            
-            function big_uint_divide_n_limbs_by_two(from_ptr, n_limbs, to_ptr) {
+
+            function big_uint_divide_n_limbs_by_two(from_ptr, n_limbs) {
                 let finalLimbs := div(n_limbs, 2)
                 for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
-                    mstore(add(to_ptr, mul(sub(finalLimbs, i), LIMB_SIZE_IN_BYTES())), mload(add(from_ptr, mul(sub(n_limbs, i), LIMB_SIZE_IN_BYTES()))))
+                    mstore(add(from_ptr, mul(sub(finalLimbs, i), LIMB_SIZE_IN_BYTES())), mload(add(from_ptr, mul(sub(n_limbs, i), LIMB_SIZE_IN_BYTES()))))
                 }
             }
 
@@ -633,8 +633,6 @@ object "ModExp" {
 
                 // result = lhs*rhs
                 let result_ptr_mul := 0x200 // FIXME: Do not hardcode this
-                let extended_modulo_ptr := 0x800 // FIXME: Do not hardcode this
-                let rem_result_ptr := 0x800 // FIXME: Do not hardcode this
                 let quo_result_ptr := 0x1000 // FIXME: Do not hardcode this
                 let aux_ptr1 := 0x400 // FIXME: Do not hardcode this
                 let aux_ptr2 := 0x600 // FIXME: Do not hardcode this
@@ -642,10 +640,10 @@ object "ModExp" {
                 bigUIntMul(lhs_ptr, rhs_ptr, n_limbs, result_ptr_mul)
                 // bigUIntMul doubles the limb size of the result,
                 // so result now points to a 2*n_limbs number
-                big_uint_duplicate_n_limbs(modulo_ptr, n_limbs, extended_modulo_ptr)
-                bigUIntDivRem(result_ptr_mul, extended_modulo_ptr, aux_ptr1, aux_ptr2, add(n_limbs, n_limbs), quo_result_ptr, rem_result_ptr)
+                big_uint_duplicate_n_limbs(modulo_ptr, n_limbs)
+                bigUIntDivRem(result_ptr_mul, modulo_ptr, aux_ptr1, aux_ptr2, add(n_limbs, n_limbs), quo_result_ptr, result_ptr)
                 // divide limb size of result by 2 to get the final result
-                big_uint_divide_n_limbs_by_two(rem_result_ptr, add(n_limbs, n_limbs), result_ptr)
+                big_uint_divide_n_limbs_by_two(result_ptr, add(n_limbs, n_limbs))
             }
 
             ////////////////////////////////////////////////////////////////
