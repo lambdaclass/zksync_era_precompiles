@@ -555,7 +555,7 @@ object "P256VERIFY" {
             let x := calldataload(96)
             let y := calldataload(128)
 
-            if or(iszero(fieldElementIsOnSubgroupOrder(r)), iszero(fieldElementIsOnSubgroupOrder(s))) {
+            if or(or(iszero(r), iszero(fieldElementIsOnSubgroupOrder(r))), iszero(fieldElementIsOnSubgroupOrder(s))) {
                 burnGas()
             }
 
