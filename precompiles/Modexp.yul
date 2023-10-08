@@ -643,11 +643,38 @@ object "ModExp" {
                 bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
             }
 
+            function big_uint_is_greater_than_one(n_limbs, base_ptr) -> ret {
+               // Pointer to the least significant limb.
+               let p :=  add(p, shl(5, sub(n, 1)))
+
+               // Least significant limb.
+               let limb = mload(p)
+
+               // If the least significant limb is greater than 1, we knok for
+               // sure that the big unsigned integer will be greater than 1.
+               ret := gt(limb, 1)
+
+               // If we don't know yet whether the big unsigned integer is
+               // greater than one, we will have to look if there exists a more
+               // significative limb thats greater than 0.
+               //
+               // We are iterating backwards, because the big unsigned integers
+               // we are working with may be left padded with zeros to match
+               // the size of other big unsigned integers. This way we have a
+               // better chance to consume less iterations. In the worst case
+               // scenario, where the answer is false, we will have to read the
+               // whole number from memory, making this algorithm `O(n_limbs)`.
+               for { } or(eq(base_ptr, p), iszero(ret)) { } {
+                   p := sub(p, LIMB_SIZE_IN_BYTES()) 
+                   ret := lt(0, mload(p))
+               }
+            }
+
             // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
             // @param n_limbs Amount of limbs that compose each of the big unsigned integer parameters.
             // @param base_ptr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
             // @param exponent_ptr Base pointer to a big unsigned integer representing the `exponent[]`. It's most significant half must be zeros.
-            // @param modulus_ptr Base pointer to a big unsigned integer representing the `modulus[]`. It's most significant half must be zeros.
+            // @param modulus_ptr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
             // @param result_ptr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
             function big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr) {
                 // Algorithm pseudocode:
@@ -666,8 +693,8 @@ object "ModExp" {
                 //     return result
                 
                 // PSEUDOCODE: `if modulus = 1 then return 0`.
-                // We are using the precondition that `result[] == [0, ..., 0]`.
-                if big_uint_is_not_one(n_limbs, ptr) {
+                // We are using the precondition that `result == 0` and `0 < modulus`.
+                if big_uint_is_greater_than_one(n_limbs, modulus_ptr) {
 
                     // Assert :: (modulus - 1) * (modulus - 1) does not overflow base
                     // We are certain that this is true because our precondition requires the most significant half of exponent to be zeros.
