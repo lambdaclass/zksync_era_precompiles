@@ -2,6 +2,22 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
+
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -665,6 +681,22 @@ object "ModExp" {
                     let word := calldataload(endOfLastFullWord)
                     mstore(resPtr, word)
                     resPtr := add(resPtr, LIMB_SIZE_IN_BYTES())
+                }
+            }
+
+            /// @notice Pad a big uint with zeros to the left until newLimbNumber is reached.
+            /// @dev The operation is performed in-place.
+            /// @param ptr The pointer to the MSB of the number to pad.
+            /// @param currentLimbNumber The number of limbs needed to represent the operand.
+            /// @param newLimbNumber The number of limbs wanted to represent the operand.
+            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber) {
+                if iszero(eq(currentLimbNumber, newLimbNumber)) {
+                    for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
+                        // Move the limb to the right position
+                        mstore(add(ptr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
+                        // Store zero in the position of the moved limb
+                        mstore(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
+                    }
                 }
             }
 
