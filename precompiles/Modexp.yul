@@ -685,6 +685,43 @@ object "ModExp" {
                 }
             }
 
+            // Last limbs refers to the most significant limb in big-endian representation.
+            function parseCalldata(calldataValuePtr, calldataValueLen, resPtr) -> memoryValueLen {
+                // The in-memory value length in bytes of the calldata value.
+                memoryValueLen := calldataValueLen
+                let numberOfLimbs := div(calldataValueLen, LIMB_SIZE_IN_BYTES())
+                let lastLimbMisalignmentInBytes := mod(calldataValueLen, LIMB_SIZE_IN_BYTES())
+                let firstLimbExtraBytes := sub(LIMB_SIZE_IN_BYTES(), lastLimbMisalignmentInBytes)
+                let lastLimbBytes := sub(LIMB_SIZE_IN_BYTES(), firstLimbExtraBytes)
+                let misalignedWordPtr := sub(calldataValuePtr, firstLimbExtraBytes)
+                if lastLimbMisalignmentInBytes {
+                    // If there is a misalignment, then we need to add one more limb to the result length.
+                    numberOfLimbs := add(numberOfLimbs, 1)
+                    memoryValueLen := shl(5, numberOfLimbs)
+                    let misalignedLimb := calldataload(misalignedWordPtr)
+                    let firstWordExtraBits := shl(3, firstLimbExtraBytes)
+                    misalignedLimb := shl(firstWordExtraBits, misalignedLimb)
+                    misalignedLimb := shr(firstWordExtraBits, misalignedLimb)
+                    mstore(resPtr, misalignedLimb)
+                }
+
+                let currentLimbCalldataPtr := calldataValuePtr
+                let currentLimbMemoryPtr := resPtr
+                for { let currentLimbNumber := 0 } lt(currentLimbNumber, numberOfLimbs) { currentLimbNumber := add(currentLimbNumber, 1) } {
+                    if and(iszero(currentLimbNumber), lastLimbMisalignmentInBytes) {
+                        // If the MSL is misaligned, then at this point it has been handled and we should 
+                        // skip the first iteration (which handles the MSL if it is not misaligned).
+                        currentLimbCalldataPtr := add(currentLimbCalldataPtr, lastLimbBytes)
+                        currentLimbMemoryPtr := add(currentLimbMemoryPtr, LIMB_SIZE_IN_BYTES())
+                        continue
+                    }
+                    let currentLimb := calldataload(currentLimbCalldataPtr)
+                    mstore(currentLimbMemoryPtr, currentLimb)
+                    currentLimbCalldataPtr := add(currentLimbCalldataPtr, LIMB_SIZE_IN_BYTES())
+                    currentLimbMemoryPtr := add(currentLimbMemoryPtr, LIMB_SIZE_IN_BYTES())
+                }
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
