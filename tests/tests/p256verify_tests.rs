@@ -14,7 +14,8 @@ const RESPONSE_VALID: [u8; 32] = [
 const RESPONSE_INVALID: [u8; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
-const EXECUTION_REVERTED: &str = "(code: 3, message: execution reverted, data: Some(String(\"0x\")))";
+const EXECUTION_REVERTED: &str =
+    "(code: 3, message: execution reverted, data: Some(String(\"0x\")))";
 
 // Puts the given data into the P256VERIFTY precompile
 #[tokio::test]
