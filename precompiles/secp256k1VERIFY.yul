@@ -544,7 +544,7 @@ object "SECP256K1VERIFY" {
             let y := calldataload(128)
 
 
-            if or(or(iszero(r), iszero(fieldElementIsOnSubgroupOrder(r))), iszero(fieldElementIsOnSubgroupOrder(s))) {
+            if or(or(iszero(r), iszero(fieldElementIsOnSubgroupOrder(r))), or(iszero(s), iszero(fieldElementIsOnSubgroupOrder(s)))) {
                 burnGas()
             }
 
