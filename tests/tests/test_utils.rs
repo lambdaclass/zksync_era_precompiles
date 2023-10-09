@@ -5,7 +5,7 @@ use zksync_web3_rs::{
     zks_utils::{ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS},
 };
 
-static DEFAULT_L1_PROVIDER_URL: &str = "http://65.21.140.36:8545";
+static DEFAULT_L1_PROVIDER_URL: &str = "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
 
 pub fn eth_provider() -> Provider<Http> {
