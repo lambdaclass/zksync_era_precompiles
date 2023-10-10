@@ -670,17 +670,18 @@ object "ModExp" {
             }
 
             /// @notice Pad a big uint with zeros to the left until newLimbNumber is reached.
-            /// @dev The operation is performed in-place.
+            /// @dev The result is stored from `resultPtr` to `resultPtr + (LIMB_SIZE_IN_BYTES * newLimbNumber)`.
             /// @param ptr The pointer to the MSB of the number to pad.
             /// @param currentLimbNumber The number of limbs needed to represent the operand.
             /// @param newLimbNumber The number of limbs wanted to represent the operand.
-            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber) {
+            /// @param resultPtr The pointer to the MSB of the padded number.
+            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) {
                 if iszero(eq(currentLimbNumber, newLimbNumber)) {
                     for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
                         // Move the limb to the right position
-                        mstore(add(ptr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
+                        mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
                         // Store zero in the position of the moved limb
-                        mstore(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
+                        mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
                     }
                 }
             }
