@@ -13,6 +13,14 @@ object "ModExp" {
             }
             // HELPER FUNCTIONS
 
+            /// @notice Returns an address for a free memory region,
+            /// which will be startPtr...(startPtr+(howManyAdresses*32))
+            /// @param howManyAdresses The number of addresses needed.
+            function freeMemoryPointer(howManyAdresses) -> startPtr {
+                startPtr := mload(0x0)
+                mstore(0x0, add(startPtr, shl(5, howManyAdresses)))
+            }
+
             /// @notice Stores a one in big unsigned integer form in memory.
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param toAddress The pointer to the MSB of the destination.
