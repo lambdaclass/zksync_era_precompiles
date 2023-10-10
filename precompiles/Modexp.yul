@@ -3,6 +3,7 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
 
+           
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -12,6 +13,14 @@ object "ModExp" {
                 limbSize := 0x100
             }
             // HELPER FUNCTIONS
+
+            /// @notice Returns an address for a free memory region,
+            /// which will be startPtr...(startPtr+(howManyAdresses*32))
+            /// @param howManyAdresses The number of addresses needed.
+            function freeMemoryPointer(howManyAdresses) -> startPtr {
+                startPtr := mload(0x0)
+                mstore(0x0, add(startPtr, mul(howManyAdresses, 32)))
+            }
 
             /// @notice Stores a one in big unsigned integer form in memory.
             /// @param nLimbs The number of limbs needed to represent the operand.
