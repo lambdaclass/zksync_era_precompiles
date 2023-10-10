@@ -3,7 +3,6 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
 
-           
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
