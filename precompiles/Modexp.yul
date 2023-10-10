@@ -710,58 +710,90 @@ object "ModExp" {
             ////////////////////////////////////////////////////////////////
 
             let baseLen := calldataload(0)
-            let expLength := calldataload(32)
+            let expLen := calldataload(32)
             let modLen := calldataload(64)
 
-            // Handle a special case when both the base and mod length are zeroes.
-            if and(iszero(baseLen), iszero(modLen)) {
-                return(0, 0)
-            }
+            // // Handle a special case when both the base and mod length are zeroes.
+            // if and(iszero(baseLen), iszero(modLen)) {
+            //     return(0, 0)
+            // }
 
             let basePtr := 96
             let expPtr := add(basePtr, baseLen)
-            let modPtr := add(expPtr, expLength)
+            let modPtr := add(expPtr, expLen)
 
-            // Note: This check covers the case where length of the modulo is zero.
-            // base^exponent % 0 = 0
-            if bigUIntIsZero(modPtr, modLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
+            // // Note: This check covers the case where length of the modulo is zero.
+            // // base^exponent % 0 = 0
+            // if bigUIntIsZero(modPtr, modLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     return(0, modLen)
+            // }
+
+            // // 1^exponent % modulus = 1
+            // if bigUIntIsOne(basePtr, baseLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     mstore8(sub(modLen, 1), 1)
+            //     return(0, modLen)
+            // }
+
+            // // base^0 % modulus = 1
+            // if bigUIntIsZero(expPtr, expLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     mstore8(sub(modLen, 1), 1)
+            //     return(0, modLen)
+            // }
+
+            // // 0^exponent % modulus = 0
+            // if bigUIntIsZero(basePtr, baseLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     return(0, modLen)
+            // }
+
+            let limbsBaseLen, limbsExpLen, limbsModLen
+            switch mod(baseLen, LIMB_SIZE_IN_BYTES())
+            case 0 {
+                limbsBaseLen := div(baseLen, LIMB_SIZE_IN_BYTES())
+            }
+            default {
+                limbsBaseLen := add(div(baseLen, LIMB_SIZE_IN_BYTES()), 1)
+            }
+            
+            let freePtr := freeMemoryPointer(limbsBaseLen)
+            parseCalldata(basePtr, baseLen, freePtr)
+
+            switch mod(expLen, LIMB_SIZE_IN_BYTES())
+            case 0 {
+                limbsExpLen := div(expLen, LIMB_SIZE_IN_BYTES())
+            }
+            default {
+                limbsExpLen := add(div(expLen, LIMB_SIZE_IN_BYTES()), 1)
             }
 
-            // 1^exponent % modulus = 1
-            if bigUIntIsOne(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
+            let freePtr := freeMemoryPointer(limbsExpLen)
+            parseCalldata(expPtr, expLen, freePtr)
+
+            switch mod(modLen, LIMB_SIZE_IN_BYTES())
+            case 0 {
+                limbsModLen := div(modLen, LIMB_SIZE_IN_BYTES())
+            }
+            default {
+                limbsModLen := add(div(modLen, LIMB_SIZE_IN_BYTES()), 1)
             }
 
-            // base^0 % modulus = 1
-            if bigUIntIsZero(expPtr, expLength) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
-            }
-
-            // 0^exponent % modulus = 0
-            if bigUIntIsZero(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
-            }
-
-            // TODO: big arithmetics
+            let freePtr := freeMemoryPointer(limbsModLen)
+            parseCalldata(modPtr, modLen, freePtr)
 		}
 	}
 }
