@@ -12,6 +12,13 @@ object "ModExp" {
                 limbSize := 0x100
             }
             // HELPER FUNCTIONS
+            function bigIntLimbs(length) -> limbs, misalignment {
+                limbs := div(length, LIMB_SIZE_IN_BYTES())
+                misalignment := mod(length, LIMB_SIZE_IN_BYTES())
+                if misalignment {
+                    limbs := add(limbs, 1)
+                }
+            }
 
             /// @notice Returns an address for a free memory region,
             /// which will be startPtr...(startPtr+(howManyAdresses*32))
@@ -712,7 +719,7 @@ object "ModExp" {
             let baseLen := calldataload(0)
             let expLen := calldataload(32)
             let modLen := calldataload(64)
-
+            freeMemoryPointer(1)
             // // Handle a special case when both the base and mod length are zeroes.
             // if and(iszero(baseLen), iszero(modLen)) {
             //     return(0, 0)
@@ -761,39 +768,18 @@ object "ModExp" {
             //     return(0, modLen)
             // }
 
-            let limbsBaseLen, limbsExpLen, limbsModLen
-            switch mod(baseLen, LIMB_SIZE_IN_BYTES())
-            case 0 {
-                limbsBaseLen := div(baseLen, LIMB_SIZE_IN_BYTES())
-            }
-            default {
-                limbsBaseLen := add(div(baseLen, LIMB_SIZE_IN_BYTES()), 1)
-            }
-            
-            let freePtr := freeMemoryPointer(limbsBaseLen)
-            parseCalldata(basePtr, baseLen, freePtr)
+            let limbsBaseLen, misalignment := bigIntLimbs(baseLen)
+            let limbsExpLen, misalignment := bigIntLimbs(expLen)
+            let limbsModLen, misalignment := bigIntLimbs(modLen)
 
-            switch mod(expLen, LIMB_SIZE_IN_BYTES())
-            case 0 {
-                limbsExpLen := div(expLen, LIMB_SIZE_IN_BYTES())
-            }
-            default {
-                limbsExpLen := add(div(expLen, LIMB_SIZE_IN_BYTES()), 1)
-            }
+            let freePtrForBaseLimbs := freeMemoryPointer(limbsBaseLen)
+            parseCalldata(basePtr, baseLen, freePtrForBaseLimbs)
 
-            let freePtr := freeMemoryPointer(limbsExpLen)
-            parseCalldata(expPtr, expLen, freePtr)
+            let freePtrForExpLimbs := freeMemoryPointer(limbsExpLen)
+            parseCalldata(expPtr, expLen, freePtrForExpLimbs)
 
-            switch mod(modLen, LIMB_SIZE_IN_BYTES())
-            case 0 {
-                limbsModLen := div(modLen, LIMB_SIZE_IN_BYTES())
-            }
-            default {
-                limbsModLen := add(div(modLen, LIMB_SIZE_IN_BYTES()), 1)
-            }
-
-            let freePtr := freeMemoryPointer(limbsModLen)
-            parseCalldata(modPtr, modLen, freePtr)
+            let freePtrForModLimbs := freeMemoryPointer(limbsModLen)
+            parseCalldata(modPtr, modLen, freePtrForModLimbs)
 		}
 	}
 }
