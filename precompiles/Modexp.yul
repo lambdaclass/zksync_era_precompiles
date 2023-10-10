@@ -19,7 +19,7 @@ object "ModExp" {
             /// @param howManyAdresses The number of addresses needed.
             function freeMemoryPointer(howManyAdresses) -> startPtr {
                 startPtr := mload(0x0)
-                mstore(0x0, add(startPtr, mul(howManyAdresses, 32)))
+                mstore(0x0, add(startPtr, shl(5, howManyAdresses)))
             }
 
             /// @notice Stores a one in big unsigned integer form in memory.
