@@ -660,19 +660,18 @@ object "ModExp" {
 
             /// @notice Pad a big uint with zeros to the left until newLimbNumber is reached.
             /// @dev The result is stored from `resultPtr` to `resultPtr + (LIMB_SIZE_IN_BYTES * newLimbNumber)`.
+            /// @dev If currentLimbNumber is equal to newLimbNumber, then the result is the same as the input.
             /// @param ptr The pointer to the MSB of the number to pad.
             /// @param currentLimbNumber The number of limbs needed to represent the operand.
             /// @param newLimbNumber The number of limbs wanted to represent the operand.
             /// @param resultPtr The pointer to the MSB of the padded number.
             function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) {
-                if iszero(eq(currentLimbNumber, newLimbNumber)) {
                     for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
                         // Move the limb to the right position
                         mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
                         // Store zero in the position of the moved limb
                         mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
                     }
-                }
             }
 
             // Last limbs refers to the most significant limb in big-endian representation.
@@ -772,14 +771,31 @@ object "ModExp" {
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
             let limbsModLen, misalignment := bigIntLimbs(modLen)
 
-            let freePtrForBaseLimbs := freeMemoryPointer(limbsBaseLen)
-            parseCalldata(basePtr, baseLen, freePtrForBaseLimbs)
+            let ptrBaseLimbs := freeMemoryPointer(limbsBaseLen)
+            parseCalldata(basePtr, baseLen, ptrBaseLimbs)
 
-            let freePtrForExpLimbs := freeMemoryPointer(limbsExpLen)
-            parseCalldata(expPtr, expLen, freePtrForExpLimbs)
+            let ptrExpLimbs := freeMemoryPointer(limbsExpLen)
+            parseCalldata(expPtr, expLen, ptrExpLimbs)
 
-            let freePtrForModLimbs := freeMemoryPointer(limbsModLen)
-            parseCalldata(modPtr, modLen, freePtrForModLimbs)
+            let ptrModLimbs := freeMemoryPointer(limbsModLen)
+            parseCalldata(modPtr, modLen, ptrModLimbs)
+
+            let maxLimbNumber := limbsBaseLen
+            if lt(maxLimbNumber, limbsExpLen) {
+                maxLimbNumber := limbsExpLen
+            }
+            if lt(maxLimbNumber, limbsModLen) {
+                maxLimbNumber := limbsModLen
+            }
+            
+            let ptrPaddedBase := freeMemoryPointer(maxLimbNumber)
+            bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, ptrPaddedBase)
+
+            let ptrPaddedExp := freeMemoryPointer(maxLimbNumber)
+            bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, ptrPaddedExp)
+
+            let ptrPaddedMod := freeMemoryPointer(maxLimbNumber)
+            bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, ptrPaddedMod)
 		}
 	}
 }
