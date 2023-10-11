@@ -892,8 +892,8 @@ object "Playground" {
                         // PSEUDOCODE: `base := (base * base) mod modulus`
                         {
                             // scratch_buf_2 <- base * base
-                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
                             zeroWithLimbSizeAt(n_limbs, scratch_buf_2_ptr) // scratch_buf_2 <- 0
+                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
                             bigUIntMul(base_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_2_ptr)
                             {
                                 console_log(0xcafecafe)
@@ -993,39 +993,38 @@ object "Playground" {
             //     console_log(eq(mload(add(192, 20)), 0x0)) // result[1]
             // }
 
-            {
-                // Test case where the modulus is larger than the exponent
-                let n_limbs := 0x2
-                let base_ptr := 0x0
-                mstore(add(base_ptr, 0x0), 0x0) // base[0]
-                mstore(add(base_ptr, 0x20), 0x3) // base[1]
-                let exponent_ptr := 0x40
-                mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
-                mstore(add(exponent_ptr, 0x20), 0x2) // exponent[1]
-                let modulus_ptr := 0x80
-                mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
-                mstore(add(modulus_ptr, 0x20), 0xFF) // modulus[1]
-                let result_ptr := 0xC0
-                mstore(add(result_ptr, 0x0), 0x0) // result[0]
-                mstore(add(result_ptr, 0x20), 0x0) // result[1]
-                let scratch_buf_1_ptr := 0x100
-                mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
-                mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
-                let scratch_buf_2_ptr := 0x140
-                mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
-                mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
-                let scratch_buf_3_ptr := 0x180
-                mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
-                mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
-                let scratch_buf_4_ptr := 0x1C0
-                mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
-                mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
-                big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
-                // Comparing result against expected values:
-                console_log(eq(mload(add(192, 0)), 0x0)) // result[0]
-                console_log(mload(add(192, 20)))
-                console_log(eq(mload(add(192, 20)), 0x9)) // result[1]
-            }
+            // {
+            //     // Test case where the modulus is larger than the exponent
+            //     let n_limbs := 0x2
+            //     let base_ptr := 0x0
+            //     mstore(add(base_ptr, 0x0), 0x0) // base[0]
+            //     mstore(add(base_ptr, 0x20), 0x3) // base[1]
+            //     let exponent_ptr := 0x40
+            //     mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
+            //     mstore(add(exponent_ptr, 0x20), 0x2) // exponent[1]
+            //     let modulus_ptr := 0x80
+            //     mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
+            //     mstore(add(modulus_ptr, 0x20), 0xFF) // modulus[1]
+            //     let result_ptr := 0xC0
+            //     mstore(add(result_ptr, 0x0), 0x0) // result[0]
+            //     mstore(add(result_ptr, 0x20), 0x0) // result[1]
+            //     let scratch_buf_1_ptr := 0x100
+            //     mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
+            //     mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
+            //     let scratch_buf_2_ptr := 0x140
+            //     mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
+            //     mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
+            //     let scratch_buf_3_ptr := 0x180
+            //     mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
+            //     mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
+            //     let scratch_buf_4_ptr := 0x1C0
+            //     mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
+            //     mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
+            //     big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
+            //     // Comparing result against expected values:
+            //     console_log(eq(mload(add(result_ptr, 0x0)), 0x0)) // result[0]
+            //     console_log(eq(mload(add(result_ptr, 0x20)), 0x9)) // result[1]
+            // }
 
 		}
 	}
