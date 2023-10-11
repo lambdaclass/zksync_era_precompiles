@@ -665,13 +665,13 @@ object "ModExp" {
             /// @param currentLimbNumber The number of limbs needed to represent the operand.
             /// @param newLimbNumber The number of limbs wanted to represent the operand.
             /// @param resultPtr The pointer to the MSB of the padded number.
-            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) {
-                    for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
-                        // Move the limb to the right position
-                        mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
-                        // Store zero in the position of the moved limb
-                        mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
-                    }
+            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) -> resultPtr {
+                for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
+                    // Move the limb to the right position
+                    mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
+                    // Store zero in the position of the moved limb
+                    mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
+                }
             }
 
             // Last limbs refers to the most significant limb in big-endian representation.
@@ -708,6 +708,17 @@ object "ModExp" {
                     mstore(currentLimbMemoryPtr, currentLimb)
                     currentLimbCalldataPtr := add(currentLimbCalldataPtr, LIMB_SIZE_IN_BYTES())
                     currentLimbMemoryPtr := add(currentLimbMemoryPtr, LIMB_SIZE_IN_BYTES())
+                }
+            }
+
+            function padWithZeroesIfNeeded(startingLimbPtr, currentLimbSize, toPadLimbSize) -> resultPtr {
+                switch eq(currentLimbSize, toPadLimbSize)
+                case 0 {
+                    resultPtr := freeMemoryPointer(toPadLimbSize)
+                    bigUIntPadWithZeros(startingLimbPtr, currentLimbSize, toPadLimbSize, resultPtr)
+                }
+                case 1 {
+                    resultPtr := startingLimbPtr 
                 }
             }
 
@@ -781,6 +792,7 @@ object "ModExp" {
             parseCalldata(modPtr, modLen, ptrModLimbs)
 
             let maxLimbNumber := limbsBaseLen
+
             if lt(maxLimbNumber, limbsExpLen) {
                 maxLimbNumber := limbsExpLen
             }
@@ -788,14 +800,9 @@ object "ModExp" {
                 maxLimbNumber := limbsModLen
             }
             
-            let ptrPaddedBase := freeMemoryPointer(maxLimbNumber)
-            bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, ptrPaddedBase)
-
-            let ptrPaddedExp := freeMemoryPointer(maxLimbNumber)
-            bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, ptrPaddedExp)
-
-            let ptrPaddedMod := freeMemoryPointer(maxLimbNumber)
-            bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, ptrPaddedMod)
+            let baseStartPtr := padWithZeroesIfNeeded(ptrBaseLimbs, limbsBaseLen, maxLimbNumber)
+            let exponentStartPtr := padWithZeroesIfNeeded(ptrExpLimbs, limbsExpLen, maxLimbNumber)
+            let moduloStartPtr := padWithZeroesIfNeeded(ptrModLimbs, limbsModLen, maxLimbNumber)
 		}
 	}
 }
