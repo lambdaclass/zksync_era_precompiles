@@ -77,6 +77,43 @@ object "ModExp" {
                 ret := verbatim_2i_1o("mul_high", multiplicand, multiplier)
             }
 
+            /// @notice Checks whether calldata[start, start + len) is zero.
+            /// @param start The pointer to the calldata where the big number starts.
+            /// @param len The number of bytes that the big number occupies.
+            /// @return res A boolean indicating whether the big number is zero (true) or not (false).
+            function call_data_buffer_is_zero(start, len) -> res {
+                // Initialize result as true, assuming the number is zero until proven otherwise.
+                res := true
+
+                // Calculate the ending pointer of the big number in memory.
+                let end := add(start, len)
+                // Calculate the number of bytes in the last (potentially partial) word of the big number.
+                let lastWordBytes := mod(len, 32)
+                // Calculate the ending pointer of the last full 32-byte word.
+                let endOfLastFullWord := sub(end, lastWordBytes)
+
+                // Loop through each full 32-byte word to check for non-zero bytes.
+                for { let ptr := start } lt(ptr, endOfLastFullWord) { ptr := add(ptr, 32) } {
+                    let word := calldataload(ptr)
+                    if word {
+                        res := false
+                        break
+                    }
+                }
+
+                // Check if the last partial word has any non-zero bytes.
+                if lastWordBytes {
+                    // Create a mask that isolates the valid bytes in the last word.
+                    // The mask has its first `lastWordBytes` bytes set to `0xff`.
+                    let mask := sub(shl(mul(lastWordBytes, 8), 1), 1)
+                    let word := calldataload(endOfLastFullWord)
+                    // Use the mask to isolate the valid bytes and check if any are non-zero.
+                    if and(word, mask) {
+                        res := false
+                    }
+                }
+            }
+
             /// @notice Checks whether a big number is zero.
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
@@ -125,9 +162,9 @@ object "ModExp" {
 
                     // Check if the last byte is one.
                     let lastByteIsOne := eq(lastByte, 1)
-                    // Check if all other bytes are zero using the bigUIntIsZero function
+                    // Check if all other bytes are zero using the call_data_buffer_is_zero function
                     // The length for this check is (len - 1) because we exclude the last byte.
-                    let otherBytesAreZeroes := bigUIntIsZero(start, sub(len, 1))
+                    let otherBytesAreZeroes := call_data_buffer_is_zero(start, sub(len, 1))
 
                     // The number is one if the last byte is one and all other bytes are zero.
                     res := and(lastByteIsOne, otherBytesAreZeroes)
@@ -640,6 +677,135 @@ object "ModExp" {
                 bigUIntDivRem(resultPtrMul, moduloPtr, auxPtr1, auxPtr2, add(nLimbs, nLimbs), quoResultPtr, resultPtr)
                 // divide limb size of result by 2 to get the final result
                 bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
+            }
+
+            function big_uint_is_greater_than_one(n_limbs, base_ptr) -> ret {
+               // Pointer to the least significant limb.
+               let p :=  add(base_ptr, shl(5, sub(n_limbs, 1)))
+
+               // Least significant limb.
+               let limb := mload(p)
+
+               // If the least significant limb is greater than 1, we knok for
+               // sure that the big unsigned integer will be greater than 1.
+               ret := gt(limb, 1)
+
+               // If we don't know yet whether the big unsigned integer is
+               // greater than one, we will have to look if there exists a more
+               // significative limb thats greater than 0.
+               //
+               // We are iterating backwards, because the big unsigned integers
+               // we are working with may be left padded with zeros to match
+               // the size of other big unsigned integers. This way we have a
+               // better chance to consume less iterations. In the worst case
+               // scenario, where the answer is false, we will have to read the
+               // whole number from memory, making this algorithm `O(n_limbs)`.
+               for { } and(lt(base_ptr, p), eq(ret, false)) { } {
+                   p := sub(p, LIMB_SIZE_IN_BYTES()) 
+                   ret := lt(0, mload(p))
+               }
+            }
+
+            function big_uint_mod_two(n_limbs, base_ptr) -> ret {
+                let p := add(base_ptr, shl(5, sub(n_limbs, 1))) // Least significant limb addr.
+                ret := and(mload(p), 0x1)
+            }
+
+            function flip(lhs, rhs) -> ret_lhs, ret_rhs {
+                ret_lhs := rhs
+                ret_rhs := lhs
+            }
+
+            function big_uint_is_not_zero(p, n_limbs) -> is_not_zero {
+                is_not_zero := false
+                let past_the_end_ptr :=  add(p, shl(5, n_limbs))
+                for { } lt(p, past_the_end_ptr) { p := add(p, 32) } {
+                    is_not_zero := lt(0, mload(p))
+                    if is_not_zero {
+                        leave
+                    }
+                }
+            }
+
+            function big_uint_lower_half_ptr(n_limbs, base_ptr) -> p {
+                let upper_half_size_in_bytes := shl(4, n_limbs) // n_limbs * 32 / 2
+                p := add(base_ptr, upper_half_size_in_bytes)
+            }
+
+            // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
+            // @param n_limbs Amount of limbs that compose each of the big unsigned integer parameters.
+            // @param base_ptr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
+            // @param exponent_ptr Base pointer to a big unsigned integer representing the `exponent[]`. It's most significant half must be zeros.
+            // @param modulus_ptr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
+            // @param result_ptr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
+            function big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr) {
+                // Algorithm pseudocode:
+                // See: https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
+                // function modular_pow(base, exponent, modulus) is
+                //     if modulus = 1 then
+                //         return 0
+                //     Assert :: (modulus - 1) * (modulus - 1) does not overflow base
+                //     result := 1
+                //     base := base mod modulus
+                //     while exponent > 0 do
+                //         if (exponent mod 2 == 1) then
+                //             result := (result * base) mod modulus
+                //         exponent := exponent >> 1
+                //         base := (base * base) mod modulus
+                //     return result
+
+                // PSEUDOCODE: `if modulus = 1 then return 0`.
+                // We are using the precondition that `result == 0` and `0 < modulus`.
+                // FIXME: Does the algorithm work without this check? We may be paying the cost of running this function just for a rare test case.
+                if big_uint_is_greater_than_one(n_limbs, modulus_ptr) {
+
+                    // Assert :: (modulus - 1) * (modulus - 1) does not overflow base
+                    // We are certain that this is true because our precondition requires the most significant half of exponent to be zeros.
+
+                    // PSEUDOCODE: `result := 1`
+                    // Again, we are using the precondition that `result[] == 0`
+                    bigUIntInPlaceOrWith1(result_ptr, n_limbs)
+
+                    // PSEUDOCODE: `base := base mod modulus`
+                    // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
+                    bigUIntDivRem(base_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, scratch_buf_4_ptr)
+                    base_ptr, scratch_buf_4_ptr := flip(base_ptr, scratch_buf_4_ptr)
+
+                    // PSEUDOCODE: `while exponent > 0 do`
+                    // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
+                    for { } big_uint_is_not_zero(exponent_ptr, n_limbs) { } {
+
+                        // PSEUDOCODE: `if (exponent mod 2 == 1) then`
+                        if big_uint_mod_two(n_limbs, exponent_ptr) {
+
+                            // PSEUDOCODE: `result := (result * base) mod modulus`
+                            // Since result[] is our return value, we are allowed to mutate it.
+                            zeroWithLimbSizeAt(n_limbs, scratch_buf_1_ptr)
+                            let result_low_ptr := big_uint_lower_half_ptr(n_limbs, result_ptr)
+                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
+                            // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
+                            bigUIntMul(result_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_1_ptr)
+                            // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
+                            bigUIntDivRem(scratch_buf_1_ptr, modulus_ptr, scratch_buf_4_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, result_ptr)
+
+                        }
+
+                        // PSEUDOCODE: `exponent := exponent >> 1`
+                        // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
+                        bigUIntOneShiftRight(exponent_ptr, n_limbs)
+                        
+                        // PSEUDOCODE: `base := (base * base) mod modulus`
+                        {
+                            // scratch_buf_2 <- base * base
+                            zeroWithLimbSizeAt(n_limbs, scratch_buf_2_ptr) // scratch_buf_2 <- 0
+                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
+                            bigUIntMul(base_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_2_ptr)
+
+                            // base <- temp % modulus
+                            bigUIntDivRem(scratch_buf_2_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_3_ptr, n_limbs, scratch_buf_4_ptr, base_ptr)
+                        }
+                    }
+                }
             }
 
             ////////////////////////////////////////////////////////////////
