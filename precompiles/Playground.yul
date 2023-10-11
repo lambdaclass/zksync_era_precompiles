@@ -17,14 +17,6 @@ object "Playground" {
                 }
             }
 
-            function console_log_big_uint(p, n) {
-                let offset := shl(5, n)
-                let past_the_end_ptr := add(p, offset)
-                for {} lt(p, past_the_end_ptr) { p := add(p, 32) } {
-                    console_log(mload(p))
-                }
-            }
-
             // CONSTANTS
 
             function LIMB_SIZE_IN_BYTES() -> limbSize {
@@ -726,18 +718,6 @@ object "Playground" {
             // @param modulus_ptr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
             // @param result_ptr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
             function big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr) {
-                {
-                    console_log(0xcafecafe)
-                    console_log(n_limbs)
-                    console_log_big_uint(base_ptr, n_limbs)
-                    console_log_big_uint(exponent_ptr, n_limbs)
-                    console_log_big_uint(modulus_ptr, n_limbs)
-                    console_log_big_uint(result_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                }
                 // Algorithm pseudocode:
                 // See: https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
                 // function modular_pow(base, exponent, modulus) is
@@ -764,130 +744,34 @@ object "Playground" {
                     // PSEUDOCODE: `result := 1`
                     // Again, we are using the precondition that `result[] == 0`
                     bigUIntInPlaceOrWith1(result_ptr, n_limbs)
-                    {
-                        console_log(0xcafecafe)
-                        console_log(n_limbs)
-                        console_log_big_uint(base_ptr, n_limbs)
-                        console_log_big_uint(exponent_ptr, n_limbs)
-                        console_log_big_uint(modulus_ptr, n_limbs)
-                        console_log_big_uint(result_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                    }
 
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
                     bigUIntDivRem(base_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, scratch_buf_4_ptr)
-                    {
-                        console_log(0xcafecafe)
-                        console_log(n_limbs)
-                        console_log_big_uint(base_ptr, n_limbs)
-                        console_log_big_uint(exponent_ptr, n_limbs)
-                        console_log_big_uint(modulus_ptr, n_limbs)
-                        console_log_big_uint(result_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                    }
                     base_ptr, scratch_buf_4_ptr := flip(base_ptr, scratch_buf_4_ptr)
-                    {
-                        console_log(0xcafecafe)
-                        console_log(n_limbs)
-                        console_log_big_uint(base_ptr, n_limbs)
-                        console_log_big_uint(exponent_ptr, n_limbs)
-                        console_log_big_uint(modulus_ptr, n_limbs)
-                        console_log_big_uint(result_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                        console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                    }
 
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
-                    console_log(0x97e1009)
                     for { } big_uint_is_not_zero(exponent_ptr, n_limbs) { } {
-                        console_log(0x1009)
-                        console_log(0xdeadbeef)
-                        {
-                            console_log(0xcafecafe)
-                            console_log(n_limbs)
-                            console_log_big_uint(base_ptr, n_limbs)
-                            console_log_big_uint(exponent_ptr, n_limbs)
-                            console_log_big_uint(modulus_ptr, n_limbs)
-                            console_log_big_uint(result_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                        }
 
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
-                        console_log(0x97e0001f) // PRE-IF
                         if big_uint_mod_two(n_limbs, exponent_ptr) {
-                            console_log(0xcafe001f)
 
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
                             zeroWithLimbSizeAt(n_limbs, scratch_buf_1_ptr)
                             let result_low_ptr := big_uint_lower_half_ptr(n_limbs, result_ptr)
                             let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
-                            {
-                                console_log(0xdeadbabe)
-                                console_log(result_ptr)
-                                console_log(base_ptr)
-                                console_log(result_low_ptr)
-                                console_log(base_low_ptr)
-                            }
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_1_ptr)
-                            {
-                                console_log(0xcafecafe)
-                                console_log(n_limbs)
-                                console_log_big_uint(base_ptr, n_limbs)
-                                console_log_big_uint(exponent_ptr, n_limbs)
-                                console_log_big_uint(modulus_ptr, n_limbs)
-                                console_log_big_uint(result_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                            }
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
                             bigUIntDivRem(scratch_buf_1_ptr, modulus_ptr, scratch_buf_4_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, result_ptr)
-                            {
-                                console_log(0xcafecafe)
-                                console_log(n_limbs)
-                                console_log_big_uint(base_ptr, n_limbs)
-                                console_log_big_uint(exponent_ptr, n_limbs)
-                                console_log_big_uint(modulus_ptr, n_limbs)
-                                console_log_big_uint(result_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                            }
 
                         }
 
                         // PSEUDOCODE: `exponent := exponent >> 1`
                         // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
                         bigUIntOneShiftRight(exponent_ptr, n_limbs)
-                        {
-                            console_log(0xcafecafe)
-                            console_log(n_limbs)
-                            console_log_big_uint(base_ptr, n_limbs)
-                            console_log_big_uint(exponent_ptr, n_limbs)
-                            console_log_big_uint(modulus_ptr, n_limbs)
-                            console_log_big_uint(result_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                        }
                         
                         // PSEUDOCODE: `base := (base * base) mod modulus`
                         {
@@ -895,136 +779,184 @@ object "Playground" {
                             zeroWithLimbSizeAt(n_limbs, scratch_buf_2_ptr) // scratch_buf_2 <- 0
                             let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
                             bigUIntMul(base_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_2_ptr)
-                            {
-                                console_log(0xcafecafe)
-                                console_log(n_limbs)
-                                console_log_big_uint(base_ptr, n_limbs)
-                                console_log_big_uint(exponent_ptr, n_limbs)
-                                console_log_big_uint(modulus_ptr, n_limbs)
-                                console_log_big_uint(result_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                            }
 
                             // base <- temp % modulus
                             bigUIntDivRem(scratch_buf_2_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_3_ptr, n_limbs, scratch_buf_4_ptr, base_ptr)
-                            {
-                                console_log(0xcafecafe)
-                                console_log(n_limbs)
-                                console_log_big_uint(base_ptr, n_limbs)
-                                console_log_big_uint(exponent_ptr, n_limbs)
-                                console_log_big_uint(modulus_ptr, n_limbs)
-                                console_log_big_uint(result_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                                console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                            }
-                        }
-
-                        // FIXME borra este cafe cafe una vez que lo hayas borrado del excel.
-                        {
-                            console_log(0xcafecafe)
-                            console_log(n_limbs)
-                            console_log_big_uint(base_ptr, n_limbs)
-                            console_log_big_uint(exponent_ptr, n_limbs)
-                            console_log_big_uint(modulus_ptr, n_limbs)
-                            console_log_big_uint(result_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                            console_log_big_uint(scratch_buf_4_ptr, n_limbs)
                         }
                     }
-                    console_log(0xdead1009)
                 }
-                {
-                    console_log(0xcafecafe)
-                    console_log(n_limbs)
-                    console_log_big_uint(base_ptr, n_limbs)
-                    console_log_big_uint(exponent_ptr, n_limbs)
-                    console_log_big_uint(modulus_ptr, n_limbs)
-                    console_log_big_uint(result_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_1_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_2_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_3_ptr, n_limbs)
-                    console_log_big_uint(scratch_buf_4_ptr, n_limbs)
-                }
-                console_log(0xdead)
             }
 
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
 
-            // {
-            //     // Test case where modulus == 1.
-            //     // This tests the case where we don't enter the main if's body.
-            //     let n_limbs := 0x2
-            //     let base_ptr := 0x0
-            //     mstore(add(base_ptr, 0), 0x0) // base[0]
-            //     mstore(add(base_ptr, 20), 0xAACB14A0B11721347B7D8BF2F338B6786289670ACCF93E50A013ECDDBC97A8D0) // base[1]
-            //     let exponent_ptr := 0x40
-            //     mstore(add(exponent_ptr, 0), 0x0) // exponent[0]
-            //     mstore(add(exponent_ptr, 20), 0x526FF83A77B078A7D1CAF6D8D8CDA52D3E458B46D33EDAA3879355AECD560BE7) // exponent[1]
-            //     let modulus_ptr := 0x80
-            //     mstore(add(modulus_ptr, 0), 0x0) // modulus[0]
-            //     mstore(add(modulus_ptr, 20), 0x1) // modulus[1]
-            //     let result_ptr := 0xC0
-            //     mstore(add(result_ptr, 0), 0x0) // result[0]
-            //     mstore(add(result_ptr, 20), 0x0) // result[1]
-            //     let scratch_buf_1_ptr := 0x100
-            //     mstore(add(scratch_buf_1_ptr, 0), 0x0) // scratch_buf_1[0]
-            //     mstore(add(scratch_buf_1_ptr, 20), 0x0) // scratch_buf_1[1]
-            //     let scratch_buf_2_ptr := 0x140
-            //     mstore(add(scratch_buf_2_ptr, 0), 0x0) // scratch_buf_2[0]
-            //     mstore(add(scratch_buf_2_ptr, 20), 0x0) // scratch_buf_2[1]
-            //     let scratch_buf_3_ptr := 0x180
-            //     mstore(add(scratch_buf_3_ptr, 0), 0x0) // scratch_buf_3[0]
-            //     mstore(add(scratch_buf_3_ptr, 20), 0x0) // scratch_buf_3[1]
-            //     let scratch_buf_4_ptr := 0x1C0
-            //     mstore(add(scratch_buf_4_ptr, 0), 0x0) // scratch_buf_4[0]
-            //     mstore(add(scratch_buf_4_ptr, 20), 0x0) // scratch_buf_4[1]
-            //     big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
-            //     // Comparing result against expected values:
-            //     console_log(eq(mload(add(192, 0)), 0x0)) // result[0]
-            //     console_log(eq(mload(add(192, 20)), 0x0)) // result[1]
-            // }
+            {
+                // Test case where modulus == 1.
+                // This tests the case where we don't enter the main if's body.
+                let n_limbs := 0x4
+                let base_ptr := 0x0
+                mstore(add(base_ptr, 0x0), 0x0) // base[0]
+                mstore(add(base_ptr, 0x20), 0x0) // base[1]
+                mstore(add(base_ptr, 0x40), 0x0) // base[2]
+                mstore(add(base_ptr, 0x60), 0xAACB14A0B11721347B7D8BF2F338B6786289670ACCF93E50A013ECDDBC97A8D0) // base[3]
+                let exponent_ptr := 0x80
+                mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
+                mstore(add(exponent_ptr, 0x20), 0x0) // exponent[1]
+                mstore(add(exponent_ptr, 0x40), 0x0) // exponent[2]
+                mstore(add(exponent_ptr, 0x60), 0x526FF83A77B078A7D1CAF6D8D8CDA52D3E458B46D33EDAA3879355AECD560BE7) // exponent[3]
+                let modulus_ptr := 0x100
+                mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
+                mstore(add(modulus_ptr, 0x20), 0x0) // modulus[1]
+                mstore(add(modulus_ptr, 0x40), 0x0) // modulus[2]
+                mstore(add(modulus_ptr, 0x60), 0x1) // modulus[3]
+                let result_ptr := 0x180
+                mstore(add(result_ptr, 0x0), 0x0) // result[0]
+                mstore(add(result_ptr, 0x20), 0x0) // result[1]
+                mstore(add(result_ptr, 0x40), 0x0) // result[2]
+                mstore(add(result_ptr, 0x60), 0x0) // result[3]
+                let scratch_buf_1_ptr := 0x200
+                mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
+                mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
+                mstore(add(scratch_buf_1_ptr, 0x40), 0x0) // scratch_buf_1[2]
+                mstore(add(scratch_buf_1_ptr, 0x60), 0x0) // scratch_buf_1[3]
+                let scratch_buf_2_ptr := 0x280
+                mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
+                mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
+                mstore(add(scratch_buf_2_ptr, 0x40), 0x0) // scratch_buf_2[2]
+                mstore(add(scratch_buf_2_ptr, 0x60), 0x0) // scratch_buf_2[3]
+                let scratch_buf_3_ptr := 0x300
+                mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
+                mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
+                mstore(add(scratch_buf_3_ptr, 0x40), 0x0) // scratch_buf_3[2]
+                mstore(add(scratch_buf_3_ptr, 0x60), 0x0) // scratch_buf_3[3]
+                let scratch_buf_4_ptr := 0x380
+                mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
+                mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
+                mstore(add(scratch_buf_4_ptr, 0x40), 0x0) // scratch_buf_4[2]
+                mstore(add(scratch_buf_4_ptr, 0x60), 0x0) // scratch_buf_4[3]
+                big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
+                // Comparing result against expected values:
+                console_log(eq(mload(add(384, 0x0)), 0x0)) // result[0]
+                console_log(eq(mload(add(384, 0x20)), 0x0)) // result[1]
+                console_log(eq(mload(add(384, 0x40)), 0x0)) // result[2]
+                console_log(eq(mload(add(384, 0x60)), 0x0)) // result[3]
+            }
 
-            // {
-            //     // Test case where the modulus is larger than the exponent
-            //     let n_limbs := 0x2
-            //     let base_ptr := 0x0
-            //     mstore(add(base_ptr, 0x0), 0x0) // base[0]
-            //     mstore(add(base_ptr, 0x20), 0x3) // base[1]
-            //     let exponent_ptr := 0x40
-            //     mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
-            //     mstore(add(exponent_ptr, 0x20), 0x2) // exponent[1]
-            //     let modulus_ptr := 0x80
-            //     mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
-            //     mstore(add(modulus_ptr, 0x20), 0xFF) // modulus[1]
-            //     let result_ptr := 0xC0
-            //     mstore(add(result_ptr, 0x0), 0x0) // result[0]
-            //     mstore(add(result_ptr, 0x20), 0x0) // result[1]
-            //     let scratch_buf_1_ptr := 0x100
-            //     mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
-            //     mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
-            //     let scratch_buf_2_ptr := 0x140
-            //     mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
-            //     mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
-            //     let scratch_buf_3_ptr := 0x180
-            //     mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
-            //     mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
-            //     let scratch_buf_4_ptr := 0x1C0
-            //     mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
-            //     mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
-            //     big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
-            //     // Comparing result against expected values:
-            //     console_log(eq(mload(add(result_ptr, 0x0)), 0x0)) // result[0]
-            //     console_log(eq(mload(add(result_ptr, 0x20)), 0x9)) // result[1]
-            // }
+            {
+                // Test case where the modulus is larger than the exponent
+                let n_limbs := 0x2
+                let base_ptr := 0x0
+                mstore(add(base_ptr, 0x0), 0x0) // base[0]
+                mstore(add(base_ptr, 0x20), 0x3) // base[1]
+                let exponent_ptr := 0x40
+                mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
+                mstore(add(exponent_ptr, 0x20), 0x2) // exponent[1]
+                let modulus_ptr := 0x80
+                mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
+                mstore(add(modulus_ptr, 0x20), 0xFF) // modulus[1]
+                let result_ptr := 0xC0
+                mstore(add(result_ptr, 0x0), 0x0) // result[0]
+                mstore(add(result_ptr, 0x20), 0x0) // result[1]
+                let scratch_buf_1_ptr := 0x100
+                mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
+                mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
+                let scratch_buf_2_ptr := 0x140
+                mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
+                mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
+                let scratch_buf_3_ptr := 0x180
+                mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
+                mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
+                let scratch_buf_4_ptr := 0x1C0
+                mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
+                mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
+                big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
+                // Comparing result against expected values:
+                console_log(eq(mload(add(result_ptr, 0x0)), 0x0)) // result[0]
+                console_log(eq(mload(add(result_ptr, 0x20)), 0x9)) // result[1]
+            }
+
+            {
+                let n_limbs := 0x2
+                let base_ptr := 0x0
+                mstore(add(base_ptr, 0x0), 0x0) // base[0]
+                mstore(add(base_ptr, 0x20), 0x3) // base[1]
+                let exponent_ptr := 0x40
+                mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
+                mstore(add(exponent_ptr, 0x20), 0x2) // exponent[1]
+                let modulus_ptr := 0x80
+                mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
+                mstore(add(modulus_ptr, 0x20), 0x5) // modulus[1]
+                let result_ptr := 0xC0
+                mstore(add(result_ptr, 0x0), 0x0) // result[0]
+                mstore(add(result_ptr, 0x20), 0x0) // result[1]
+                let scratch_buf_1_ptr := 0x100
+                mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
+                mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
+                let scratch_buf_2_ptr := 0x140
+                mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
+                mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
+                let scratch_buf_3_ptr := 0x180
+                mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
+                mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
+                let scratch_buf_4_ptr := 0x1C0
+                mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
+                mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
+                big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
+                // Comparing result against expected values:
+                console_log(eq(mload(add(192, 0x0)), 0x0)) // result[0]
+                console_log(eq(mload(add(192, 0x20)), 0x4)) // result[1]
+            }
+
+            {
+                let n_limbs := 0x4
+                let base_ptr := 0x0
+                mstore(add(base_ptr, 0x0), 0x0) // base[0]
+                mstore(add(base_ptr, 0x20), 0x0) // base[1]
+                mstore(add(base_ptr, 0x40), 0x123) // base[2]
+                mstore(add(base_ptr, 0x60), 0xDEAFBEEF) // base[3]
+                let exponent_ptr := 0x80
+                mstore(add(exponent_ptr, 0x0), 0x0) // exponent[0]
+                mstore(add(exponent_ptr, 0x20), 0x0) // exponent[1]
+                mstore(add(exponent_ptr, 0x40), 0x0) // exponent[2]
+                mstore(add(exponent_ptr, 0x60), 0x42) // exponent[3]
+                let modulus_ptr := 0x100
+                mstore(add(modulus_ptr, 0x0), 0x0) // modulus[0]
+                mstore(add(modulus_ptr, 0x20), 0x0) // modulus[1]
+                mstore(add(modulus_ptr, 0x40), 0x0) // modulus[2]
+                mstore(add(modulus_ptr, 0x60), 0xCAFECAFE) // modulus[3]
+                let result_ptr := 0x180
+                mstore(add(result_ptr, 0x0), 0x0) // result[0]
+                mstore(add(result_ptr, 0x20), 0x0) // result[1]
+                mstore(add(result_ptr, 0x40), 0x0) // result[2]
+                mstore(add(result_ptr, 0x60), 0x0) // result[3]
+                let scratch_buf_1_ptr := 0x200
+                mstore(add(scratch_buf_1_ptr, 0x0), 0x0) // scratch_buf_1[0]
+                mstore(add(scratch_buf_1_ptr, 0x20), 0x0) // scratch_buf_1[1]
+                mstore(add(scratch_buf_1_ptr, 0x40), 0x0) // scratch_buf_1[2]
+                mstore(add(scratch_buf_1_ptr, 0x60), 0x0) // scratch_buf_1[3]
+                let scratch_buf_2_ptr := 0x280
+                mstore(add(scratch_buf_2_ptr, 0x0), 0x0) // scratch_buf_2[0]
+                mstore(add(scratch_buf_2_ptr, 0x20), 0x0) // scratch_buf_2[1]
+                mstore(add(scratch_buf_2_ptr, 0x40), 0x0) // scratch_buf_2[2]
+                mstore(add(scratch_buf_2_ptr, 0x60), 0x0) // scratch_buf_2[3]
+                let scratch_buf_3_ptr := 0x300
+                mstore(add(scratch_buf_3_ptr, 0x0), 0x0) // scratch_buf_3[0]
+                mstore(add(scratch_buf_3_ptr, 0x20), 0x0) // scratch_buf_3[1]
+                mstore(add(scratch_buf_3_ptr, 0x40), 0x0) // scratch_buf_3[2]
+                mstore(add(scratch_buf_3_ptr, 0x60), 0x0) // scratch_buf_3[3]
+                let scratch_buf_4_ptr := 0x380
+                mstore(add(scratch_buf_4_ptr, 0x0), 0x0) // scratch_buf_4[0]
+                mstore(add(scratch_buf_4_ptr, 0x20), 0x0) // scratch_buf_4[1]
+                mstore(add(scratch_buf_4_ptr, 0x40), 0x0) // scratch_buf_4[2]
+                mstore(add(scratch_buf_4_ptr, 0x60), 0x0) // scratch_buf_4[3]
+                big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr)
+                // Comparing result against expected values:
+                console_log(eq(mload(add(384, 0x0)), 0x0)) // result[0]
+                console_log(eq(mload(add(384, 0x20)), 0x0)) // result[1]
+                console_log(eq(mload(add(384, 0x40)), 0x0)) // result[2]
+                console_log(eq(mload(add(384, 0x60)), 0x93EE465F)) // result[3]
+            }
 
 		}
 	}
