@@ -56,5 +56,8 @@ jobs:
       - name: "Setup requirements"
         run: make setup
 
+      - name: copy-precompiles
+        run: make copy-precompiles && ls -1 submodules/era-test-node/etc/system-contracts/contracts/precompiles
+
       - name: "Build precompiles"
         run: make build-precompiles

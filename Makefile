@@ -9,11 +9,13 @@ setup:
 update:
 	git submodule update
 
+.PHONY: copy-precompiles
+copy-precompiles:
+	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles
+
 .PHONY: build-precompiles
-build-precompiles:
-	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
-	cd submodules/era-test-node && \
-	make build-precompiles
+build-precompiles: copy-precompiles
+	cd submodules/era-test-node && make build-precompiles
 
 run: build-precompiles
 	cd submodules/era-test-node && cargo run -- --show-calls=all --resolve-hashes run
