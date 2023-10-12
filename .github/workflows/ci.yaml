@@ -56,17 +56,8 @@ jobs:
       - name: "Setup requirements"
         run: make setup
 
-      - name: List precompiles before copy FIXME DELETE THIS!
-        run: ls -1 precompiles/
-
-      - name: List precompiles before copy FIXME DELETE THIS!
-        run: ls -1 submodules/era-test-node/etc/system-contracts/contracts/precompiles
-
       - name: copy-precompiles
         run: make copy-precompiles
-
-      - name: List precompiles after copy FIXME DELETE THIS!
-        run: ls -1 submodules/era-test-node/etc/system-contracts/contracts/precompiles
 
       - name: "Build precompiles"
         run: make build-precompiles
