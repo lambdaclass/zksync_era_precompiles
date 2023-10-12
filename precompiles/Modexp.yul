@@ -2,6 +2,7 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
+
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -11,6 +12,21 @@ object "ModExp" {
                 limbSize := 0x100
             }
             // HELPER FUNCTIONS
+            function bigIntLimbs(length) -> limbs, misalignment {
+                limbs := div(length, LIMB_SIZE_IN_BYTES())
+                misalignment := mod(length, LIMB_SIZE_IN_BYTES())
+                if misalignment {
+                    limbs := add(limbs, 1)
+                }
+            }
+
+            /// @notice Returns an address for a free memory region,
+            /// which will be startPtr...(startPtr+(howManyAdresses*32))
+            /// @param howManyAdresses The number of addresses needed.
+            function freeMemoryPointer(howManyAdresses) -> startPtr {
+                startPtr := mload(0x0)
+                mstore(0x0, add(startPtr, shl(5, howManyAdresses)))
+            }
 
             /// @notice Stores a one in big unsigned integer form in memory.
             /// @param nLimbs The number of limbs needed to represent the operand.
@@ -805,6 +821,67 @@ object "ModExp" {
                             bigUIntDivRem(scratch_buf_2_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_3_ptr, n_limbs, scratch_buf_4_ptr, base_ptr)
                         }
                     }
+            /// @notice Pad a big uint with zeros to the left until newLimbNumber is reached.
+            /// @dev The result is stored from `resultPtr` to `resultPtr + (LIMB_SIZE_IN_BYTES * newLimbNumber)`.
+            /// @dev If currentLimbNumber is equal to newLimbNumber, then the result is the same as the input.
+            /// @param ptr The pointer to the MSB of the number to pad.
+            /// @param currentLimbNumber The number of limbs needed to represent the operand.
+            /// @param newLimbNumber The number of limbs wanted to represent the operand.
+            /// @param resultPtr The pointer to the MSB of the padded number.
+            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) -> resultPtr {
+                for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
+                    // Move the limb to the right position
+                    mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
+                    // Store zero in the position of the moved limb
+                    mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
+                }
+            }
+
+            // Last limbs refers to the most significant limb in big-endian representation.
+            function parseCalldata(calldataValuePtr, calldataValueLen, resPtr) -> memoryValueLen {
+                // The in-memory value length in bytes of the calldata value.
+                memoryValueLen := calldataValueLen
+                let numberOfLimbs := div(calldataValueLen, LIMB_SIZE_IN_BYTES())
+                let lastLimbMisalignmentInBytes := mod(calldataValueLen, LIMB_SIZE_IN_BYTES())
+                let firstLimbExtraBytes := sub(LIMB_SIZE_IN_BYTES(), lastLimbMisalignmentInBytes)
+                let lastLimbBytes := sub(LIMB_SIZE_IN_BYTES(), firstLimbExtraBytes)
+                let misalignedWordPtr := sub(calldataValuePtr, firstLimbExtraBytes)
+                if lastLimbMisalignmentInBytes {
+                    // If there is a misalignment, then we need to add one more limb to the result length.
+                    numberOfLimbs := add(numberOfLimbs, 1)
+                    memoryValueLen := shl(5, numberOfLimbs)
+                    let misalignedLimb := calldataload(misalignedWordPtr)
+                    let firstWordExtraBits := shl(3, firstLimbExtraBytes)
+                    misalignedLimb := shl(firstWordExtraBits, misalignedLimb)
+                    misalignedLimb := shr(firstWordExtraBits, misalignedLimb)
+                    mstore(resPtr, misalignedLimb)
+                }
+
+                let currentLimbCalldataPtr := calldataValuePtr
+                let currentLimbMemoryPtr := resPtr
+                for { let currentLimbNumber := 0 } lt(currentLimbNumber, numberOfLimbs) { currentLimbNumber := add(currentLimbNumber, 1) } {
+                    if and(iszero(currentLimbNumber), lastLimbMisalignmentInBytes) {
+                        // If the MSL is misaligned, then at this point it has been handled and we should 
+                        // skip the first iteration (which handles the MSL if it is not misaligned).
+                        currentLimbCalldataPtr := add(currentLimbCalldataPtr, lastLimbBytes)
+                        currentLimbMemoryPtr := add(currentLimbMemoryPtr, LIMB_SIZE_IN_BYTES())
+                        continue
+                    }
+                    let currentLimb := calldataload(currentLimbCalldataPtr)
+                    mstore(currentLimbMemoryPtr, currentLimb)
+                    currentLimbCalldataPtr := add(currentLimbCalldataPtr, LIMB_SIZE_IN_BYTES())
+                    currentLimbMemoryPtr := add(currentLimbMemoryPtr, LIMB_SIZE_IN_BYTES())
+                }
+            }
+
+            function padWithZeroesIfNeeded(startingLimbPtr, currentLimbSize, toPadLimbSize) -> resultPtr {
+                switch eq(currentLimbSize, toPadLimbSize)
+                case 0 {
+                    resultPtr := freeMemoryPointer(toPadLimbSize)
+                    bigUIntPadWithZeros(startingLimbPtr, currentLimbSize, toPadLimbSize, resultPtr)
+                }
+                case 1 {
+                    resultPtr := startingLimbPtr 
                 }
             }
 
@@ -813,58 +890,82 @@ object "ModExp" {
             ////////////////////////////////////////////////////////////////
 
             let baseLen := calldataload(0)
-            let expLength := calldataload(32)
+            let expLen := calldataload(32)
             let modLen := calldataload(64)
-
-            // Handle a special case when both the base and mod length are zeroes.
-            if and(iszero(baseLen), iszero(modLen)) {
-                return(0, 0)
-            }
+            freeMemoryPointer(1)
+            // // Handle a special case when both the base and mod length are zeroes.
+            // if and(iszero(baseLen), iszero(modLen)) {
+            //     return(0, 0)
+            // }
 
             let basePtr := 96
             let expPtr := add(basePtr, baseLen)
-            let modPtr := add(expPtr, expLength)
+            let modPtr := add(expPtr, expLen)
 
-            // Note: This check covers the case where length of the modulo is zero.
-            // base^exponent % 0 = 0
-            if bigUIntIsZero(modPtr, modLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
+            // // Note: This check covers the case where length of the modulo is zero.
+            // // base^exponent % 0 = 0
+            // if bigUIntIsZero(modPtr, modLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     return(0, modLen)
+            // }
+
+            // // 1^exponent % modulus = 1
+            // if bigUIntIsOne(basePtr, baseLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     mstore8(sub(modLen, 1), 1)
+            //     return(0, modLen)
+            // }
+
+            // // base^0 % modulus = 1
+            // if bigUIntIsZero(expPtr, expLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     mstore8(sub(modLen, 1), 1)
+            //     return(0, modLen)
+            // }
+
+            // // 0^exponent % modulus = 0
+            // if bigUIntIsZero(basePtr, baseLen) {
+            //     // Fulfill memory with all zeroes.
+            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+            //         mstore(ptr, 0)
+            //     }
+            //     return(0, modLen)
+            // }
+
+            let limbsBaseLen, misalignment := bigIntLimbs(baseLen)
+            let limbsExpLen, misalignment := bigIntLimbs(expLen)
+            let limbsModLen, misalignment := bigIntLimbs(modLen)
+
+            let ptrBaseLimbs := freeMemoryPointer(limbsBaseLen)
+            parseCalldata(basePtr, baseLen, ptrBaseLimbs)
+
+            let ptrExpLimbs := freeMemoryPointer(limbsExpLen)
+            parseCalldata(expPtr, expLen, ptrExpLimbs)
+
+            let ptrModLimbs := freeMemoryPointer(limbsModLen)
+            parseCalldata(modPtr, modLen, ptrModLimbs)
+
+            let maxLimbNumber := limbsBaseLen
+
+            if lt(maxLimbNumber, limbsExpLen) {
+                maxLimbNumber := limbsExpLen
             }
-
-            // 1^exponent % modulus = 1
-            if bigUIntIsOne(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
+            if lt(maxLimbNumber, limbsModLen) {
+                maxLimbNumber := limbsModLen
             }
-
-            // base^0 % modulus = 1
-            if bigUIntIsZero(expPtr, expLength) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                mstore8(sub(modLen, 1), 1)
-                return(0, modLen)
-            }
-
-            // 0^exponent % modulus = 0
-            if bigUIntIsZero(basePtr, baseLen) {
-                // Fulfill memory with all zeroes.
-                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-                    mstore(ptr, 0)
-                }
-                return(0, modLen)
-            }
-
-            // TODO: big arithmetics
+            
+            let baseStartPtr := padWithZeroesIfNeeded(ptrBaseLimbs, limbsBaseLen, maxLimbNumber)
+            let exponentStartPtr := padWithZeroesIfNeeded(ptrExpLimbs, limbsExpLen, maxLimbNumber)
+            let moduloStartPtr := padWithZeroesIfNeeded(ptrModLimbs, limbsModLen, maxLimbNumber)
 		}
 	}
 }
