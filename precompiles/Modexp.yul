@@ -821,6 +821,9 @@ object "ModExp" {
                             bigUIntDivRem(scratch_buf_2_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_3_ptr, n_limbs, scratch_buf_4_ptr, base_ptr)
                         }
                     }
+                }
+            }
+            
             /// @notice Pad a big uint with zeros to the left until newLimbNumber is reached.
             /// @dev The result is stored from `resultPtr` to `resultPtr + (LIMB_SIZE_IN_BYTES * newLimbNumber)`.
             /// @dev If currentLimbNumber is equal to newLimbNumber, then the result is the same as the input.
