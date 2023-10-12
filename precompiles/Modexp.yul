@@ -977,7 +977,10 @@ object "ModExp" {
             let resultPtr := freeMemoryPointer(maxLimbNumber)
 
             bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3, scratchBufferPtr4) 
-            return(resultPtr, maxLimbNumber)
+
+            let finalResultEnd := add(resultPtr, mul(LIMB_SIZE_IN_BYTES(), maxLimbNumber))
+            let finalResultStart := sub(finalResultEnd, modLen)
+            return(finalResultStart, finalResultEnd)
 		}
 	}
 }
