@@ -17,7 +17,6 @@ async fn modexp_1() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_2() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd").unwrap()))).await.is_err());
@@ -254,7 +253,7 @@ async fn modexp_35() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_36() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000ff2a1e5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.is_err());
@@ -345,7 +344,7 @@ async fn modexp_tests_10() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1_048_578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1_048_578.
 #[tokio::test]
 async fn modexp_tests_11() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -353,35 +352,30 @@ async fn modexp_tests_11() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_12() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_13() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_14() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_15() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_16() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -465,7 +459,7 @@ async fn modexp_tests_27() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_28() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -473,35 +467,30 @@ async fn modexp_tests_28() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_29() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_30() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_31() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_32() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_33() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -592,7 +581,7 @@ async fn modexp_tests_45() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_46() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -600,35 +589,30 @@ async fn modexp_tests_46() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_47() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_48() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_49() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_50() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_51() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -656,7 +640,7 @@ async fn modexp_tests_54() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 16.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 16.
 #[tokio::test]
 async fn modexp_tests_55() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.is_err());
@@ -664,7 +648,7 @@ async fn modexp_tests_55() {
     assert_eq!(era_response, Bytes::from(vec![0; 16]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 32.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 32.
 #[tokio::test]
 async fn modexp_tests_56() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.is_err());
@@ -672,7 +656,7 @@ async fn modexp_tests_56() {
     assert_eq!(era_response, Bytes::from(vec![0; 32]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 64.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 64.
 #[tokio::test]
 async fn modexp_tests_57() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.is_err());
@@ -680,7 +664,7 @@ async fn modexp_tests_57() {
     assert_eq!(era_response, Bytes::from(vec![0; 64]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 100.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 100.
 #[tokio::test]
 async fn modexp_tests_58() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.is_err());
@@ -688,7 +672,7 @@ async fn modexp_tests_58() {
     assert_eq!(era_response, Bytes::from(vec![0; 100]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 128.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 128.
 #[tokio::test]
 async fn modexp_tests_59() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.is_err());
@@ -696,7 +680,7 @@ async fn modexp_tests_59() {
     assert_eq!(era_response, Bytes::from(vec![0; 128]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 4.097.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 4.097.
 #[tokio::test]
 async fn modexp_tests_60() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.is_err());
@@ -704,7 +688,7 @@ async fn modexp_tests_60() {
     assert_eq!(era_response, Bytes::from(vec![0; 4_097]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
 #[tokio::test]
 async fn modexp_tests_61() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -712,35 +696,30 @@ async fn modexp_tests_61() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_62() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_63() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_64() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_65() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff00000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff00000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_66() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -824,7 +803,7 @@ async fn modexp_tests_77() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_78() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -832,35 +811,30 @@ async fn modexp_tests_78() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_79() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_80() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_81() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_82() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_83() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -944,7 +918,7 @@ async fn modexp_tests_94() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
 #[tokio::test]
 async fn modexp_tests_95() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
@@ -952,35 +926,30 @@ async fn modexp_tests_95() {
     assert_eq!(era_response, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_96() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_97() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_98() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_99() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_100() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -1078,7 +1047,7 @@ async fn modexp_tests_113() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 39.936.
+// FIXME:This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 39.936.
 #[tokio::test]
 async fn modexp_tests_114() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000027000000000000000000000000000000000000000000000000000000000000009c00").unwrap()))).await.is_err());
@@ -1086,7 +1055,7 @@ async fn modexp_tests_114() {
     assert_eq!(era_response, Bytes::from(vec![0; 39_936]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 11.579.
+// FIXME:This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 11.579.
 #[tokio::test]
 async fn modexp_tests_115() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000071140000000000000000000000000000000000000000000000000000000000002d3b").unwrap()))).await.is_err());
@@ -1094,7 +1063,7 @@ async fn modexp_tests_115() {
     assert_eq!(era_response, Bytes::from(vec![0; 11_579]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_116() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
@@ -1102,7 +1071,7 @@ async fn modexp_tests_116() {
     assert_eq!(era_response, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_117() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000e7f00000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
@@ -1110,7 +1079,7 @@ async fn modexp_tests_117() {
     assert_eq!(era_response, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 2.401.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 2.401.
 #[tokio::test]
 async fn modexp_tests_118() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000003100000000000000000000000000000000000000000000000000000000000009610000000000000000000000000000000000000000000000000000000000000961").unwrap()))).await.is_err());
@@ -1118,7 +1087,7 @@ async fn modexp_tests_118() {
     assert_eq!(era_response, Bytes::from(vec![0; 2_401]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 22000.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 22000.
 #[tokio::test]
 async fn modexp_tests_119() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000009100000000000000000000000000000000000000000000000000000000000000578b00000000000000000000000000000000000000000000000000000000000055f0").unwrap()))).await.is_err());
@@ -1126,7 +1095,7 @@ async fn modexp_tests_119() {
     assert_eq!(era_response, Bytes::from(vec![0; 22000]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_tests_120() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.is_err());
@@ -1134,7 +1103,7 @@ async fn modexp_tests_120() {
     assert_eq!(era_response, Bytes::from(&[]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00` because of mod length being 1.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00` because of mod length being 1.
 #[tokio::test]
 async fn modexp_tests_121() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.is_err());
@@ -1142,7 +1111,7 @@ async fn modexp_tests_121() {
     assert_eq!(era_response, Bytes::from(&[0]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_122() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
@@ -1150,7 +1119,7 @@ async fn modexp_tests_122() {
     assert_eq!(era_response, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
 #[tokio::test]
 async fn modexp_tests_123() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000001bd000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.is_err());
@@ -1158,7 +1127,7 @@ async fn modexp_tests_123() {
     assert_eq!(era_response, Bytes::from(vec![0; 97]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
 #[tokio::test]
 async fn modexp_tests_124() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.is_err());
@@ -1173,7 +1142,7 @@ async fn modexp_tests_125() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 42.965
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 42.965
 #[tokio::test]
 async fn modexp_tests_126() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000a7d5").unwrap()))).await.is_err());
@@ -1188,7 +1157,7 @@ async fn modexp_random_input_0() {
     assert_eq!(eth_response, era_response);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_random_input_1() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000008000000000000000000000000000000000000000000000000000000000000400000000000000000000000a").unwrap()))).await.is_err());
@@ -1196,7 +1165,6 @@ async fn modexp_random_input_1() {
     assert_eq!(era_response, Bytes::from(&[]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_random_input_2() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001147000000000000000000000000000000000000000000000000000000000061660350000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.is_err());
