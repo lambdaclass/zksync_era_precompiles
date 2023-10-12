@@ -896,53 +896,53 @@ object "ModExp" {
             let expLen := calldataload(32)
             let modLen := calldataload(64)
             freeMemoryPointer(1)
-            // // Handle a special case when both the base and mod length are zeroes.
-            // if and(iszero(baseLen), iszero(modLen)) {
-            //     return(0, 0)
-            // }
+            // Handle a special case when both the base and mod length are zeroes.
+            if and(iszero(baseLen), iszero(modLen)) {
+                return(0, 0)
+            }
 
             let basePtr := 96
             let expPtr := add(basePtr, baseLen)
             let modPtr := add(expPtr, expLen)
 
-            // // Note: This check covers the case where length of the modulo is zero.
-            // // base^exponent % 0 = 0
-            // if callDataBufferIsZero(modPtr, modLen) {
-            //     // Fulfill memory with all zeroes.
-            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-            //         mstore(ptr, 0)
-            //     }
-            //     return(0, modLen)
-            // }
+            // Note: This check covers the case where length of the modulo is zero.
+            // base^exponent % 0 = 0
+            if callDataBufferIsZero(modPtr, modLen) {
+                // Fulfill memory with all zeroes.
+                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+                    mstore(ptr, 0)
+                }
+                return(0, modLen)
+            }
 
-            // // 1^exponent % modulus = 1
-            // if callDataBufferIsOne(basePtr, baseLen) {
-            //     // Fulfill memory with all zeroes.
-            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-            //         mstore(ptr, 0)
-            //     }
-            //     mstore8(sub(modLen, 1), 1)
-            //     return(0, modLen)
-            // }
+            // 1^exponent % modulus = 1
+            if callDataBufferIsOne(basePtr, baseLen) {
+                // Fulfill memory with all zeroes.
+                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+                    mstore(ptr, 0)
+                }
+                mstore8(sub(modLen, 1), 1)
+                return(0, modLen)
+            }
 
-            // // base^0 % modulus = 1
-            // if callDataBufferIsZero(expPtr, expLen) {
-            //     // Fulfill memory with all zeroes.
-            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-            //         mstore(ptr, 0)
-            //     }
-            //     mstore8(sub(modLen, 1), 1)
-            //     return(0, modLen)
-            // }
+            // base^0 % modulus = 1
+            if callDataBufferIsZero(expPtr, expLen) {
+                // Fulfill memory with all zeroes.
+                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+                    mstore(ptr, 0)
+                }
+                mstore8(sub(modLen, 1), 1)
+                return(0, modLen)
+            }
 
-            // // 0^exponent % modulus = 0
-            // if callDataBufferIsZero(basePtr, baseLen) {
-            //     // Fulfill memory with all zeroes.
-            //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
-            //         mstore(ptr, 0)
-            //     }
-            //     return(0, modLen)
-            // }
+            // 0^exponent % modulus = 0
+            if callDataBufferIsZero(basePtr, baseLen) {
+                // Fulfill memory with all zeroes.
+                for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
+                    mstore(ptr, 0)
+                }
+                return(0, modLen)
+            }
 
             let limbsBaseLen, misalignment := bigIntLimbs(baseLen)
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
