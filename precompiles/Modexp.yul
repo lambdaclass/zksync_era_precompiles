@@ -863,7 +863,7 @@ object "ModExp" {
                 let currentLimbCalldataPtr := calldataValuePtr
                 let currentLimbMemoryPtr := resPtr
                 for { let currentLimbNumber := 0 } lt(currentLimbNumber, numberOfLimbs) { currentLimbNumber := add(currentLimbNumber, 1) } {
-                    if and(iszero(currentLimbNumber), lastLimbMisalignmentInBytes) {
+                    if and(iszero(currentLimbNumber), gt(lastLimbMisalignmentInBytes, 0)) {
                         // If the MSL is misaligned, then at this point it has been handled and we should 
                         // skip the first iteration (which handles the MSL if it is not misaligned).
                         currentLimbCalldataPtr := add(currentLimbCalldataPtr, lastLimbBytes)
