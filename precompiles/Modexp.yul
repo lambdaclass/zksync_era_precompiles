@@ -702,7 +702,7 @@ object "ModExp" {
                // Least significant limb.
                let limb := mload(p)
 
-               // If the least significant limb is greater than 1, we knok for
+               // If the least significant limb is greater than 1, we know for
                // sure that the big unsigned integer will be greater than 1.
                ret := gt(limb, 1)
 
