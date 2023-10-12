@@ -122,7 +122,7 @@ object "ModExp" {
                     // Create a mask that isolates the valid bytes in the last word.
                     // The mask has its first `lastWordBytes` bytes set to `0xff`.
                     let mask := sub(shl(mul(lastWordBytes, 8), 1), 1)
-                    let word := calldataload(endOfLastFullWord)
+                    let word := shr(sub(LIMB_SIZE_IN_BITS(), mul(lastWordBytes, 8)), calldataload(endOfLastFullWord))
                     // Use the mask to isolate the valid bytes and check if any are non-zero.
                     if and(word, mask) {
                         res := false
