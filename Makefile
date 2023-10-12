@@ -2,7 +2,7 @@
 
 setup:
 	git submodule update --init && \
-	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles/ && \
+	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
 	cd submodules/era-test-node && \
 	make build-contracts
 
@@ -11,7 +11,7 @@ update:
 
 .PHONY: copy-precompiles
 copy-precompiles:
-	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles/
+	cp precompiles/*.yul submodules/era-test-node/etc/system-contracts/contracts/precompiles/
 
 .PHONY: build-precompiles
 build-precompiles: copy-precompiles
