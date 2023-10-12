@@ -38,7 +38,7 @@ object "ModExp" {
                    let offset := add(mul(i, 32), pointerToOne)
                    mstore(offset, 0x0)
                 }
-             }
+            }
             
             /// @notice Stores a zero in big unsigned integer form in memory.
             /// @param nLimbs The number of limbs needed to represent the operand.
@@ -97,7 +97,7 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is zero (true) or not (false).
-            function call_data_buffer_is_zero(start, len) -> res {
+            function callDataBufferIsZero(start, len) -> res {
                 // Initialize result as true, assuming the number is zero until proven otherwise.
                 res := true
 
@@ -171,16 +171,16 @@ object "ModExp" {
             /// @param start The pointer to the calldata where the big number starts.
             /// @param len The number of bytes that the big number occupies.
             /// @return res A boolean indicating whether the big number is one (true) or not (false).
-            function bigUIntIsOne(start, len) -> res {
+            function callDataBufferIsOne(start, len) -> res {
                 if len {
                     let lastBytePtr := sub(add(start, len), 1)
                     let lastByte := byte(0, calldataload(lastBytePtr))
 
                     // Check if the last byte is one.
                     let lastByteIsOne := eq(lastByte, 1)
-                    // Check if all other bytes are zero using the call_data_buffer_is_zero function
+                    // Check if all other bytes are zero using the callDataBufferIsZero function
                     // The length for this check is (len - 1) because we exclude the last byte.
-                    let otherBytesAreZeroes := call_data_buffer_is_zero(start, sub(len, 1))
+                    let otherBytesAreZeroes := callDataBufferIsZero(start, sub(len, 1))
 
                     // The number is one if the last byte is one and all other bytes are zero.
                     res := and(lastByteIsOne, otherBytesAreZeroes)
@@ -592,7 +592,7 @@ object "ModExp" {
             /// @dev ------------------
             /// @dev
             /// @dev This function requires two temporary buffers for internal storage:
-            /// @dev - Both buffers must provide `n_limbs * 32` bytes of writable memory space.
+            /// @dev - Both buffers must provide `nLimbs * 32` bytes of writable memory space.
             /// @dev - Neither buffer should overlap with each other.
             /// @dev - Neither needs to be initialized to any particular value.
             /// @dev - Consider the written values as undefined after the function returns.
@@ -600,43 +600,43 @@ object "ModExp" {
             /// @dev Return values:
             /// @dev --------------
             /// @dev
-            /// @dev - resulting `quotient` will be written `mem[base_ptr, base_ptr + 32 * n_limbs)`
-            /// @dev - resulting `reminder` will be written `mem[base_ptr, base_ptr + 32 * n_limbs)`
+            /// @dev - resulting `quotient` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
+            /// @dev - resulting `reminder` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
             /// @dev
             /// @param dividend_ptr Base pointer for a big unsigned integer representing the dividend.
             /// @param divisor_ptr  Base pointer for a big unsigned integer representing the divisor.
-            /// @param tmp_ptr_1    Base pointer for a contiguous memory space of `n_limbs` for internal usage. Will be overwritten.
-            /// @param tmp_ptr_2    Base pointer for a contiguous memory space of `n_limbs` for internal usage. Will be overwritten.
-            /// @param n_limbs      Amount of limbs for each big unsigned integer.
+            /// @param tmp_ptr_1    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param tmp_ptr_2    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param nLimbs      Amount of limbs for each big unsigned integer.
             /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
             /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
-            function bigUIntDivRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, n_limbs, quotient_ptr, rem_ptr) {
+            function bigUIntDivRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, quotient_ptr, rem_ptr) {
                 // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
                 // parameters to prevent the leakage of implementation details.
                 let c_ptr := tmp_ptr_1
                 let r_ptr := tmp_ptr_2
 
-                copyBigUint(n_limbs, dividend_ptr, rem_ptr) // rem = dividend 
+                copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend 
 
                 // Init quotient to 0.
-                zeroWithLimbSizeAt(n_limbs, quotient_ptr) // quotient = 0
+                zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
 
-                let mb := bigUIntBitSize(divisor_ptr, n_limbs)
-                let bd := sub(mul(n_limbs, 256), mb)
-                bigUIntShl(bd, divisor_ptr, n_limbs, c_ptr) // c == divisor << bd
+                let mb := bigUIntBitSize(divisor_ptr, nLimbs)
+                let bd := sub(mul(nLimbs, 256), mb)
+                bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
 
                 for { } iszero(0) { } {
-                    let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, n_limbs, r_ptr)
+                    let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, nLimbs, r_ptr)
 
                     if iszero(borrow) {
-                        copyBigUint(n_limbs, r_ptr, rem_ptr)
+                        copyBigUint(nLimbs, r_ptr, rem_ptr)
                     }
 
-                    copyBigUint(n_limbs, quotient_ptr, r_ptr) // r = quotient
-                    bigUIntInPlaceOrWith1(r_ptr, n_limbs) // r = quotient | 1
+                    copyBigUint(nLimbs, quotient_ptr, r_ptr) // r = quotient
+                    bigUIntInPlaceOrWith1(r_ptr, nLimbs) // r = quotient | 1
 
                     if iszero(borrow) {
-                        copyBigUint(n_limbs, r_ptr, quotient_ptr)
+                        copyBigUint(nLimbs, r_ptr, quotient_ptr)
                     }
 
                     if iszero(bd) {
@@ -644,12 +644,12 @@ object "ModExp" {
                     }
 
                     bd := sub(bd, 1)
-                    bigUIntOneShiftRight(c_ptr, n_limbs) // c = c >> 1
-                    bigUIntOneShiftLeft(quotient_ptr, n_limbs) // q[] = q[] << 1
+                    bigUIntOneShiftRight(c_ptr, nLimbs) // c = c >> 1
+                    bigUIntOneShiftLeft(quotient_ptr, nLimbs) // q[] = q[] << 1
                 }
 
                 if iszero(mb) {
-                    zeroWithLimbSizeAt(n_limbs, quotient_ptr)
+                    zeroWithLimbSizeAt(nLimbs, quotient_ptr)
                 }
             }
             
@@ -688,16 +688,16 @@ object "ModExp" {
 
                 bigUIntMul(lhsPtr, rhsPtr, nLimbs, resultPtrMul)
                 // bigUIntMul doubles the limb size of the result,
-                // so result now points to a 2*n_limbs number
+                // so result now points to a 2*nLimbs number
                 bigUIntDuplicateNLimbs(moduloPtr, nLimbs)
                 bigUIntDivRem(resultPtrMul, moduloPtr, auxPtr1, auxPtr2, add(nLimbs, nLimbs), quoResultPtr, resultPtr)
                 // divide limb size of result by 2 to get the final result
                 bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
             }
 
-            function big_uint_is_greater_than_one(n_limbs, base_ptr) -> ret {
+            function bigUIntIsGreaterThanOne(nLimbs, basePtr) -> ret {
                // Pointer to the least significant limb.
-               let p :=  add(base_ptr, shl(5, sub(n_limbs, 1)))
+               let p :=  add(basePtr, shl(5, sub(nLimbs, 1)))
 
                // Least significant limb.
                let limb := mload(p)
@@ -715,15 +715,15 @@ object "ModExp" {
                // the size of other big unsigned integers. This way we have a
                // better chance to consume less iterations. In the worst case
                // scenario, where the answer is false, we will have to read the
-               // whole number from memory, making this algorithm `O(n_limbs)`.
-               for { } and(lt(base_ptr, p), eq(ret, false)) { } {
+               // whole number from memory, making this algorithm `O(nLimbs)`.
+               for { } and(lt(basePtr, p), eq(ret, false)) { } {
                    p := sub(p, LIMB_SIZE_IN_BYTES()) 
                    ret := lt(0, mload(p))
                }
             }
 
-            function big_uint_mod_two(n_limbs, base_ptr) -> ret {
-                let p := add(base_ptr, shl(5, sub(n_limbs, 1))) // Least significant limb addr.
+            function bigUIntModTwo(nLimbs, basePtr) -> ret {
+                let p := add(basePtr, shl(5, sub(nLimbs, 1))) // Least significant limb addr.
                 ret := and(mload(p), 0x1)
             }
 
@@ -732,9 +732,9 @@ object "ModExp" {
                 ret_rhs := lhs
             }
 
-            function big_uint_is_not_zero(p, n_limbs) -> is_not_zero {
+            function bigUIntIsNotZero(p, nLimbs) -> is_not_zero {
                 is_not_zero := false
-                let past_the_end_ptr :=  add(p, shl(5, n_limbs))
+                let past_the_end_ptr :=  add(p, shl(5, nLimbs))
                 for { } lt(p, past_the_end_ptr) { p := add(p, 32) } {
                     is_not_zero := lt(0, mload(p))
                     if is_not_zero {
@@ -743,18 +743,18 @@ object "ModExp" {
                 }
             }
 
-            function big_uint_lower_half_ptr(n_limbs, base_ptr) -> p {
-                let upper_half_size_in_bytes := shl(4, n_limbs) // n_limbs * 32 / 2
-                p := add(base_ptr, upper_half_size_in_bytes)
+            function bigUIntLowerHalfPtr(nLimbs, basePtr) -> p {
+                let upperHalfSizeInBytes := shl(4, nLimbs) // nLimbs * 32 / 2
+                p := add(basePtr, upperHalfSizeInBytes)
             }
 
             // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
-            // @param n_limbs Amount of limbs that compose each of the big unsigned integer parameters.
-            // @param base_ptr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
-            // @param exponent_ptr Base pointer to a big unsigned integer representing the `exponent[]`. It's most significant half must be zeros.
-            // @param modulus_ptr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
-            // @param result_ptr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
-            function big_uint_modular_exponentiation(n_limbs, base_ptr, exponent_ptr, modulus_ptr, result_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, scratch_buf_3_ptr, scratch_buf_4_ptr) {
+            // @param nLimbs Amount of limbs that compose each of the big unsigned integer parameters.
+            // @param basePtr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
+            // @param exponentPtr Base pointer to a big unsigned integer representing the `exponent[]`. It's most significant half must be zeros.
+            // @param modulusPtr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
+            // @param resultPtr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
+            function bigUIntModularExponentiation(nLimbs, basePtr, exponentPtr, modulusPtr, resultPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr, scratchBuf4Ptr) {
                 // Algorithm pseudocode:
                 // See: https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
                 // function modular_pow(base, exponent, modulus) is
@@ -773,52 +773,52 @@ object "ModExp" {
                 // PSEUDOCODE: `if modulus = 1 then return 0`.
                 // We are using the precondition that `result == 0` and `0 < modulus`.
                 // FIXME: Does the algorithm work without this check? We may be paying the cost of running this function just for a rare test case.
-                if big_uint_is_greater_than_one(n_limbs, modulus_ptr) {
+                if bigUIntIsGreaterThanOne(nLimbs, modulusPtr) {
 
                     // Assert :: (modulus - 1) * (modulus - 1) does not overflow base
                     // We are certain that this is true because our precondition requires the most significant half of exponent to be zeros.
 
                     // PSEUDOCODE: `result := 1`
                     // Again, we are using the precondition that `result[] == 0`
-                    bigUIntInPlaceOrWith1(result_ptr, n_limbs)
+                    bigUIntInPlaceOrWith1(resultPtr, nLimbs)
 
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
-                    bigUIntDivRem(base_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, scratch_buf_4_ptr)
-                    base_ptr, scratch_buf_4_ptr := flip(base_ptr, scratch_buf_4_ptr)
+                    bigUIntDivRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, scratchBuf3Ptr, scratchBuf4Ptr)
+                    basePtr, scratchBuf4Ptr := flip(basePtr, scratchBuf4Ptr)
 
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
-                    for { } big_uint_is_not_zero(exponent_ptr, n_limbs) { } {
+                    for { } bigUIntIsNotZero(exponentPtr, nLimbs) { } {
 
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
-                        if big_uint_mod_two(n_limbs, exponent_ptr) {
+                        if bigUIntModTwo(nLimbs, exponentPtr) {
 
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
-                            zeroWithLimbSizeAt(n_limbs, scratch_buf_1_ptr)
-                            let result_low_ptr := big_uint_lower_half_ptr(n_limbs, result_ptr)
-                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
+                            zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr)
+                            let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
+                            let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
-                            bigUIntMul(result_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_1_ptr)
+                            bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
-                            bigUIntDivRem(scratch_buf_1_ptr, modulus_ptr, scratch_buf_4_ptr, scratch_buf_2_ptr, n_limbs, scratch_buf_3_ptr, result_ptr)
+                            bigUIntDivRem(scratchBuf1Ptr, modulusPtr, scratchBuf4Ptr, scratchBuf2Ptr, nLimbs, scratchBuf3Ptr, resultPtr)
 
                         }
 
                         // PSEUDOCODE: `exponent := exponent >> 1`
                         // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
-                        bigUIntOneShiftRight(exponent_ptr, n_limbs)
+                        bigUIntOneShiftRight(exponentPtr, nLimbs)
                         
                         // PSEUDOCODE: `base := (base * base) mod modulus`
                         {
                             // scratch_buf_2 <- base * base
-                            zeroWithLimbSizeAt(n_limbs, scratch_buf_2_ptr) // scratch_buf_2 <- 0
-                            let base_low_ptr := big_uint_lower_half_ptr(n_limbs, base_ptr)
-                            bigUIntMul(base_low_ptr, base_low_ptr, shr(1, n_limbs), scratch_buf_2_ptr)
+                            zeroWithLimbSizeAt(nLimbs, scratchBuf2Ptr) // scratch_buf_2 <- 0
+                            let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
+                            bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
                             // base <- temp % modulus
-                            bigUIntDivRem(scratch_buf_2_ptr, modulus_ptr, scratch_buf_1_ptr, scratch_buf_3_ptr, n_limbs, scratch_buf_4_ptr, base_ptr)
+                            bigUIntDivRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, scratchBuf4Ptr, basePtr)
                         }
                     }
                 }
@@ -907,7 +907,7 @@ object "ModExp" {
 
             // // Note: This check covers the case where length of the modulo is zero.
             // // base^exponent % 0 = 0
-            // if bigUIntIsZero(modPtr, modLen) {
+            // if callDataBufferIsZero(modPtr, modLen) {
             //     // Fulfill memory with all zeroes.
             //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
             //         mstore(ptr, 0)
@@ -916,7 +916,7 @@ object "ModExp" {
             // }
 
             // // 1^exponent % modulus = 1
-            // if bigUIntIsOne(basePtr, baseLen) {
+            // if callDataBufferIsOne(basePtr, baseLen) {
             //     // Fulfill memory with all zeroes.
             //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
             //         mstore(ptr, 0)
@@ -926,7 +926,7 @@ object "ModExp" {
             // }
 
             // // base^0 % modulus = 1
-            // if bigUIntIsZero(expPtr, expLen) {
+            // if callDataBufferIsZero(expPtr, expLen) {
             //     // Fulfill memory with all zeroes.
             //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
             //         mstore(ptr, 0)
@@ -936,7 +936,7 @@ object "ModExp" {
             // }
 
             // // 0^exponent % modulus = 0
-            // if bigUIntIsZero(basePtr, baseLen) {
+            // if callDataBufferIsZero(basePtr, baseLen) {
             //     // Fulfill memory with all zeroes.
             //     for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
             //         mstore(ptr, 0)
