@@ -816,7 +816,6 @@ object "ModExp" {
 
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
-                            zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr)
                             let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
                             let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
@@ -832,8 +831,11 @@ object "ModExp" {
                         
                         // PSEUDOCODE: `base := (base * base) mod modulus`
                         {
-                            // scratch_buf_2 <- base * base
+                            zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr) // scratch_buf_1 <- 0
                             zeroWithLimbSizeAt(nLimbs, scratchBuf2Ptr) // scratch_buf_2 <- 0
+                            zeroWithLimbSizeAt(nLimbs, scratchBuf3Ptr) // scratch_buf_3 <- 0
+                            zeroWithLimbSizeAt(nLimbs, scratchBuf4Ptr) // scratch_buf_4 <- 0
+                            // scratch_buf_2 <- base * base
                             let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                             bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
