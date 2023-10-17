@@ -982,6 +982,7 @@ object "ModExp" {
                 maxLimbNumber := limbsModLen
             }
             
+            maxLimbNumber := mul(2, maxLimbNumber)
             let baseStartPtr := padWithZeroesIfNeeded(ptrBaseLimbs, limbsBaseLen, maxLimbNumber)
             let exponentStartPtr := padWithZeroesIfNeeded(ptrExpLimbs, limbsExpLen, maxLimbNumber)
             let moduloStartPtr := padWithZeroesIfNeeded(ptrModLimbs, limbsModLen, maxLimbNumber)
