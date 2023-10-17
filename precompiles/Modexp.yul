@@ -806,7 +806,11 @@ object "ModExp" {
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
                     for { } bigUIntIsNotZero(exponentPtr, nLimbs) { } {
-
+                        zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr) // scratch_buf_1 <- 0
+                        zeroWithLimbSizeAt(nLimbs, scratchBuf2Ptr) // scratch_buf_2 <- 0
+                        zeroWithLimbSizeAt(nLimbs, scratchBuf3Ptr) // scratch_buf_3 <- 0
+                        zeroWithLimbSizeAt(nLimbs, scratchBuf4Ptr) // scratch_buf_4 <- 0
+                        
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
                         if bigUIntModTwo(nLimbs, exponentPtr) {
 
