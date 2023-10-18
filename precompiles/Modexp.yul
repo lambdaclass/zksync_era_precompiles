@@ -805,17 +805,16 @@ object "ModExp" {
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
             let limbsModLen, misalignment := bigIntLimbs(modLen)
 
-            let ptrBaseLimbs := freeMemoryPointer(limbsBaseLen)
+            let ptrBaseLimbs := 0x00
             parseCalldata(basePtr, baseLen, ptrBaseLimbs)
 
-            let ptrExpLimbs := freeMemoryPointer(limbsExpLen)
+            let ptrExpLimbs := shl(5, limbsBaseLen)
             parseCalldata(expPtr, expLen, ptrExpLimbs)
 
-            let ptrModLimbs := freeMemoryPointer(limbsModLen)
+            let ptrModLimbs := add(ptrExpLimbs, shl(5, limbsExpLen))
             parseCalldata(modPtr, modLen, ptrModLimbs)
 
             let maxLimbNumber := limbsBaseLen
-
             if lt(maxLimbNumber, limbsExpLen) {
                 maxLimbNumber := limbsExpLen
             }
@@ -823,20 +822,24 @@ object "ModExp" {
                 maxLimbNumber := limbsModLen
             }
             
-            maxLimbNumber := mul(2, maxLimbNumber)
-            let baseStartPtr := padWithZeroesIfNeeded(ptrBaseLimbs, limbsBaseLen, maxLimbNumber)
-            let exponentStartPtr := padWithZeroesIfNeeded(ptrExpLimbs, limbsExpLen, maxLimbNumber)
-            let moduloStartPtr := padWithZeroesIfNeeded(ptrModLimbs, limbsModLen, maxLimbNumber)
+            maxLimbNumber := add(maxLimbNumber, maxLimbNumber)
+            let baseStartPtr := add(ptrModLimbs, shl(5, limbsModLen))
+            let exponentStartPtr := add(baseStartPtr, shl(5, maxLimbNumber))
+            let moduloStartPtr := add(exponentStartPtr, shl(5, maxLimbNumber))
 
-            let scratchBufferPtr1 := freeMemoryPointer(maxLimbNumber)
-            let scratchBufferPtr2 := freeMemoryPointer(maxLimbNumber)
-            let scratchBufferPtr3 := freeMemoryPointer(maxLimbNumber)
-            let scratchBufferPtr4 := freeMemoryPointer(maxLimbNumber)
-            let resultPtr := freeMemoryPointer(maxLimbNumber)
+            bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, baseStartPtr)
+            bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, exponentStartPtr)
+            bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, moduloStartPtr)
+
+            let scratchBufferPtr1 := add(moduloStartPtr, shl(5, maxLimbNumber))
+            let scratchBufferPtr2 := add(scratchBufferPtr1, shl(5, maxLimbNumber))
+            let scratchBufferPtr3 := add(scratchBufferPtr2, shl(5, maxLimbNumber))
+            let scratchBufferPtr4 := add(scratchBufferPtr3, shl(5, maxLimbNumber))
+            let resultPtr := add(scratchBufferPtr4, shl(5, maxLimbNumber))
 
             bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3, scratchBufferPtr4) 
 
-            let finalResultEnd := add(resultPtr, mul(LIMB_SIZE_IN_BYTES(), maxLimbNumber))
+            let finalResultEnd := add(resultPtr, shl(5, maxLimbNumber))
             let finalResultStart := sub(finalResultEnd, modLen)
             return(finalResultStart, modLen)
 		}
