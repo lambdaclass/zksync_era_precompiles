@@ -36,26 +36,6 @@ object "ModExp" {
                 }
             }
 
-            /// @notice Returns an address for a free memory region,
-            /// which will be startPtr...(startPtr+(howManyAdresses*32))
-            /// @param howManyAdresses The number of addresses needed.
-            function freeMemoryPointer(howManyAdresses) -> startPtr {
-                startPtr := mload(0x0)
-                mstore(0x0, add(startPtr, shl(5, howManyAdresses)))
-            }
-
-            /// @notice Stores a one in big unsigned integer form in memory.
-            /// @param nLimbs The number of limbs needed to represent the operand.
-            /// @param toAddress The pointer to the MSB of the destination.
-            function oneWithLimbSizeAt(nLimbs, toAddress) {
-                let pointerToOne :=  toAddress
-                mstore(pointerToOne, 0x1)
-                for { let i := sub(nLimbs, 1) } gt(i, 0) { i := sub(i, 1) } {
-                   let offset := add(mul(i, 32), pointerToOne)
-                   mstore(offset, 0x0)
-                }
-            }
-            
             /// @notice Stores a zero in big unsigned integer form in memory.
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param toAddress The pointer to the MSB of the destination.
@@ -242,97 +222,6 @@ object "ModExp" {
                     mstore(resCurrentPtr, resCurrentValue)
                 }
             }
-
-            /// @notice Performs the big unsigned integer right shift (>>).
-            /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (WORD_SIZE * nLimbs)`.
-            /// @param numberPtr The pointer to the MSB of the number to shift.
-            /// @param nLimbs The number of limbs needed to represent the operands.
-            /// @param shiftedPtr The pointer to the MSB of the shifted number.
-            function bigUIntShr(times, numberPtr, nLimbs, shiftedPtr) {
-                switch times
-                case 0 {
-                    // If the pointers are different and the amount of bits to shift is zero, 
-                    // then we copy the number, otherwise, we do nothing.
-                    if iszero(eq(numberPtr, shiftedPtr)) {
-                        let currentLimbPtr := numberPtr
-                        let currentShiftedLimbPtr := shiftedPtr
-                        for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                            mstore(currentShiftedLimbPtr, mload(currentLimbPtr))
-                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
-                            currentLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
-                        }
-                    }
-                }
-                default {
-                    let effectiveShifts := mod(times, LIMB_SIZE_IN_BITS())
-                    let b_inv := sub(LIMB_SIZE_IN_BITS(), effectiveShifts)
-                    let limbsToShiftOut := div(times, LIMB_SIZE_IN_BITS())
-                    let shiftDivInv := sub(LIMB_SIZE_IN_BITS(), limbsToShiftOut)
-
-                    switch iszero(effectiveShifts)
-                    case 1 {
-                        // When numberPtr could be equal to shiftedPtr that means that the result
-                        // will be stored in the same pointer as the value to shift. To avoid
-                        // overlaping, as this is a right shift we read and store from right to
-                        // left.
-
-                        // currentLimbPtrOffset is the value that added to numberPtr pointer gives 
-                        // us the pointer to what is the rightmost limb of the result. From there 
-                        // we move through the limbs from left to right (subtracting).
-                        let currentLimbPtrOffset := mul(sub(nLimbs, add(limbsToShiftOut, 1)), LIMB_SIZE_IN_BYTES())
-                        let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
-                        // currentShiftedLimbPtrOffset is the value that added to shiftedPtr gives
-                        // us the pointer to the less significant limb of the result.
-                        let currentShiftedLimbPtrOffset := mul(sub(nLimbs, 1), LIMB_SIZE_IN_BYTES())
-                        let currentShiftedLimbPtr := add(shiftedPtr, currentShiftedLimbPtrOffset)
-                        for { let i := limbsToShiftOut } lt(i, nLimbs) { i := add(i, 1) } {
-                            mstore(currentShiftedLimbPtr, mload(currentLimbPtr))
-                            currentLimbPtr := sub(currentLimbPtr, LIMB_SIZE_IN_BYTES())
-                            currentShiftedLimbPtr := sub(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
-                        }
-                        // Fill with zeros the limbs that will shifted out limbs.
-                        // We need to fill the zeros after in the edge case that numberPtr == shiftedPtr. 
-                        currentShiftedLimbPtr := shiftedPtr
-                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
-                            mstore(currentShiftedLimbPtr, 0)
-                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
-                        }
-                    }
-                    default {
-                        // When there are effectiveShifts we need to do a bit more of work.
-                        // We go from right to left, shifting the current limb and adding the
-                        // previous one shifted to the left by b_inv bits.
-
-                        // currentLimbPtrOffset is the value that added to numberPtr pointer gives 
-                        // us the pointer to what is the rightmost limb of the result. From there 
-                        // we move through the limbs from right to left (subtracting).
-                        let currentLimbPtrOffset := mul(sub(nLimbs, add(limbsToShiftOut, 1)), LIMB_SIZE_IN_BYTES())
-                        let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
-                        let previousLimbPtr := sub(currentLimbPtr, LIMB_SIZE_IN_BYTES())
-                        // currentShiftedLimbPtrOffset is the value that added to shiftedPtr gives
-                        // us the pointer to the less significant limb of the result.
-                        let currentShiftedLimbPtrOffset := mul(sub(nLimbs, 1), LIMB_SIZE_IN_BYTES())
-                        let currentShiftedLimbPtr := add(shiftedPtr, currentShiftedLimbPtrOffset)
-                        for { let i := add(limbsToShiftOut, 1) } lt(i, nLimbs) { i := add(i, 1) } {
-                            let shiftedLimb := or(shl(b_inv, mload(previousLimbPtr)), shr(effectiveShifts, mload(currentLimbPtr)))
-                            mstore(currentShiftedLimbPtr, shiftedLimb)
-                            previousLimbPtr := sub(previousLimbPtr, LIMB_SIZE_IN_BYTES())
-                            currentLimbPtr := sub(currentLimbPtr, LIMB_SIZE_IN_BYTES())
-                            currentShiftedLimbPtr := sub(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
-                        }
-                        // Fill with zeros the limbs that will shifted out limbs.
-                        // We need to fill the zeros after in the edge case that numberPtr == shiftedPtr. 
-                        currentShiftedLimbPtr := shiftedPtr
-                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
-                            mstore(currentShiftedLimbPtr, 0)
-                            currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
-                        }
-                        // Finally the non-zero MSB limb.
-                        mstore(currentShiftedLimbPtr, shr(effectiveShifts, mload(currentShiftedLimbPtr)))
-                    }
-                }
-            }
-
             /// @notice Performs the big unsigned integer left shift (<<).
             /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (LIMB_SIZE_IN_BYTES * nLimbs)`.
             /// @param numberPtr The pointer to the MSB of the number to shift.
@@ -668,48 +557,6 @@ object "ModExp" {
                     zeroWithLimbSizeAt(nLimbs, quotient_ptr)
                 }
             }
-            
-            /// @notice Inplace zero extend to the left a big uint,
-            /// the result will have size of 2 times the original limbs.
-            function bigUIntDuplicateNLimbs(fromPtr, nLimbs) {
-                let finalLimbs := add(nLimbs, nLimbs)
-                for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
-                    if or(eq(i, nLimbs), lt(i, nLimbs)) {
-                        mstore(add(fromPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), 0)
-                    }
-                    if gt(i, nLimbs) {
-                        mstore(add(fromPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES())), mload(add(fromPtr, mul(sub(sub(i, 1), nLimbs), LIMB_SIZE_IN_BYTES()))))
-                    }
-                }
-            }
-
-            /// @notice Inplace removal of the first half of limbs from a big uint.
-            function bigUIntDivideNLimbsByTwo(fromPtr, nLimbs) {
-                let finalLimbs := div(nLimbs, 2)
-                for { let i := finalLimbs } gt(i, 0) { i := sub(i, 1) } {
-                   mstore(add(fromPtr, mul(sub(finalLimbs, i), LIMB_SIZE_IN_BYTES())), mload(add(fromPtr, mul(sub(nLimbs, i), LIMB_SIZE_IN_BYTES()))))
-                }
-            }
-
-            /// @notice Computes c = (a*b) mod n, where a,b are big uints of
-            /// nLimbs size each, starting on lshPtr and rhsPtr, respectively,
-            /// and moduloPtr points to the start of the big uint n.
-            function bigUIntMulMod(lhsPtr, rhsPtr, moduloPtr, nLimbs, resultPtr) {
-
-                // result = lhs*rhs
-                let resultPtrMul := 0x200 // FIXME: Do not hardcode this
-                let quoResultPtr := 0x1000 // FIXME: Do not hardcode this
-                let auxPtr1 := 0x400 // FIXME: Do not hardcode this
-                let auxPtr2 := 0x600 // FIXME: Do not hardcode this
-
-                bigUIntMul(lhsPtr, rhsPtr, nLimbs, resultPtrMul)
-                // bigUIntMul doubles the limb size of the result,
-                // so result now points to a 2*nLimbs number
-                bigUIntDuplicateNLimbs(moduloPtr, nLimbs)
-                bigUIntDivRem(resultPtrMul, moduloPtr, auxPtr1, auxPtr2, add(nLimbs, nLimbs), quoResultPtr, resultPtr)
-                // divide limb size of result by 2 to get the final result
-                bigUIntDivideNLimbsByTwo(resultPtr, add(nLimbs, nLimbs))
-            }
 
             function bigUIntIsGreaterThanOne(nLimbs, basePtr) -> ret {
                // Pointer to the least significant limb.
@@ -899,25 +746,13 @@ object "ModExp" {
                 }
             }
 
-            function padWithZeroesIfNeeded(startingLimbPtr, currentLimbSize, toPadLimbSize) -> resultPtr {
-                switch eq(currentLimbSize, toPadLimbSize)
-                case 0 {
-                    resultPtr := freeMemoryPointer(toPadLimbSize)
-                    bigUIntPadWithZeros(startingLimbPtr, currentLimbSize, toPadLimbSize, resultPtr)
-                }
-                case 1 {
-                    resultPtr := startingLimbPtr 
-                }
-            }
-
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
-
             let baseLen := calldataload(0)
             let expLen := calldataload(32)
             let modLen := calldataload(64)
-            freeMemoryPointer(1)
+
             // Handle a special case when both the base and mod length are zeroes.
             if and(iszero(baseLen), iszero(modLen)) {
                 return(0, 0)
