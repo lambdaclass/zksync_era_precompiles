@@ -117,8 +117,8 @@ object "ModExp" {
                 if lastWordBytes {
                     // Create a mask that isolates the valid bytes in the last word.
                     // The mask has its first `lastWordBytes` bytes set to `0xff`.
-                    let mask := sub(shl(mul(lastWordBytes, 8), 1), 1)
-                    let word := shr(sub(LIMB_SIZE_IN_BITS(), mul(lastWordBytes, 8)), calldataload(endOfLastFullWord))
+                    let mask := sub(shl(shl(3, lastWordBytes), 1), 1)
+                    let word := shr(sub(LIMB_SIZE_IN_BITS(), shl(3, lastWordBytes)), calldataload(endOfLastFullWord))
                     // Use the mask to isolate the valid bytes and check if any are non-zero.
                     if and(word, mask) {
                         res := false
@@ -154,7 +154,7 @@ object "ModExp" {
                 if lastWordBytes {
                     // Create a mask that isolates the valid bytes in the last word.
                     // The mask has its first `lastWordBytes` bytes set to `0xff`.
-                    let mask := sub(shl(mul(lastWordBytes, 8), 1), 1)
+                    let mask := sub(shl(shl(3, lastWordBytes), 1), 1)
                     let word := calldataload(endOfLastFullWord)
                     // Use the mask to isolate the valid bytes and check if any are non-zero.
                     if and(word, mask) {
@@ -255,7 +255,7 @@ object "ModExp" {
                         // overlaping, as this is a left shift we read and store from left to
                         // right.
 
-                        let currentLimbPtrOffset := mul(limbsToShiftOut, LIMB_SIZE_IN_BYTES())
+                        let currentLimbPtrOffset := shl(5, limbsToShiftOut)
                         let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
                         let currentShiftedLimbPtr := shiftedPtr
                         for { let i := limbsToShiftOut } lt(i, nLimbs) { i := add(i, 1) } {
@@ -274,7 +274,7 @@ object "ModExp" {
                         // When there are effectiveShifts we need to do a bit more of work.
                         // We go from right to left, shifting the current limb and adding the
                         // previous one shifted to the left by b_inv bits.
-                        let currentLimbPtrOffset := mul(limbsToShiftOut, LIMB_SIZE_IN_BYTES())
+                        let currentLimbPtrOffset := shl(5, limbsToShiftOut)
                         let currentLimbPtr := add(numberPtr, currentLimbPtrOffset)
                         let nextLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
                         let currentShiftedLimbPtr := shiftedPtr
@@ -304,7 +304,7 @@ object "ModExp" {
             /// @param sumPtr The pointer where the result of the addition will be stored.
             /// @return overflowed A boolean indicating whether the addition overflowed (true) or not (false).
             function bigUIntAdd(augendPtr, addendPtr, nLimbs, sumPtr) -> overflowed {
-                let totalLength := mul(nLimbs, LIMB_SIZE_IN_BYTES())
+                let totalLength := shl(5, nLimbs)
                 let carry := 0
 
                 let augendCurrentLimbPtr := add(augendPtr, totalLength)
@@ -313,7 +313,7 @@ object "ModExp" {
                 // Loop through each full 32-byte word to add the two big numbers.
                 for { let i := 1 } or(eq(i,nLimbs), lt(i, nLimbs)) { i := add(i, 1) } {
                     // Check limb from the right (least significant limb)
-                    let currentLimbOffset := mul(LIMB_SIZE_IN_BYTES(), i)
+                    let currentLimbOffset := shl(5, i)
                     augendCurrentLimbPtr := sub(augendCurrentLimbPtr, currentLimbOffset)
                     addendCurrentLimbPtr := sub(addendCurrentLimbPtr, currentLimbOffset)
                     
@@ -365,7 +365,7 @@ object "ModExp" {
                 borrow := 0
                 let limbOffset := 0
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
-                    limbOffset := mul(sub(i,1), 32)
+                    limbOffset := shl(5, sub(i,1))
                     let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
                     let subtrahendCurrentLimb := getLimbValueAtOffset(subtrahendPtr, limbOffset)
                     differenceCurrentLimb, borrow := overflowingSubWithBorrow(minuendCurrentLimb, subtrahendCurrentLimb, borrow)
@@ -387,14 +387,14 @@ object "ModExp" {
                     // Iterating over each limb in the second number.
                     for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
                         // Loading the i-th and j-th limbs of the first and second numbers.
-                        let word1 := mload(add(multiplicandPtr, mul(LIMB_SIZE_IN_BYTES(), sub(i, 1))))
-                        let word2 := mload(add(multiplierPtr, mul(LIMB_SIZE_IN_BYTES(), sub(j, 1))))
+                        let word1 := mload(add(multiplicandPtr, shl(5, sub(i, 1))))
+                        let word2 := mload(add(multiplierPtr, shl(5, sub(j, 1))))
 
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
 
                         // Calculate the index to store the product.
-                        retIndex := add(productPtr, mul(sub(add(i, j), 1), LIMB_SIZE_IN_BYTES()))
+                        retIndex := add(productPtr, shl(5, sub(add(i, j), 1)))
                         retWordBefore := mload(retIndex) // Load the previous value at the result index.
                         retWordAfter, carryFlag := overflowingAdd(retWordBefore, product)
 
@@ -403,7 +403,7 @@ object "ModExp" {
                     }
 
                     // Store the last word which comes from the final carry.
-                    retIndex := add(productPtr, mul(sub(i, 1), LIMB_SIZE_IN_BYTES()))
+                    retIndex := add(productPtr, shl(5, sub(i, 1)))
                     mstore(retIndex, carry)
                 }
             }
@@ -527,7 +527,7 @@ object "ModExp" {
                 zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
 
                 let mb := bigUIntBitSize(divisor_ptr, nLimbs)
-                let bd := sub(mul(nLimbs, 256), mb)
+                let bd := sub(shl(8, nLimbs), mb)
                 bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
 
                 for { } iszero(0) { } {
@@ -700,12 +700,12 @@ object "ModExp" {
             /// @param currentLimbNumber The number of limbs needed to represent the operand.
             /// @param newLimbNumber The number of limbs wanted to represent the operand.
             /// @param resultPtr The pointer to the MSB of the padded number.
-            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) -> resultPtr {
+            function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) {
                 for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
                     // Move the limb to the right position
-                    mstore(add(resultPtr, mul(sub(sub(newLimbNumber, 1), i), LIMB_SIZE_IN_BYTES())), mload(add(ptr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES()))))
+                    mstore(add(resultPtr, shl(5, sub(sub(newLimbNumber, 1), i))), mload(add(ptr, shl(5, sub(sub(currentLimbNumber,1), i)))))
                     // Store zero in the position of the moved limb
-                    mstore(add(resultPtr, mul(sub(sub(currentLimbNumber,1), i), LIMB_SIZE_IN_BYTES())), 0)
+                    mstore(add(resultPtr, shl(5, sub(sub(currentLimbNumber,1), i))), 0)
                 }
             }
 
