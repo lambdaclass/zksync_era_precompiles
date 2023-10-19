@@ -3,22 +3,6 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
 
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := 0x600
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -27,6 +11,7 @@ object "ModExp" {
             function LIMB_SIZE_IN_BITS() -> limbSize {
                 limbSize := 0x100
             }
+            
             // HELPER FUNCTIONS
             function bigIntLimbs(length) -> limbs, misalignment {
                 limbs := div(length, LIMB_SIZE_IN_BYTES())
@@ -51,12 +36,9 @@ object "ModExp" {
             /// @param fromAddress The pointer to the MSB of the number to copy.
             /// @param toAddress The pointer to the MSB of the destination.
             function copyBigUint(nLimbs, fromAddress, toAddress) {
-                let offset := 0
-                for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
-                    let fromOffset := add(offset, fromAddress)
-                    let toOffset := add(offset, toAddress)
-                    mstore(toOffset, mload(fromOffset))
-                    offset := add(offset, LIMB_SIZE_IN_BYTES())
+                let total_bytes := shl(5, nLimbs)
+                for { let i  } lt(i, total_bytes) { i := add(i, LIMB_SIZE_IN_BYTES()) } {
+                    mstore(add(i, toAddress), mload(add(i, fromAddress)))
                 }
             }
 
@@ -183,45 +165,6 @@ object "ModExp" {
                 }
             }
 
-            /// @notice Performs the Big UInt Conditional Select operation.
-            /// @dev The result is stored from `resPtr` to `resPtr + (LIMB_SIZE * nLimbs)`.
-            /// @dev For each limb, `res[i] == lhs[i] ^ (mask & (lhs[i] ^ rhs[i]))`
-            /// @param lhsPtr Base pointer to the left hand side operand.
-            /// @param rhsPtr Base pointer to the right hand side operand.
-            /// @param resPtr Base pointer to where you want the result to be stored
-            /// @param nLimbs The number of limbs needed to represent all of the operands.
-            /// @param mask Either `0x0` or `0xFF...FF`.
-            function bigUIntCondSelect(lhsPtr, rhsPtr, resPtr, nLimbs, mask) {
-                let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs)
-                for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
-                    let lhsCurrentPtr := add(lhsPtr, currentOffset)
-                    let rhsCurrentPtr := add(rhsPtr, currentOffset)
-                    let resCurrentPtr := add(resPtr, currentOffset)
-                    let lhsCurrentValue := mload(lhsCurrentPtr)
-                    let rhsCurrentValue := mload(rhsCurrentPtr)
-                    let resCurrentValue := xor(lhsCurrentValue, and(mask, xor(lhsCurrentValue, rhsCurrentValue))) // a ^ (ct & (a ^ b))
-                    mstore(resCurrentPtr, resCurrentValue)
-                }
-            }
-
-            /// @notice Performs the big unsigned integer bit or operation.
-            /// @dev The result is stored from `resPtr` to `resPtr + (LIMB_SIZE * nLimbs)`.
-            /// @param lhsPtr The pointer to the MSB of the left operand.
-            /// @param rhsPtr The pointer to the MSB of the right operand.
-            /// @param nLimbs The number of limbs needed to represent the operands.
-            /// @param resPtr The pointer to where you want the result to be stored
-            function bigUIntBitOr(lhsPtr, rhsPtr, nLimbs, resPtr) {
-                let finalOffset := shl(5, nLimbs) // == ( LIMB_SIZE * nLimbs ) == (32 * nLimbs) 
-                for { let currentOffset := 0 } lt(currentOffset, finalOffset) { currentOffset := add(currentOffset, 0x20) } {
-                    let lhsCurrentPtr := add(lhsPtr, currentOffset)
-                    let rhsCurrentPtr := add(rhsPtr, currentOffset)
-                    let resCurrentPtr := add(resPtr, currentOffset)
-                    let lhsCurrentValue := mload(lhsCurrentPtr)
-                    let rhsCurrentValue := mload(rhsCurrentPtr)
-                    let resCurrentValue := or(lhsCurrentValue, rhsCurrentValue)
-                    mstore(resCurrentPtr, resCurrentValue)
-                }
-            }
             /// @notice Performs the big unsigned integer left shift (<<).
             /// @dev The result is stored from `shiftedPtr` to `shiftedPtr + (LIMB_SIZE_IN_BYTES * nLimbs)`.
             /// @param numberPtr The pointer to the MSB of the number to shift.
@@ -235,7 +178,7 @@ object "ModExp" {
                     if iszero(eq(numberPtr, shiftedPtr)) {
                         let currentLimbPtr := numberPtr
                         let currentShiftedLimbPtr := shiftedPtr
-                        for { let i := 0 } lt(i, nLimbs) { i := add(i, 1) } {
+                        for { let i } lt(i, nLimbs) { i := add(i, 1) } {
                             mstore(currentShiftedLimbPtr, mload(currentLimbPtr))
                             currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
                             currentLimbPtr := add(currentLimbPtr, LIMB_SIZE_IN_BYTES())
@@ -265,7 +208,7 @@ object "ModExp" {
                         }
                         // Fill with zeros the limbs that will shifted out limbs.
                         // We need to fill the zeros after in the edge case that numberPtr == shiftedPtr. 
-                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
+                        for { let i } lt(i, limbsToShiftOut) { i := add(i, 1) } {
                             mstore(currentShiftedLimbPtr, 0)
                             currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
                         }
@@ -289,7 +232,7 @@ object "ModExp" {
                         mstore(currentShiftedLimbPtr, shl(effectiveShifts, mload(currentShiftedLimbPtr)))
                         currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
                         // Fill with zeros the shifted in limbs.
-                        for { let i := 0 } lt(i, limbsToShiftOut) { i := add(i, 1) } {
+                        for { let i } lt(i, limbsToShiftOut) { i := add(i, 1) } {
                             mstore(currentShiftedLimbPtr, 0)
                             currentShiftedLimbPtr := add(currentShiftedLimbPtr, LIMB_SIZE_IN_BYTES())
                         }
@@ -305,7 +248,7 @@ object "ModExp" {
             /// @return overflowed A boolean indicating whether the addition overflowed (true) or not (false).
             function bigUIntAdd(augendPtr, addendPtr, nLimbs, sumPtr) -> overflowed {
                 let totalLength := shl(5, nLimbs)
-                let carry := 0
+                let carry
 
                 let augendCurrentLimbPtr := add(augendPtr, totalLength)
                 let addendCurrentLimbPtr := add(addendPtr, totalLength)
@@ -363,7 +306,7 @@ object "ModExp" {
                 let subtrahendCurrentLimb
                 let differenceCurrentLimb
                 borrow := 0
-                let limbOffset := 0
+                let limbOffset
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
                     limbOffset := shl(5, sub(i,1))
                     let minuendCurrentLimb := getLimbValueAtOffset(minuendPtr, limbOffset)
@@ -379,10 +322,12 @@ object "ModExp" {
             /// @param multiplierPtr The start index in memory of the second number.
             /// @param nLimbs The number of limbs needed to represent the operands.
             function bigUIntMul(multiplicandPtr, multiplierPtr, nLimbs, productPtr) {
+                zeroWithLimbSizeAt(shl(1, nLimbs), productPtr) // product = 0
+
                 let retIndex, retWordAfter, retWordBefore
                 // Iterating over each limb in the first number.
                 for { let i := nLimbs } gt(i, 0) { i := sub(i, 1) } {
-                    let carry := 0
+                    let carry
 
                     // Iterating over each limb in the second number.
                     for { let j := nLimbs } gt(j, 0) { j := sub(j, 1) } {
@@ -428,9 +373,9 @@ object "ModExp" {
                 bitSize := shl(8, nLimbs)
 
                 // Iterate until finding the most significant limb or reach the end of the limbs.
-                let limb := 0
-                let offset := 0
-                for { let i := 0 } and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
+                let limb
+                let offset
+                for { let i} and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
                     bitSize := sub(bitSize, 256) // Decrement one limb worth of bits.
                     let ptr_i := add(basePtr, offset) // = basePtr + i * 32 bytes
                     limb := mload(ptr_i)
@@ -464,7 +409,7 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operand.
             function bigUIntOneShiftLeft(numberPtr, nLimbs) {
                 let p := add(numberPtr, shl(5, nLimbs)) // numberPtr + 32 * nLimbs
-                let carryBit := 0
+                let carryBit
                 for {  } lt(numberPtr, p) {  } {
                     p := sub(p, 32)
                     let limb := mload(p)
@@ -481,7 +426,7 @@ object "ModExp" {
             /// @param nLimbs The number of limbs needed to represent the operand.
             function bigUIntOneShiftRight(numberPtr, nLimbs) {
                 let overflowPtr := add(numberPtr, shl(5, nLimbs))
-                let carryBit := 0
+                let carryBit
                 for { let p := numberPtr } lt(p, overflowPtr) { p := add(p, 32) } {
                     let limb := mload(p)
                     let lsb := and(limb, 1)
@@ -518,30 +463,28 @@ object "ModExp" {
             function bigUIntDivRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, quotient_ptr, rem_ptr) {
                 // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
                 // parameters to prevent the leakage of implementation details.
-                let c_ptr := tmp_ptr_1
-                let r_ptr := tmp_ptr_2
-
-                copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend 
-
-                // Init quotient to 0.
+                zeroWithLimbSizeAt(nLimbs, tmp_ptr_1) // tmp_ptr_1 = 0
+                zeroWithLimbSizeAt(nLimbs, tmp_ptr_2) // tmp_ptr_2 = 0
                 zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
+
+                copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend
 
                 let mb := bigUIntBitSize(divisor_ptr, nLimbs)
                 let bd := sub(shl(8, nLimbs), mb)
-                bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
+                bigUIntShl(bd, divisor_ptr, nLimbs, tmp_ptr_1) // c == divisor << bd
 
                 for { } iszero(0) { } {
-                    let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, nLimbs, r_ptr)
+                    let borrow := bigUIntSubWithBorrow(rem_ptr, tmp_ptr_1, nLimbs, tmp_ptr_2)
 
                     if iszero(borrow) {
-                        copyBigUint(nLimbs, r_ptr, rem_ptr)
+                        copyBigUint(nLimbs, tmp_ptr_2, rem_ptr)
                     }
 
-                    copyBigUint(nLimbs, quotient_ptr, r_ptr) // r = quotient
-                    bigUIntInPlaceOrWith1(r_ptr, nLimbs) // r = quotient | 1
+                    copyBigUint(nLimbs, quotient_ptr, tmp_ptr_2) // r = quotient
+                    bigUIntInPlaceOrWith1(tmp_ptr_2, nLimbs) // r = quotient | 1
 
                     if iszero(borrow) {
-                        copyBigUint(nLimbs, r_ptr, quotient_ptr)
+                        copyBigUint(nLimbs, tmp_ptr_2, quotient_ptr)
                     }
 
                     if iszero(bd) {
@@ -549,7 +492,7 @@ object "ModExp" {
                     }
 
                     bd := sub(bd, 1)
-                    bigUIntOneShiftRight(c_ptr, nLimbs) // c = c >> 1
+                    bigUIntOneShiftRight(tmp_ptr_1, nLimbs) // c = c >> 1
                     bigUIntOneShiftLeft(quotient_ptr, nLimbs) // q[] = q[] << 1
                 }
 
@@ -559,30 +502,30 @@ object "ModExp" {
             }
 
             function bigUIntIsGreaterThanOne(nLimbs, basePtr) -> ret {
-               // Pointer to the least significant limb.
-               let p :=  add(basePtr, shl(5, sub(nLimbs, 1)))
+                // Pointer to the least significant limb.
+                let p :=  add(basePtr, shl(5, sub(nLimbs, 1)))
 
-               // Least significant limb.
-               let limb := mload(p)
+                // Least significant limb.
+                let limb := mload(p)
 
-               // If the least significant limb is greater than 1, we know for
-               // sure that the big unsigned integer will be greater than 1.
-               ret := gt(limb, 1)
+                // If the least significant limb is greater than 1, we know for
+                // sure that the big unsigned integer will be greater than 1.
+                ret := gt(limb, 1)
 
-               // If we don't know yet whether the big unsigned integer is
-               // greater than one, we will have to look if there exists a more
-               // significative limb thats greater than 0.
-               //
-               // We are iterating backwards, because the big unsigned integers
-               // we are working with may be left padded with zeros to match
-               // the size of other big unsigned integers. This way we have a
-               // better chance to consume less iterations. In the worst case
-               // scenario, where the answer is false, we will have to read the
-               // whole number from memory, making this algorithm `O(nLimbs)`.
-               for { } and(lt(basePtr, p), eq(ret, false)) { } {
-                   p := sub(p, LIMB_SIZE_IN_BYTES()) 
-                   ret := lt(0, mload(p))
-               }
+                // If we don't know yet whether the big unsigned integer is
+                // greater than one, we will have to look if there exists a more
+                // significative limb thats greater than 0.
+                //
+                // We are iterating backwards, because the big unsigned integers
+                // we are working with may be left padded with zeros to match
+                // the size of other big unsigned integers. This way we have a
+                // better chance to consume less iterations. In the worst case
+                // scenario, where the answer is false, we will have to read the
+                // whole number from memory, making this algorithm `O(nLimbs)`.
+                for { } and(lt(basePtr, p), eq(ret, false)) { } {
+                    p := sub(p, LIMB_SIZE_IN_BYTES()) 
+                    ret := lt(0, mload(p))
+                }
             }
 
             function bigUIntModTwo(nLimbs, basePtr) -> ret {
@@ -653,18 +596,14 @@ object "ModExp" {
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
                     for { } bigUIntIsNotZero(exponentPtr, nLimbs) { } {
-                        zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr) // scratch_buf_1 <- 0
-                        zeroWithLimbSizeAt(nLimbs, scratchBuf2Ptr) // scratch_buf_2 <- 0
-                        zeroWithLimbSizeAt(nLimbs, scratchBuf3Ptr) // scratch_buf_3 <- 0
-                        zeroWithLimbSizeAt(nLimbs, scratchBuf4Ptr) // scratch_buf_4 <- 0
-                        
+                        let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
                         if bigUIntModTwo(nLimbs, exponentPtr) {
 
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
                             let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
-                            let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
+                            
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
@@ -678,12 +617,7 @@ object "ModExp" {
                         
                         // PSEUDOCODE: `base := (base * base) mod modulus`
                         {
-                            zeroWithLimbSizeAt(nLimbs, scratchBuf1Ptr) // scratch_buf_1 <- 0
-                            zeroWithLimbSizeAt(nLimbs, scratchBuf2Ptr) // scratch_buf_2 <- 0
-                            zeroWithLimbSizeAt(nLimbs, scratchBuf3Ptr) // scratch_buf_3 <- 0
-                            zeroWithLimbSizeAt(nLimbs, scratchBuf4Ptr) // scratch_buf_4 <- 0
                             // scratch_buf_2 <- base * base
-                            let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                             bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
                             // base <- temp % modulus
@@ -701,7 +635,7 @@ object "ModExp" {
             /// @param newLimbNumber The number of limbs wanted to represent the operand.
             /// @param resultPtr The pointer to the MSB of the padded number.
             function bigUIntPadWithZeros(ptr, currentLimbNumber, newLimbNumber, resultPtr) {
-                for { let i := 0 } lt(i, currentLimbNumber) { i := add(i, 1) } {
+                for { let i } lt(i, currentLimbNumber) { i := add(i, 1) } {
                     // Move the limb to the right position
                     mstore(add(resultPtr, shl(5, sub(sub(newLimbNumber, 1), i))), mload(add(ptr, shl(5, sub(sub(currentLimbNumber,1), i)))))
                     // Store zero in the position of the moved limb
@@ -731,7 +665,7 @@ object "ModExp" {
 
                 let currentLimbCalldataPtr := calldataValuePtr
                 let currentLimbMemoryPtr := resPtr
-                for { let currentLimbNumber := 0 } lt(currentLimbNumber, numberOfLimbs) { currentLimbNumber := add(currentLimbNumber, 1) } {
+                for { let currentLimbNumber } lt(currentLimbNumber, numberOfLimbs) { currentLimbNumber := add(currentLimbNumber, 1) } {
                     if and(iszero(currentLimbNumber), gt(lastLimbMisalignmentInBytes, 0)) {
                         // If the MSL is misaligned, then at this point it has been handled and we should 
                         // skip the first iteration (which handles the MSL if it is not misaligned).
@@ -805,7 +739,7 @@ object "ModExp" {
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
             let limbsModLen, misalignment := bigIntLimbs(modLen)
 
-            let ptrBaseLimbs := 0x00
+            let ptrBaseLimbs
             parseCalldata(basePtr, baseLen, ptrBaseLimbs)
 
             let ptrExpLimbs := shl(5, limbsBaseLen)
@@ -823,23 +757,24 @@ object "ModExp" {
             }
             
             maxLimbNumber := add(maxLimbNumber, maxLimbNumber)
+            let memForMaxLimbNumber := shl(5, maxLimbNumber)
             let baseStartPtr := add(ptrModLimbs, shl(5, limbsModLen))
-            let exponentStartPtr := add(baseStartPtr, shl(5, maxLimbNumber))
-            let moduloStartPtr := add(exponentStartPtr, shl(5, maxLimbNumber))
+            let exponentStartPtr := add(baseStartPtr, memForMaxLimbNumber)
+            let moduloStartPtr := add(exponentStartPtr, memForMaxLimbNumber)
 
             bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, baseStartPtr)
             bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, exponentStartPtr)
             bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, moduloStartPtr)
 
-            let scratchBufferPtr1 := add(moduloStartPtr, shl(5, maxLimbNumber))
-            let scratchBufferPtr2 := add(scratchBufferPtr1, shl(5, maxLimbNumber))
-            let scratchBufferPtr3 := add(scratchBufferPtr2, shl(5, maxLimbNumber))
-            let scratchBufferPtr4 := add(scratchBufferPtr3, shl(5, maxLimbNumber))
-            let resultPtr := add(scratchBufferPtr4, shl(5, maxLimbNumber))
+            let scratchBufferPtr1 := add(moduloStartPtr, memForMaxLimbNumber)
+            let scratchBufferPtr2 := add(scratchBufferPtr1, memForMaxLimbNumber)
+            let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
+            let scratchBufferPtr4 := add(scratchBufferPtr3, memForMaxLimbNumber)
+            let resultPtr := add(scratchBufferPtr4, memForMaxLimbNumber)
 
             bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3, scratchBufferPtr4) 
 
-            let finalResultEnd := add(resultPtr, shl(5, maxLimbNumber))
+            let finalResultEnd := add(resultPtr, memForMaxLimbNumber)
             let finalResultStart := sub(finalResultEnd, modLen)
             return(finalResultStart, modLen)
 		}
