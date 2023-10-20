@@ -3,6 +3,23 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
 
+
+            // CONSOLE.LOG Caller
+            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // load the free memory pointer
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1)
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
+
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -375,7 +392,7 @@ object "ModExp" {
                 // Iterate until finding the most significant limb or reach the end of the limbs.
                 let limb
                 let offset
-                for { let i} and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
+                for { let i } and(lt(i, nLimbs), iszero(limb)) { i := add(i, 1) } {
                     bitSize := sub(bitSize, 256) // Decrement one limb worth of bits.
                     let ptr_i := add(basePtr, offset) // = basePtr + i * 32 bytes
                     limb := mload(ptr_i)
@@ -524,17 +541,6 @@ object "ModExp" {
                 ret_rhs := lhs
             }
 
-            function bigUIntIsNotZero(p, nLimbs) -> is_not_zero {
-                is_not_zero := false
-                let past_the_end_ptr :=  add(p, shl(5, nLimbs))
-                for { } lt(p, past_the_end_ptr) { p := add(p, 32) } {
-                    is_not_zero := lt(0, mload(p))
-                    if is_not_zero {
-                        leave
-                    }
-                }
-            }
-
             function bigUIntLowerHalfPtr(nLimbs, basePtr) -> p {
                 let upperHalfSizeInBytes := shl(4, nLimbs) // nLimbs * 32 / 2
                 p := add(basePtr, upperHalfSizeInBytes)
@@ -574,6 +580,7 @@ object "ModExp" {
                     // Again, we are using the precondition that `result[] == 0`
                     bigUIntInPlaceOrWith1(resultPtr, nLimbs)
                     let modulusBitSize := bigUIntBitSize(modulusPtr, nLimbs)
+                    let exponentBitSize := bigUIntBitSize(exponentPtr, nLimbs)
 
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
@@ -582,7 +589,7 @@ object "ModExp" {
 
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
-                    for { } bigUIntIsNotZero(exponentPtr, nLimbs) { } {
+                    for { let i } lt(i, exponentBitSize) { i := add(i, 1) } {
                         let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
                         if bigUIntModTwo(nLimbs, exponentPtr) {
@@ -603,13 +610,11 @@ object "ModExp" {
                         bigUIntOneShiftRight(exponentPtr, nLimbs)
                         
                         // PSEUDOCODE: `base := (base * base) mod modulus`
-                        {
-                            // scratch_buf_2 <- base * base
-                            bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
+                        // scratch_buf_2 <- base * base
+                        bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
-                            // base <- temp % modulus
-                            bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, modulusBitSize, basePtr)
-                        }
+                        // base <- temp % modulus
+                        bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, modulusBitSize, basePtr)
                     }
                 }
             }
