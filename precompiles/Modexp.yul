@@ -3,23 +3,6 @@ object "ModExp" {
 	object "ModExp_deployed" {
 		code {
 
-
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := 0x600
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
-            }
-
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -30,6 +13,16 @@ object "ModExp" {
             }
             
             // HELPER FUNCTIONS
+            function bigIntLimbsWithoutZeros(ptr, totalLimbs) -> limbs {
+                limbs := 0
+                for { let i := 0 } lt(i, totalLimbs) { i := add(i, 1) } {
+                    let limb := mload(add(ptr, shl(5, i)))
+                    if limb {
+                        limbs := add(limbs, 1)
+                    }
+                }
+            }
+
             function bigIntLimbs(length) -> limbs, misalignment {
                 limbs := div(length, LIMB_SIZE_IN_BYTES())
                 misalignment := mod(length, LIMB_SIZE_IN_BYTES())
@@ -477,7 +470,7 @@ object "ModExp" {
             /// @param nLimbs      Amount of limbs for each big unsigned integer.
             /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
             /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
-            function bigUIntRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, modulusBitSize, rem_ptr) {
+            function bigUIntRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, realLimbs, modulusBitSize, rem_ptr) {
                 // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
                 // parameters to prevent the leakage of implementation details.
                 zeroWithLimbSizeAt(nLimbs, tmp_ptr_1) // tmp_ptr_1 = 0
@@ -485,9 +478,9 @@ object "ModExp" {
 
                 copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend
 
-                let bd := sub(shl(8, nLimbs), modulusBitSize)
+                let bd := sub(shl(8, realLimbs), modulusBitSize)
                 bigUIntShl(bd, divisor_ptr, nLimbs, tmp_ptr_1) // c == divisor << bd
-
+                
                 for { } iszero(0) { } {
                     let borrow := bigUIntSubWithBorrow(rem_ptr, tmp_ptr_1, nLimbs, tmp_ptr_2)
 
@@ -601,8 +594,8 @@ object "ModExp" {
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
-                            bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, resultPtr)
-
+                            let limbsToRem := bigIntLimbsWithoutZeros(scratchBuf1Ptr, nLimbs)
+                            bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, limbsToRem, modulusBitSize, resultPtr)
                         }
 
                         // PSEUDOCODE: `exponent := exponent >> 1`
@@ -613,8 +606,9 @@ object "ModExp" {
                         // scratch_buf_2 <- base * base
                         bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
+                        let limbsToRem := bigIntLimbsWithoutZeros(scratchBuf2Ptr, nLimbs)
                         // base <- temp % modulus
-                        bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, modulusBitSize, basePtr)
+                        bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, limbsToRem, modulusBitSize, basePtr)
                     }
                 }
             }
