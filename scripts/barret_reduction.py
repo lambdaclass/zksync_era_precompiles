@@ -27,6 +27,7 @@ def barret_reduce(x: int, mod: int) -> int:
                 raise ValueError("Modulus must not be a power of 2")
         assert 0 <= x < mod**2
         print(f"Calculating: {x} % {mod}")
+        # This can be calculated once for a modexp loop.
         shift = mod.bit_length()*2
         factor = (1 << shift) // mod
         print(f"Factor: {factor}")
