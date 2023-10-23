@@ -577,7 +577,8 @@ object "ModExp" {
 
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
-                    bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, scratchBuf3Ptr)
+                    let limbsToRem := bigIntLimbsWithoutZeros(basePtr, nLimbs)
+                    bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, limbsToRem, modulusBitSize, scratchBuf3Ptr)
                     basePtr, scratchBuf3Ptr := flip(basePtr, scratchBuf3Ptr)
 
                     // PSEUDOCODE: `while exponent > 0 do`
