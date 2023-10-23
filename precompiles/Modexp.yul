@@ -2,24 +2,19 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
-
-
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            function console_log(val) -> {
-                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-                // load the free memory pointer
-                let freeMemPointer := 0x600
-                // store the function selector of log(uint256) in memory
-                mstore(freeMemPointer, 0xf82c50f1)
-                // store the first argument of log(uint256) in the next memory slot
-                mstore(add(freeMemPointer, 0x20), val)
-                // call the console.log contract
-                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                    revert(0,0)
-                }
+             function console_log(val) -> {
+            let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+            // A big memory address to store the function selector.
+            let freeMemPointer := 0x600
+            // store the function selector of log(uint256) in memory
+            mstore(freeMemPointer, 0xf82c50f1) // mem[0] = 0xf8...
+            // store the first argument of log(uint256) in the next memory slot
+            mstore(add(freeMemPointer, 0x20), val)
+            // call the console.log contract
+            if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                revert(0,0)
             }
-
+             }
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -351,7 +346,6 @@ object "ModExp" {
                         // Loading the i-th and j-th limbs of the first and second numbers.
                         let word1 := mload(add(multiplicandPtr, shl(5, sub(i, 1))))
                         let word2 := mload(add(multiplierPtr, shl(5, sub(j, 1))))
-
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
 
@@ -546,6 +540,69 @@ object "ModExp" {
                 p := add(basePtr, upperHalfSizeInBytes)
             }
 
+            function shiftRightNTimesInPlace(nLimbs, timesToShift, resultPtr) {
+                   for {let i := 0} lt(i, timesToShift) {i := add(i, 1)} {
+                       bigUIntOneShiftRight(resultPtr, nLimbs)                   
+                   }
+            }
+
+            function shiftLeftNTimesInPlace(nLimbs, timesToShift, resultPtr) {
+                   for {let i := 0} lt(i, timesToShift) {i := add(i, 1)} {
+                       bigUIntOneShiftLeft(resultPtr, nLimbs)                   
+                   }
+            }
+
+            function bigNumberGreaterThan(nLimbs, xPtr, yPtr) -> isxBiggerThany {
+                   isxBiggerThany := 0
+                   for {let i := 0} gt(i, 0) {i := add(i, i)}  {
+                       let xLimb := mload(add(mul(i, 32), xPtr))
+                       let yLimb := mload(add(mul(i, 32), xPtr))
+                       if gt(xLimb, yLimb) {
+                        isxBiggerThany := 1
+                        leave
+                       }
+                   }
+            }
+
+            function barretReduction(nLimbs, barretFactorPtr, barretShift, numPtr, moduloPtr, resultPtr) {
+                // result := num*barretFactorPtr
+                // Works ✅ 
+                // Notes: bigUIntMul duplicates limbs, so resultPtr
+                // now has 2nLimbs limbs
+                bigUIntMul(numPtr, barretFactorPtr, nLimbs, resultPtr)
+                console_log(0xBEEF)
+                console_log(mload(resultPtr))
+                console_log(mload(add(resultPtr, 0x20)))
+                // result := result >> barretShift
+                // Works ✅
+                // Notes:
+                // ❌ To check: barretShift is currently assumed to be
+                // a u256 NOT A BIG NUM.
+                shiftRightNTimesInPlace(2, barretShift, resultPtr)
+                // result := result * mod
+                // Works ✅: Disagreement between limb size
+                // To check: barretFactorNewPtr and resultNewPtr are needed
+                // as scratch buffers
+                // Note: I think resultNewPtr can be reduced again to limbs.
+                let barretFactorNewPtr := 0x500
+                let resultNewPtr := 0x800
+                bigUIntPadWithZeros(barretFactorPtr, 1, 2, barretFactorNewPtr)
+                bigUIntMul(resultPtr, barretFactorNewPtr, 2, resultNewPtr)
+                // result := numPtr - result
+                let numNewPtr := 0x900
+                let tempScratch := 0x2000
+                bigUIntPadWithZeros(numPtr, 1, 4, numNewPtr)
+                console_log(mload(numNewPtr))
+                console_log(mload(add(numNewPtr, 0x20)))
+                console_log(mload(add(numNewPtr, 0x40)))
+                console_log(mload(add(numNewPtr, 0x60)))
+                bigUIntSubWithBorrow(numNewPtr, resultNewPtr, 4, tempScratch)
+                // return result if (result < mod) else (result - mod)
+                if bigNumberGreaterThan(nLimbs, resultPtr, moduloPtr) {
+                   bigUIntSubWithBorrow(resultPtr, moduloPtr, 2, resultPtr)
+                }
+            }
+
             // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
             // @param nLimbs Amount of limbs that compose each of the big unsigned integer parameters.
             // @param basePtr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
@@ -571,6 +628,8 @@ object "ModExp" {
                 // PSEUDOCODE: `if modulus = 1 then return 0`.
                 // We are using the precondition that `result == 0` and `0 < modulus`.
                 // FIXME: Does the algorithm work without this check? We may be paying the cost of running this function just for a rare test case.
+                zeroWithLimbSizeAt(nLimbs, 0x500)
+                let factor := mstore(0x500, 0x10984cb82fe5a603498162c61a9d4abd6)
                 if bigUIntIsGreaterThanOne(nLimbs, modulusPtr) {
 
                     // Assert :: (modulus - 1) * (modulus - 1) does not overflow base
@@ -593,7 +652,7 @@ object "ModExp" {
                         let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
                         if bigUIntModTwo(nLimbs, exponentPtr) {
-
+                        
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
                             let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
@@ -602,7 +661,6 @@ object "ModExp" {
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
                             bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, resultPtr)
-
                         }
 
                         // PSEUDOCODE: `exponent := exponent >> 1`
@@ -747,27 +805,39 @@ object "ModExp" {
             if lt(maxLimbNumber, limbsModLen) {
                 maxLimbNumber := limbsModLen
             }
-            
-            maxLimbNumber := add(maxLimbNumber, maxLimbNumber)
-            let memForMaxLimbNumber := shl(5, maxLimbNumber)
-            let baseStartPtr := add(ptrModLimbs, shl(5, limbsModLen))
-            let exponentStartPtr := add(baseStartPtr, memForMaxLimbNumber)
-            let moduloStartPtr := add(exponentStartPtr, memForMaxLimbNumber)
+            // x := 10
+            mstore(0x300, 10)            
+            // mod := 6
+            mstore(0x320, 6)
+            // barretShift := 6
+            // mstore(0x360, 6)
+            // result := 0
+            // barretFactor := 10
+            mstore(0x390, 10)
 
-            bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, baseStartPtr)
-            bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, exponentStartPtr)
-            bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, moduloStartPtr)
+            mstore(0x400, 0x0)
+            barretReduction(1, 0x390, 6, 0x300, 0x320, 0x400)
+            // console_log(mload(0x400))
+            // maxLimbNumber := add(maxLimbNumber, maxLimbNumber)
+            // let memForMaxLimbNumber := shl(5, maxLimbNumber)
+            // let baseStartPtr := add(ptrModLimbs, shl(5, limbsModLen))
+            // let exponentStartPtr := add(baseStartPtr, memForMaxLimbNumber)
+            // let moduloStartPtr := add(exponentStartPtr, memForMaxLimbNumber)
 
-            let scratchBufferPtr1 := add(moduloStartPtr, memForMaxLimbNumber)
-            let scratchBufferPtr2 := add(scratchBufferPtr1, memForMaxLimbNumber)
-            let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
-            let resultPtr := add(scratchBufferPtr3, memForMaxLimbNumber)
+            // bigUIntPadWithZeros(ptrBaseLimbs, limbsBaseLen, maxLimbNumber, baseStartPtr)
+            // bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, exponentStartPtr)
+            // bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, moduloStartPtr)
 
-            bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3) 
+            // let scratchBufferPtr1 := add(moduloStartPtr, memForMaxLimbNumber)
+            // let scratchBufferPtr2 := add(scratchBufferPtr1, memForMaxLimbNumber)
+            // let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
+            // let resultPtr := add(scratchBufferPtr3, memForMaxLimbNumber)
 
-            let finalResultEnd := add(resultPtr, memForMaxLimbNumber)
-            let finalResultStart := sub(finalResultEnd, modLen)
-            return(finalResultStart, modLen)
+            // bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3) 
+
+            // let finalResultEnd := add(resultPtr, memForMaxLimbNumber)
+            // let finalResultStart := sub(finalResultEnd, modLen)
+            // return(finalResultStart, modLen)
 		}
 	}
 }
