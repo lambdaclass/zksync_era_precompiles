@@ -630,8 +630,6 @@ object "ModExp" {
                 for { let i } lt(i, currentLimbNumber) { i := add(i, 1) } {
                     // Move the limb to the right position
                     mstore(add(resultPtr, shl(5, sub(sub(newLimbNumber, 1), i))), mload(add(ptr, shl(5, sub(sub(currentLimbNumber,1), i)))))
-                    // Store zero in the position of the moved limb
-                    mstore(add(resultPtr, shl(5, sub(sub(currentLimbNumber,1), i))), 0)
                 }
             }
 
