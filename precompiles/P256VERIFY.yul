@@ -2,6 +2,19 @@ object "P256VERIFY" {
     code { }
     object "P256VERIFY_deployed" {
         code {
+            function console_log(val) -> {
+                let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
+                // A big memory address to store the function selector.
+                let freeMemPointer := 0x600
+                // store the function selector of log(uint256) in memory
+                mstore(freeMemPointer, 0xf82c50f1) // mem[0] = 0xf8...
+                // store the first argument of log(uint256) in the next memory slot
+                mstore(add(freeMemPointer, 0x20), val)
+                // call the console.log contract
+                if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
+                    revert(0,0)
+                }
+            }
             // Constants
 
             // CURVE CONSTANTS
@@ -460,7 +473,6 @@ object "P256VERIFY" {
             /// @return yr The y coordinate of the point P + Q in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the point P + Q in projective coordinates in Montgomery form.
             function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
-                let flag := 1
                 let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                 let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
                 if and(pIsInfinity, qIsInfinity) {
@@ -468,52 +480,50 @@ object "P256VERIFY" {
                     xr := 0
                     yr := MONTGOMERY_ONE_P()
                     zr := 0
-                    flag := 0
+                    leave
                 }
-                if and(flag, pIsInfinity) {
-                    // Infinity + P = P
+                if pIsInfinity {
+                    // Infinity + Q = Q
                     xr := xq
                     yr := yq
                     zr := zq
-                    flag := 0
+                    leave
                 }
-                if and(flag, qIsInfinity) {
+                if qIsInfinity {
                     // P + Infinity = P
                     xr := xp
                     yr := yp
                     zr := zp
-                    flag := 0
+                    leave
                 }
-                if and(flag, and(and(eq(xp, xq), eq(montgomerySub(0, yp, P()), yq)), eq(zp, zq))) {
+                if and(and(eq(xp, xq), eq(montgomerySub(0, yp, P()), yq)), eq(zp, zq)) {
                     // P + (-P) = Infinity
                     xr := 0
                     yr := MONTGOMERY_ONE_P()
                     zr := 0
-                    flag := 0
+                    leave
                 }
-                if and(flag, and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq))) {
+                if and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq)) {
                     // P + P = 2P
                     xr, yr, zr := projectiveDouble(xp, yp, zp)
-                    flag := 0
+                    leave
                 }
 
                 // P1 + P2 = P3
-                if flag {
-                    let t0 := montgomeryMul(yq, zp, P(), P_PRIME())
-                    let t1 := montgomeryMul(yp, zq, P(), P_PRIME())
-                    let t := montgomerySub(t0, t1, P())
-                    let u0 := montgomeryMul(xq, zp, P(), P_PRIME())
-                    let u1 := montgomeryMul(xp, zq, P(), P_PRIME())
-                    let u := montgomerySub(u0, u1, P())
-                    let u2 := montgomeryMul(u, u, P(), P_PRIME())
-                    let u3 := montgomeryMul(u2, u, P(), P_PRIME())
-                    let v := montgomeryMul(zq, zp, P(), P_PRIME())
-                    let w := montgomerySub(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAdd(u0, u1, P()), P(), P_PRIME()), P())
-    
-                    xr := montgomeryMul(u, w, P(), P_PRIME())
-                    yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2, P(), P_PRIME()), w, P()), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()), P())
-                    zr := montgomeryMul(u3, v, P(), P_PRIME())
-                }
+                let t0 := montgomeryMul(yq, zp, P(), P_PRIME())
+                let t1 := montgomeryMul(yp, zq, P(), P_PRIME())
+                let t := montgomerySub(t0, t1, P())
+                let u0 := montgomeryMul(xq, zp, P(), P_PRIME())
+                let u1 := montgomeryMul(xp, zq, P(), P_PRIME())
+                let u := montgomerySub(u0, u1, P())
+                let u2 := montgomeryMul(u, u, P(), P_PRIME())
+                let u3 := montgomeryMul(u2, u, P(), P_PRIME())
+                let v := montgomeryMul(zq, zp, P(), P_PRIME())
+                let w := montgomerySub(montgomeryMul(montgomeryMul(t, t, P(), P_PRIME()), v, P(), P_PRIME()), montgomeryMul(u2, montgomeryAdd(u0, u1, P()), P(), P_PRIME()), P())
+
+                xr := montgomeryMul(u, w, P(), P_PRIME())
+                yr := montgomerySub(montgomeryMul(t, montgomerySub(montgomeryMul(u0, u2, P(), P_PRIME()), w, P()), P(), P_PRIME()), montgomeryMul(t0, u3, P(), P_PRIME()), P())
+                zr := montgomeryMul(u3, v, P(), P_PRIME())
             }
 
             /// @notice Computes the scalar multiplication of a point in projective coordinates in Montgomery form for modulus P().
@@ -546,6 +556,59 @@ object "P256VERIFY" {
                 case 1 {
                     xr, yr, zr := projectiveDouble(xp, yp, zp)
                 }
+            }
+
+            function shamirMuliplication(xq, yq, zq, t0, t1) -> xr, yr, zr {
+                let ret
+                let xg, yg, zg := MONTGOMERY_PROJECTIVE_G_P()
+                let xh, yh, zh := projectiveAdd(xg, yg, zg, xq, yq, zq)
+                let index, ret := findMostSignificantBitIndex(t0, t1)
+                console_log(ret)
+                // TODO: Use case
+                if eq(ret, 1) {
+                    xr := xq
+                    yr := yq
+                    zr := zq
+                }
+                if eq(ret, 2) {
+                    xr := xg
+                    yr := yg
+                    zr := zg
+                }
+                if eq(ret, 3) {
+                    xr := xh
+                    yr := yh
+                    zr := zh
+                }
+                for {} gt(index, 0) {} {
+                    index := sub(index, 1)
+                    xr, yr, zr := projectiveDouble(xr, yr, zr)
+                    ret := compareBits(index, t0, t1)
+                    console_log(ret)
+                    // TODO: Use case
+                    if eq(ret, 1) {
+                        xr, yr, zr := projectiveAdd(xq, yq, zq, xr, yr, zr)
+                    }
+                    if eq(ret, 2) {
+                        xr, yr, zr := projectiveAdd(xg, yg, zg, xr, yr, zr)
+                    }
+                    if eq(ret, 3) {
+                        xr, yr, zr := projectiveAdd(xh, yh, zh, xr, yr, zr)
+                    }
+                }
+            }
+
+            function findMostSignificantBitIndex(t0, t1) -> index, ret {
+                index := 255
+                ret := 0
+                for {} eq(ret, 0) { index := sub(index, 1) } {
+                    ret := compareBits(index, t0, t1)
+                }
+                index := add(index, 1)
+            }
+
+            function compareBits(index, t0, t1) -> ret {
+                ret := add(mul(and(shr(index, t0), 1), 2), and(shr(index, t1), 1))
             }
 
             // Fallback
@@ -584,12 +647,35 @@ object "P256VERIFY" {
             let t0 := outOfMontgomeryForm(montgomeryMul(hash, s1, N(), N_PRIME()), N(), N_PRIME())
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
 
+            t0 := 2
+            t1 := 1
+
+            // Shamir:
+            // let xs, ys, zs := shamirMuliplication(x, y, z, t0, t1)
+            // console_log(xs)
+            // console_log(ys)
+            // console_log(zs)
+
+            
             let gx, gy, gz := MONTGOMERY_PROJECTIVE_G_P()
 
-            // TODO: Implement Shamir's trick for adding to scalar multiplications faster.
+            // Manual:
+            let xm, ym, zm := projectiveAdd(gx, gy, gz, x, y, z)
+            console_log(xm)
+            console_log(ym)
+            console_log(zm)
+            xm, ym, zm := projectiveAdd(x, y, z, gx, gy, gz)
+            console_log(xm)
+            console_log(ym)
+            console_log(zm)
+
+            // Naive:
             let xp, yp, zp := projectiveScalarMul(gx, gy, gz, t0)
             let xq, yq, zq := projectiveScalarMul(x, y, z, t1)
             let xr, yr, zr := projectiveAdd(xp, yp, zp, xq, yq, zq)
+            // console_log(xr)
+            // console_log(yr)
+            // console_log(zr)
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             let z_inv := montgomeryModularInverse(zr, P(), R2_MOD_P())
