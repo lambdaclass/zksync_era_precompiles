@@ -460,18 +460,16 @@ object "P256VERIFY" {
                     zr := zp
                     leave
                 }
-                // FIX ME: we need to check xp/zp == xq/zq and yp/zp == -yq/zq 
-                if and(and(eq(xp, xq), eq(montgomerySub(0, yp, P()), yq)), eq(zp, zq)) {
+                if eq(montgomeryMul(xp, zq, P(), P_PRIME()), montgomeryMul(xq, zp, P(), P_PRIME())) {
+                    if eq(montgomeryMul(yp, zq, P(), P_PRIME()), montgomeryMul(yq, zp, P(), P_PRIME())) {
+                        // P + P = 2P
+                        xr, yr, zr := projectiveDouble(xp, yp, zp)
+                        leave
+                    }
                     // P + (-P) = Infinity
                     xr := 0
                     yr := MONTGOMERY_ONE_P()
                     zr := 0
-                    leave
-                }
-                // FIX ME: we need to check xp/zp == xq/zq and yp/zp == yq/zq 
-                if and(and(eq(xp, xq), eq(yp, yq)), eq(zp, zq)) {
-                    // P + P = 2P
-                    xr, yr, zr := projectiveDouble(xp, yp, zp)
                     leave
                 }
 
