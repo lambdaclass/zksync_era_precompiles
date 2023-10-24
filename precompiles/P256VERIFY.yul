@@ -492,22 +492,6 @@ object "P256VERIFY" {
                 zr := montgomeryMul(u3, v, P(), P_PRIME())
             }
 
-            function projectiveAdd2(x1, y1, z1, x2, y2, z2) -> x3, y3, z3 {
-                let y1z2 := montgomeryMul(y1, z2, P(), P_PRIME()) // Y1Z2 = Y1*Z2
-                let x1z2 := montgomeryMul(x1, z2, P(), P_PRIME()) // X1Z2 = X1*Z2
-                let z1z2 := montgomeryMul(z1, z2, P(), P_PRIME()) // Z1Z2 = Z1*Z2
-                let u := montgomerySub(montgomeryMul(y2, z1, P(), P_PRIME()), y1z2, P()) // u = Y2*Z1-Y1Z2
-                let uu := montgomeryMul(u, u, P(), P_PRIME()) // uu = u2
-                let v := montgomerySub(montgomeryMul(x2, z1, P(), P_PRIME()), x1z2, P()) // v = X2*Z1-X1Z2
-                let vv := montgomeryMul(v, v, P(), P_PRIME()) // vv = v2
-                let vvv := montgomeryMul(vv, v, P(), P_PRIME()) // vvv = v*vv
-                let r := montgomeryMul(vv, x1z2, P(), P_PRIME()) // R = vv*X1Z2
-                let a := montgomerySub(montgomerySub( montgomeryMul(uu, z1z2, P(), P_PRIME()), vvv, P()), montgomeryAdd(r, r, P()), P()) // A = uu*Z1Z2-vvv-2*R
-                x3 := montgomeryMul(v, a, P(), P_PRIME()) // X3 = v*A
-                y3 := montgomerySub(montgomeryMul(u,montgomerySub(r, a, P()), P(), P_PRIME()) , montgomeryMul(vvv, y1z2, P(), P_PRIME()), P()) // Y3 = u*(R-A)-vvv*Y1Z2
-                z3 := montgomeryMul(vvv, z1z2, P(), P_PRIME()) // Z3 = vvv*Z1Z2
-            }
-
             /// @notice Computes the linear combination of curve points: t0*Q + t1*G = R
             /// @param xq The x coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param yq The y coordinate of the point Q in projective coordinates in Montgomery form.
