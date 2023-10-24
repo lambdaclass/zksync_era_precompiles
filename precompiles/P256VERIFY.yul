@@ -531,38 +531,6 @@ object "P256VERIFY" {
                 z3 := montgomeryMul(vvv, z1z2, P(), P_PRIME()) // Z3 = vvv*Z1Z2
             }
 
-            /// @notice Computes the scalar multiplication of a point in projective coordinates in Montgomery form for modulus P().
-            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
-            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
-            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
-            /// @param scalar The scalar to multiply the point by.
-            /// @return xr The x coordinate of the point scalar*P in projective coordinates in Montgomery form.
-            /// @return yr The y coordinate of the point scalar*P in projective coordinates in Montgomery form.
-            /// @return zr The z coordinate of the point scalar*P in projective coordinates in Montgomery form.
-            function projectiveScalarMul(xp, yp, zp, scalar) -> xr, yr, zr {
-                switch eq(scalar, 2)
-                case 0 {
-                    let xq := xp
-                    let yq := yp
-                    let zq := zp
-                    xr := 0
-                    yr := MONTGOMERY_ONE_P()
-                    zr := 0
-                    for {} scalar {} {
-                        if lsbIsOne(scalar) {
-                            xr, yr, zr := projectiveAdd(xr, yr, zr, xq, yq, zq)
-                        }
-        
-                        xq, yq, zq := projectiveDouble(xq, yq, zq)
-                        // Check next bit
-                        scalar := shr(1, scalar)
-                    }
-                }
-                case 1 {
-                    xr, yr, zr := projectiveDouble(xp, yp, zp)
-                }
-            }
-
             /// @notice Computes the linear combination of curve points: t0*Q + t1*G = R
             /// @param xq The x coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param yq The y coordinate of the point Q in projective coordinates in Montgomery form.
