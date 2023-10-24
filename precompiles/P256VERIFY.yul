@@ -115,13 +115,6 @@ object "P256VERIFY" {
 				precompileCall(0, gas())
 		  	}
 
-            /// @notice Checks if the LSB of a number is 1.
-            /// @param x The number to check.
-            /// @return ret True if the LSB is 1, false otherwise.
-            function lsbIsOne(x) -> ret {
-                ret := and(x, 1)
-            }
-
             // MONTGOMERY
 
             /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
@@ -390,22 +383,6 @@ object "P256VERIFY" {
                 xr := xp
                 yr := yp
                 zr := MONTGOMERY_ONE_P()
-            }
-
-            /// @notice Converts a point in projective coordinates to affine coordinates in Montgomery form for modulus P().
-            /// @dev See https://www.nayuki.io/page/elliptic-curve-point-addition-in-projective-coordinates for further details.
-            /// @dev Reverts if the point is not on the curve.
-            /// @param xp The x coordinate of the point P in projective coordinates in Montgomery form.
-            /// @param yp The y coordinate of the point P in projective coordinates in Montgomery form.
-            /// @param zp The z coordinate of the point P in projective coordinates in Montgomery form.
-            /// @return xr The x coordinate of the point P in affine coordinates in Montgomery form.
-            /// @return yr The y coordinate of the point P in affine coordinates in Montgomery form.
-            function projectiveIntoAffine(xp, yp, zp) -> xr, yr {
-                if zp {
-                    let zp_inv := montgomeryModularInverse(zp, P(), R2_MOD_P())
-                    xr := montgomeryMul(xp, zp_inv, P(), P_PRIME())
-                    yr := montgomeryMul(yp, zp_inv, P(), P_PRIME())
-                }
             }
 
             /// @notice Checks if a point in projective coordinates is the point at infinity.
