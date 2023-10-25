@@ -469,23 +469,25 @@ object "EcPairing" {
 
             // IsInSubGroup returns true if p is on the r-torsion, false otherwise.
             function g2IsInSubGroup(xp0, xp1, yp0, yp1, zp0, zp1) -> ret {
-                console_log(0xaaaaa)
-                console_log(xp0)
-                console_log(xp1)
-                console_log(yp0)
-                console_log(yp1)
-                console_log(zp0)
-                console_log(zp1)
-                console_log(0xbbbbbb)
+                // console_log(0xaaaaa)
+                // console_log(xp0)
+                // console_log(xp1)
+                // console_log(yp0)
+                // console_log(yp1)
+                // console_log(zp0)
+                // console_log(zp1)
+                // console_log(0xbbbbbb)
                 let r := 21888242871839275222246405745257275088548364400416034343698204186575808495617
                 let xr0, xr1, yr0, yr1, zr0, zr1 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, r)
-                console_log(xr0)
-                console_log(xr1)
-                console_log(yr0)
-                console_log(yr1)
-                console_log(zr0)
-                console_log(zr1)
-                ret := 1
+                // console_log(xr0)
+                // console_log(xr1)
+                // console_log(yr0)
+                // console_log(yr1)
+                // console_log(zr0)
+                // console_log(zr1)
+                let c0 := outOfMontgomeryForm(zr0)
+                let c1 := outOfMontgomeryForm(zr1)
+                ret := and(eq(c0, 0), eq(c1, 0))
                 // let a00, a01, a10, a11, a20, a21 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, X_GEN())
                 // let b00, b01, b10, b11, b20, b21 := psi(a00, a01, a10, a11, a20, a21)
                 // a00, a01, a10, a11, a20, a21 := g2Add(xp0, xp1, yp0, yp1, zp0, zp1, a00, a01, a10, a11, a20, a21)
@@ -619,92 +621,9 @@ object "EcPairing" {
                     zr0 := 0
                     zr1 := 0
                     for {} scalar {} {
-
                         if lsbIsOne(scalar) {
-                            let qIsInfinity := g2ProjectivePointIsInfinity(xq0, xq1, yq0, yq1, zq0, zq1)
-                            let rIsInfinity := g2ProjectivePointIsInfinity(xr0, xr1, yr0, yr1, zr0, zr1)
-                            if and(rIsInfinity, qIsInfinity) {
-                                // Infinity + Infinity = Infinity
-                                break
-                            }
-                            if and(rIsInfinity, iszero(qIsInfinity)) {
-                                // Infinity + P = P
-                                xr0 := xq0
-                                xr1 := xq1
-                                yr0 := yq0
-                                yr1 := yq1
-                                zr0 := zq0
-                                zr1 := zq1
-        
-                                xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-                            if and(iszero(rIsInfinity), qIsInfinity) {
-                                // P + Infinity = P
-                                break
-                            }
-                            // We could've used the neg function for G2 but we would need auxiliar variables for the negation
-                            if g2Eq(xr0, xr1, montgomerySub(0, yr0), montgomerySub(0, yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
-                                // P + (-P) = Infinity
-                                xr0 := 0
-                                xr1 := 0
-                                yr0 := 0
-                                yr1 := 0
-                                zr0 := 0
-                                zr1 := 0
-        
-                                xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-                            // FIXME: This condition is not addapted for fp2
-                            if g2Eq(xr0, xr1, xq0, xq1, yr0, yr1, yq0, yq1, zr0, zr1, zq0, zq1) {
-                                // P + P = 2P
-                                xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
-        
-                                xq0 := xr0
-                                xq1 := xr1
-                                yq0 := yr0
-                                yq1 := yr1
-                                zq0 := zr0
-                                zq1 := zr1
-                                // Check next bit
-                                scalar := shr(1, scalar)
-                                continue
-                            }
-        
-                            // P1 + P2 = P3
-        
-                            let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
-                            let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
-                            let t0, t1 := fp2Sub(t00, t01, t10, t11)
-                            let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
-                            let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
-                            let u0, u1 := fp2Sub(u00, u01, u10, u11)
-                            let u20, u21 := fp2Mul(u0, u1, u0, u1)
-                            let u30, u31 := fp2Mul(u20, u21, u0, u1)
-                            let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
-
-                            let temp00, temp01 := fp2Add(u00, u01, u10, u11)
-                            let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
-                            let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
-                            let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
-                            let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
-            
-                            xr0, xr1 := fp2Mul(u0, u1, w0, w1)
-                            
-                            temp00, temp01 := fp2Mul(u00, u01, u20, u21)
-                            temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
-                            temp20, temp21 := fp2Mul(t00, t01, u30, u31)
-                            temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
-                            yr0, yr1 := fp2Sub(temp30, temp31, temp20, temp21)
-
-                            zr0, zr1 := fp2Mul(u30, u31, v0, v1)
+                            xr0, xr1, yr0, yr1, zr0, zr1 := g2Add(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1)
                         }
-        
                         xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
                         // Check next bit
                         scalar := shr(1, scalar)
@@ -791,7 +710,6 @@ object "EcPairing" {
 
             // 0000000000000000000000000000000000000000000000000000000000000000
             // 0000000000000000000000000000000000000000000000000000000000000008
-
             // 00d3270b7da683f988d3889abcdad9776ecd45abaca689f1118c3fd33404b439
             // 2588360d269af2cd3e0803839ea274c2b8f062a6308e8da85fd774c26f1bcb87
 
@@ -803,24 +721,24 @@ object "EcPairing" {
             // 1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed
             // 090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b
             // 12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
-            
-            let g1_y := intoMontgomeryForm(0)
-            let g1_x := intoMontgomeryForm(8)
 
             let g2_x2 := intoMontgomeryForm(0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2)
             let g2_x1 := intoMontgomeryForm(0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed)
             let g2_y2 := intoMontgomeryForm(0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b)
             let g2_y1 := intoMontgomeryForm(0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa)
+            
+            let g2_x4 := intoMontgomeryForm(0)
+            let g2_x3 := intoMontgomeryForm(8)
+            let g2_y4 := intoMontgomeryForm(0x00d3270b7da683f988d3889abcdad9776ecd45abaca689f1118c3fd33404b439)
+            let g2_y3 := intoMontgomeryForm(0x2588360d269af2cd3e0803839ea274c2b8f062a6308e8da85fd774c26f1bcb87)
 
-            g2IsInSubGroup(g2_x1,g2_x2, g2_y1, g2_y2, MONTGOMERY_ONE(), 0) 
+            if g2IsInSubGroup(g2_x1,g2_x2, g2_y1, g2_y2, MONTGOMERY_ONE(), 0) {
+                console_log(0xAAA)
+			}
 
-            // if iszero(g2IsInSubGroup(g2_x0,g2_x1, g2_y0, g2_y1, MONTGOMERY_ONE(), 0)) {
-            //     console_log(0xAAA)
-			// }
-
-            // if g2IsInSubGroup(g2_x2,g2_x3, g2_y2, g2_y3, MONTGOMERY_ONE(), 0) {
-            //     console_log(0xBBB)
-			// }
+            if g2IsInSubGroup(g2_x3,g2_x4, g2_y3, g2_y4, MONTGOMERY_ONE(), 0) {
+                console_log(0xBBB)
+			}
 
 		}
 	}
