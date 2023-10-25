@@ -549,34 +549,33 @@ object "EcPairing" {
                     c00, c01, c10, c11, c20, c21 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
                     leave
                 }
-                    // P1 + P2 = P3
-            
-                    let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
-                    let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
-                    let t0, t1 := fp2Sub(t00, t01, t10, t11)
-                    let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
-                    let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
-                    let u0, u1 := fp2Sub(u00, u01, u10, u11)
-                    let u20, u21 := fp2Mul(u0, u1, u0, u1)
-                    let u30, u31 := fp2Mul(u20, u21, u0, u1)
-                    let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
+                // P1 + P2 = P3
+        
+                let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
+                let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
+                let t0, t1 := fp2Sub(t00, t01, t10, t11)
+                let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
+                let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
+                let u0, u1 := fp2Sub(u00, u01, u10, u11)
+                let u20, u21 := fp2Mul(u0, u1, u0, u1)
+                let u30, u31 := fp2Mul(u20, u21, u0, u1)
+                let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
 
-                    let temp00, temp01 := fp2Add(u00, u01, u10, u11)
-                    let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
-                    let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
-                    let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
-                    let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
-            
-                    c00, c01 := fp2Mul(u0, u1, w0, w1)
-                            
-                    temp00, temp01 := fp2Mul(u00, u01, u20, u21)
-                    temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
-                    temp20, temp21 := fp2Mul(t00, t01, u30, u31)
-                    temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
-                    c10, c11 := fp2Sub(temp30, temp31, temp20, temp21)
+                let temp00, temp01 := fp2Add(u00, u01, u10, u11)
+                let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
+                let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
+                let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
+                let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
+        
+                c00, c01 := fp2Mul(u0, u1, w0, w1)
+                        
+                temp00, temp01 := fp2Mul(u00, u01, u20, u21)
+                temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
+                temp20, temp21 := fp2Mul(t00, t01, u30, u31)
+                temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
+                c10, c11 := fp2Sub(temp30, temp31, temp20, temp21)
 
-                    c20, c21 := fp2Mul(u30, u31, v0, v1)
-                }
+                c20, c21 := fp2Mul(u30, u31, v0, v1)
             }
 
             function g2Sub(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1) -> c00, c01, c10, c11, c20, c21 {
