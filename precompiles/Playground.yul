@@ -502,27 +502,24 @@ object "EcPairing" {
             }
 
             function g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
-                let x_squared0, x_squared1 := fp2Mul(xp0, xp1, xp0, xp1)
-                let temp00, temp01 := fp2Add(x_squared0, x_squared1, x_squared0, x_squared1)
-                let t0, t1 := fp2Add(x_squared0, x_squared1, temp00, temp01)
-                let yz0, yz1 := fp2Mul(yp0, yp1, zp0, zp1)
-                let u0, u1 := fp2Add(yz0, yz1, yz0, yz1)
-                let temp10, temp11 := fp2Mul(xp0, xp1, yp0, yp1)
-                let uxy0, uxy1 := fp2Mul(u0, u1, temp10, temp11)
-                let v0, v1 := fp2Add(uxy0, uxy1, uxy0, uxy1)
-                let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
-                let temp30, temp31 := fp2Add(v0, v1, v0, v1)
-                let w0, w1 := fp2Sub(temp20, temp21, temp30, temp31)
-
-                xr0, xr1 := fp2Mul(u0, u1, w0, w1)
-                let uy0, uy1 := fp2Mul(u0, u1, yp0, yp1)
-                let uy_squared0, uy_squared1 := fp2Mul(uy0, uy1, uy0, uy1)
-                let temp40, temp41 := fp2Sub(v0, v1, w0, w1)
-                let temp50, temp51 := fp2Mul(t0, t1, temp40, temp41)
-                let temp60, temp61 := fp2Add(uy_squared0, uy_squared1, uy_squared0, uy_squared1)
-                yr0, yr1 := fp2Sub(temp50, temp51, temp60, temp61)
-                let temp70, temp71 := fp2Mul(u0, u1, u0, u1)
-                zr0, zr1 := fp2Mul(u0, u1, temp70, temp71)
+                let a00, a01 := fp2Mul(xp0, xp1, xp0, xp1) // A = X1^2
+                let b00, b01 := fp2Mul(yp0, yp1, yp0, yp1) // B = Y1^2
+                let c00, c01 := fp2Mul(b00, b01, b00, b01) // C = B^2
+                let t00, t01 := fp2Add(xp0, xp1, b01, b02) // t0 = X1+B
+                let t10, t11 := fp2Mul(t00, t01, t00, t01) // t1 = t0^2
+                let t20, t21 := fp2Sub(t10, t11, a00, a01) // t2 = t1-A
+                let t30, t21 := fp2Sub(t30, t31, c00, c01) // t3 = t2-C
+                let d00, d01 := fp2ScalarMul(t30, t31, 2) // D = 2*t3
+                let e00, e01 := fp2ScalarMul(a00, a01, 3) // E = 3*A
+                let f00, f01 := fp2Mul(e00, e01, e00, e01) // F = E^2
+                let t40, t41 := fp2ScalarMul(d00, d01, 2) // t4 = 2*D
+                xr0, xr1 := fp2Sub(f00, f01, t40, t41) // X3 = F-t4
+                let t50, t51 := fp2Sub(d00, d01, xr0, xr1) // t5 = D-X3
+                let t60, t61 := fp2ScalarMul(c00, c01, 8) // t6 = 8*C
+                let t70, t71 := fp2Mul(e00, e01, t50, t51) // t7 = E*t5
+                yr0, yr1 := fp2Sub(t70, t71, t60, t61) // Y3 = t7-t6
+                let t80, t81 := fp2Mul(yp0, yp1, zp0, zp1) // t8 = Y1*Z1
+                zr0, zr1 := fp2ScalarMul(t80, t81, 2) // Z3 = 2*t8
             }
 
             function g2Add(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1) -> c00, c01, c10, c11, c20, c21 {
