@@ -485,9 +485,7 @@ object "EcPairing" {
                 // console_log(yr1)
                 // console_log(zr0)
                 // console_log(zr1)
-                let c0 := outOfMontgomeryForm(zr0)
-                let c1 := outOfMontgomeryForm(zr1)
-                ret := and(eq(c0, 0), eq(c1, 0))
+                ret := and(eq(zr0, 0), eq(zr1, 0))
                 // let a00, a01, a10, a11, a20, a21 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, X_GEN())
                 // let b00, b01, b10, b11, b20, b21 := psi(a00, a01, a10, a11, a20, a21)
                 // a00, a01, a10, a11, a20, a21 := g2Add(xp0, xp1, yp0, yp1, zp0, zp1, a00, a01, a10, a11, a20, a21)
@@ -505,10 +503,10 @@ object "EcPairing" {
                 let a00, a01 := fp2Mul(xp0, xp1, xp0, xp1) // A = X1^2
                 let b00, b01 := fp2Mul(yp0, yp1, yp0, yp1) // B = Y1^2
                 let c00, c01 := fp2Mul(b00, b01, b00, b01) // C = B^2
-                let t00, t01 := fp2Add(xp0, xp1, b01, b02) // t0 = X1+B
+                let t00, t01 := fp2Add(xp0, xp1, b00, b01) // t0 = X1+B
                 let t10, t11 := fp2Mul(t00, t01, t00, t01) // t1 = t0^2
                 let t20, t21 := fp2Sub(t10, t11, a00, a01) // t2 = t1-A
-                let t30, t21 := fp2Sub(t30, t31, c00, c01) // t3 = t2-C
+                let t30, t31 := fp2Sub(t20, t21, c00, c01) // t3 = t2-C
                 let d00, d01 := fp2ScalarMul(t30, t31, 2) // D = 2*t3
                 let e00, e01 := fp2ScalarMul(a00, a01, 3) // E = 3*A
                 let f00, f01 := fp2Mul(e00, e01, e00, e01) // F = E^2
@@ -549,49 +547,108 @@ object "EcPairing" {
                     c21 := zr1
                     leave
                 }
-                if g2Eq(xr0, xr1, montgomerySub(0, yr0), montgomerySub(0, yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
-                    // P + (-P) = Infinity
-                    c00 := 0
-                    c01 := 0
-                    c10 := 0
-                    c11 := 0
-                    c20 := 0
-                    c21 := 0
-                    leave
-                }
-                // FIXME: This condition is not addapted for fp2
-                if g2Eq(xr0, xr1, xq0, xq1, yr0, yr1, yq0, yq1, zr0, zr1, zq0, zq1) {
-                    // P + P = 2P
-                    c00, c01, c10, c11, c20, c21 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
-                    leave
-                }
+                // if g2Eq(xr0, xr1, montgomerySub(0, yr0), montgomerySub(0, yr1), zr0, zr1, xq0, xq1, yq0, yq1, zq0, zq1) {
+                //     // P + (-P) = Infinity
+                //     c00 := 0
+                //     c01 := 0
+                //     c10 := 0
+                //     c11 := 0
+                //     c20 := 0
+                //     c21 := 0
+                //     leave
+                // }
+                // // FIXME: This condition is not addapted for fp2
+                // if g2Eq(xr0, xr1, xq0, xq1, yr0, yr1, yq0, yq1, zr0, zr1, zq0, zq1) {
+                //     // P + P = 2P
+                //     c00, c01, c10, c11, c20, c21 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
+                //     leave
+                // }
                 // P1 + P2 = P3
         
-                let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
-                let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
-                let t0, t1 := fp2Sub(t00, t01, t10, t11)
-                let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
-                let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
-                let u0, u1 := fp2Sub(u00, u01, u10, u11)
-                let u20, u21 := fp2Mul(u0, u1, u0, u1)
-                let u30, u31 := fp2Mul(u20, u21, u0, u1)
-                let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
+                // let t00, t01 := fp2Mul(yq0, yq1, zr0, zr1)
+                // let t10, t11 := fp2Mul(yr0, yr1, zq0, zq1)
+                // let t0, t1 := fp2Sub(t00, t01, t10, t11)
+                // let u00, u01 := fp2Mul(xq0, zq1, zr0, zr1)
+                // let u10, u11 := fp2Mul(xr0, xr1, zq0, zq1)
+                // let u0, u1 := fp2Sub(u00, u01, u10, u11)
+                // let u20, u21 := fp2Mul(u0, u1, u0, u1)
+                // let u30, u31 := fp2Mul(u20, u21, u0, u1)
+                // let v0, v1 := fp2Mul(zq0, zq1, zr0, zr1)
 
-                let temp00, temp01 := fp2Add(u00, u01, u10, u11)
-                let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
-                let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
-                let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
-                let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
+                // let temp00, temp01 := fp2Add(u00, u01, u10, u11)
+                // let temp10, temp11 := fp2Mul(u20, u21, temp00, temp01)
+                // let temp20, temp21 := fp2Mul(t0, t1, t0, t1)
+                // let temp30, temp31 := fp2Mul(temp20, temp21, v0, v1)
+                // let w0, w1 := fp2Sub(temp30, temp31, temp10, temp11)
         
-                c00, c01 := fp2Mul(u0, u1, w0, w1)
+                // c00, c01 := fp2Mul(u0, u1, w0, w1)
                         
-                temp00, temp01 := fp2Mul(u00, u01, u20, u21)
-                temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
-                temp20, temp21 := fp2Mul(t00, t01, u30, u31)
-                temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
-                c10, c11 := fp2Sub(temp30, temp31, temp20, temp21)
+                // temp00, temp01 := fp2Mul(u00, u01, u20, u21)
+                // temp10, temp11 := fp2Sub(temp00, temp01, w0, w1)
+                // temp20, temp21 := fp2Mul(t00, t01, u30, u31)
+                // temp30, temp31 := fp2Mul(t0, t1, temp10, temp11)
+                // c10, c11 := fp2Sub(temp30, temp31, temp20, temp21)
 
-                c20, c21 := fp2Mul(u30, u31, v0, v1)
+                // c20, c21 := fp2Mul(u30, u31, v0, v1)
+
+                // Z1Z1 = Z1^2
+                let zqzq0, zqzq1 := fp2Mul(zq0, zq1, zq0, zq1)
+                // Z2Z2 = Z2^2
+                let zrzr0, zrzr1 := fp2Mul(zr0, zr1, zr0, zr1)
+                // U1 = X1*Z2Z2
+                let u0, u1 := fp2Mul(xq0, xq1, zrzr0, zrzr1)
+                // U2 = X2*Z1Z1
+                let u2, u3 := fp2Mul(xr0, xr1, zqzq0, zqzq1)
+                // t0 = Z2*Z2Z2
+                let t0, t1 := fp2Mul(zr0, zr1, zrzr0, zrzr1)
+                // S1 = Y1*t0
+                let s0, s1 := fp2Mul(yq0, yq1, t0, t1)
+                // t1 = Z1*Z1Z1
+                let t2, t3 := fp2Mul(zq0, zq1, zqzq0, zqzq1)
+                // S2 = Y2*t1
+                let s2, s3 := fp2Mul(yr0, yr1, t2, t3)
+                // H = U2-U1
+                let h0, h1 := fp2Sub(u2, u3, u0, u1)
+                // t2 = 2*H
+                let t4, t5 := fp2Add(h0, h1, h0, h1)
+                // I = t2^2
+                let i0, i1 := fp2Mul(t4, t5, t4, t5)
+                // J = H*I
+                let j0, j1 := fp2Mul(h0, h1, i0, i1)
+                // t3 = S2-S1
+                let t6, t7 := fp2Sub(s2, s3, s0, s1)
+                // r = 2*t3
+                let r0, r1 := fp2Add(t6, t7, t6, t7)
+                // V = U1*I
+                let v0, v1 := fp2Mul(u0, u1, i0, i1)
+                // t4 = r^2
+                let t8, t9 := fp2Mul(r0, r1, r0, r1)
+                // t5 = 2*V
+                let t10, t11 := fp2Add(v0, v1, v0, v1)
+                // t6 = t4-J
+                let t12, t13 := fp2Sub(t8, t9, j0, j1)
+                // X3 = t6-t5
+                c00, c01 := fp2Sub(t12, t13, t10, t11)
+                // t7 = V-X3
+                let t14, t15 := fp2Sub(v0, v1, c00, c01)
+                // t8 = S1*J
+                let t16, t17 := fp2Mul(s2, s3, j0, j1)
+                // t9 = 2*t8
+                let t18, t19 := fp2Add(t16, t17, t16, t17)
+                // t10 = r*t7
+                let t20, t21 := fp2Mul(r0, r1, t14, t15)
+                // Y3 = t10-t9
+                c10, c11 := fp2Sub(t20, t21, t18, t19)
+                // t11 = Z1+Z2
+                let t22, t23 := fp2Add(zq0, zq1, zr0, zr1)
+                // t12 = t11^2
+                let t24, t25 := fp2Mul(t22, t23, t22, t23)
+                // t13 = t12-Z1Z1
+                let t26, t27 := fp2Sub(t24, t25, zqzq0, zqzq1)
+                // t14 = t13-Z2Z2
+                let t28, t29 := fp2Sub(t26, t27, zrzr0, zrzr1)
+                // Z3 = t14*H
+                c20, c21 := fp2Mul(t28, t29, h0, h1)
             }
 
             function g2Sub(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1) -> c00, c01, c10, c11, c20, c21 {
@@ -605,12 +662,6 @@ object "EcPairing" {
                     xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, yp1)
                 }
                 default {
-                    let xq0 := xp0
-                    let xq1 := xp1
-                    let yq0 := yp0
-                    let yq1 := yp1
-                    let zq0 := zp0
-                    let zq1 := zp1
                     xr0 := MONTGOMERY_ONE()
                     xr1 := 0
                     yr0 := MONTGOMERY_ONE()
@@ -618,10 +669,10 @@ object "EcPairing" {
                     zr0 := 0
                     zr1 := 0
                     for {} scalar {} {
+                        xr0, xr1, yr0, yr1, zr0, zr1 := g2ProjectiveDouble(xr0, xr1, yr0, yr1, zr0, zr1)
                         if lsbIsOne(scalar) {
-                            xr0, xr1, yr0, yr1, zr0, zr1 := g2Add(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1)
+                            xr0, xr1, yr0, yr1, zr0, zr1 := g2Add(xp0, xp1, yp0, yp1, zp0, zp1, xr0, xr1, yr0, yr1, zr0, zr1)
                         }
-                        xq0, xq1, yq0, yq1, zq0, zq1 := g2ProjectiveDouble(xq0, xq1, yq0, yq1, zq0, zq1)
                         // Check next bit
                         scalar := shr(1, scalar)
                     }
