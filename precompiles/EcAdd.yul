@@ -28,6 +28,13 @@ object "EcAdd" {
             /// @notice Constant function for the alt_bn128 field order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @return ret The alt_bn128 field order.
+            function P() -> ret {
+                ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
+            }
+
+            /// @notice Constant function for the alt_bn128 field order.
+            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
+            /// @return ret The alt_bn128 field order.
             function ALT_BN128_FIELD_ORDER() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
@@ -242,6 +249,27 @@ object "EcAdd" {
                 let higherHalfOf := ZERO()
                 let lowestHalf := m
                 ret := REDC(lowestHalf, higherHalfOf)
+            }
+
+            /// @notice Computes the Montgomery addition.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param augend The augend in Montgomery form.
+            /// @param addend The addend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
+            }
+
+            /// @notice Computes the Montgomery subtraction.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param minuend The minuend in Montgomery form.
+            /// @param subtrahend The subtrahend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
 
             /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).

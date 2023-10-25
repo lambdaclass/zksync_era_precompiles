@@ -1469,6 +1469,66 @@ object "EcPairing" {
                 l51 := zero
             }
 
+            /// @notice Computes the addition of two G2 points and the line through them.
+            /// @dev It's called mixed addition because Q is in affine coordinates ands T in projective coordinates.
+            /// @dev See https://eprint.iacr.org/2013/722.pdf for further details.
+            /// @params xq0, xq1 The coefficients of the Fp2 X coordinate of the Q point.
+            /// @params yq0, yq1 The coefficients of the Fp2 Y coordinate of the Q point.
+            /// @params xt0, xt1 The coefficients of the Fp2 X coordinate of the T point.
+            /// @params yt0, yt1 The coefficients of the Fp2 Y coordinate of the T point.
+            /// @params zt0, zt1 The coefficients of the Fp2 Z coordinate of the T point.
+            /// @return xc0, xc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return yc0, yc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return zc0, zc1 The coefficients of the Fp2 X coordinate of C = Q + T.
+            /// @return l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51 The coefficients of the line through T and Q.
+            function mixedAdditionStep(xq0, xq1, yq0, yq1, xt0, xt1, yt0, yt1, zt0, zt1) -> l00, l01, l10, l11, l20, l21, l30, l31, l40, l41, l50, l51, xc0, xc1, yc0, yc1, zc0, zc1 {
+                let zero := 0
+                let t00, t01 := fp2Mul(yq0,yq1,zt0,zt1)
+                let t10, t11 := fp2Sub(yt0, yt1, t00, t01)
+                t00, t01 := fp2Mul(xq0, xq1, zt0, zt1)
+                let t20, t21 := fp2Sub(xt0, xt1, t00, t01)
+                let t30, t31 := fp2Mul(t10, t11, t10, t11)
+                let t40, t41 := fp2Mul(t20, t21, t20, t21)
+                let t50, t51 := fp2Mul(t20, t21, t40, t41)
+                let t60, t61 := fp2Mul(zt0, zt1, t30, t31)
+                let t70, t71 := fp2Mul(xt0, xt1, t40, t41)
+                t00, t01 := fp2Add(t70, t71, t70, t71)
+                let t80, t81 := fp2Add(t50, t51, t60, t61)
+                t80, t81 := fp2Sub(t80, t81, t00, t01)
+                t00, t01 := fp2Mul(yt0, yt1, t50, t51)
+
+                // Xc0
+                xc0, xc1 := fp2Mul(t20, t21, t80, t81)
+
+                // Yc0
+                yc0, yc1 := fp2Sub(t70, t71, t80, t81)
+                yc0, yc1 := fp2Mul(yc0, yc1, t10, t11)
+                yc0, yc1 := fp2Sub(yc0, yc1, t00, t01)
+
+                // Zc0
+                zc0, zc1 := fp2Mul(t50, t51, zt0, zt1)
+                t00, t01 := fp2Mul(t20, t21, yq0, yq1)
+                let t90, t91 := fp2Mul(xq0, xq1, t10, t11)
+                t90, t91 := fp2Sub(t90, t91, t00, t01)
+
+                // l0
+                l00 := t20
+                l01 := t21
+                l10 := zero
+                l11 := zero
+                l20 := zero
+                l21 := zero
+
+                // l1
+                l30, l31 := fp2Neg(t10, t11)
+
+                // l2
+                l40 := t90
+                l41 := t91
+                l50 := zero
+                l51 := zero
+            }
+
             /// @notice Computes the line through two G2 points.
             /// @dev Like in the mixed_addition_step, Q is in affine coordinates ands T in projective coordinates.
             /// @params xq0, xq1 The coefficients of the Fp2 X coordinate of the Q point.
