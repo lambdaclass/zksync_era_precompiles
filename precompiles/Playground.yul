@@ -469,17 +469,34 @@ object "EcPairing" {
 
             // IsInSubGroup returns true if p is on the r-torsion, false otherwise.
             function g2IsInSubGroup(xp0, xp1, yp0, yp1, zp0, zp1) -> ret {
-                let a00, a01, a10, a11, a20, a21 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, X_GEN())
-                let b00, b01, b10, b11, b20, b21 := psi(a00, a01, a10, a11, a20, a21)
-                a00, a01, a10, a11, a20, a21 := g2Add(xp0, xp1, yp0, yp1, zp0, zp1, a00, a01, a10, a11, a20, a21)
-                let c00, c01, c10, c11, c20, c21 := psi(b00, b01, b10, b11, b20, b21)
-                let d00, d01, d10, d11, d20, d21 := g2Add(b00, b01, b10, b11, b20, b21, c00, c01, c10, c11, c20, c21)
-                d00, d01, d10, d11, d20, d21 := g2Add(a00, a01, a10, a11, a20, a21, d00, d01, d10, d11, d20, d21)
-                c00, c01, c10, c11, c20, c21 := psi(c00, c01, c10, c11, c20, c21)
-                c00, c01, c10, c11, c20, c21 := g2Add(c00, c01, c10, c11, c20, c21, c00, c01, c10, c11, c20, c21)
-                c00, c01, c10, c11, c20, c21 := g2Sub(c00, c01, c10, c11, c20, c21, d00, d01, d10, d11, d20, d21)
+                console_log(0xaaaaa)
+                console_log(xp0)
+                console_log(xp1)
+                console_log(yp0)
+                console_log(yp1)
+                console_log(zp0)
+                console_log(zp1)
+                console_log(0xbbbbbb)
+                let r := 21888242871839275222246405745257275088548364400416034343698204186575808495617
+                let xr0, xr1, yr0, yr1, zr0, zr1 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, r)
+                console_log(xr0)
+                console_log(xr1)
+                console_log(yr0)
+                console_log(yr1)
+                console_log(zr0)
+                console_log(zr1)
+                ret := 1
+                // let a00, a01, a10, a11, a20, a21 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, X_GEN())
+                // let b00, b01, b10, b11, b20, b21 := psi(a00, a01, a10, a11, a20, a21)
+                // a00, a01, a10, a11, a20, a21 := g2Add(xp0, xp1, yp0, yp1, zp0, zp1, a00, a01, a10, a11, a20, a21)
+                // let c00, c01, c10, c11, c20, c21 := psi(b00, b01, b10, b11, b20, b21)
+                // let d00, d01, d10, d11, d20, d21 := g2Add(b00, b01, b10, b11, b20, b21, c00, c01, c10, c11, c20, c21)
+                // d00, d01, d10, d11, d20, d21 := g2Add(a00, a01, a10, a11, a20, a21, d00, d01, d10, d11, d20, d21)
+                // c00, c01, c10, c11, c20, c21 := psi(c00, c01, c10, c11, c20, c21)
+                // c00, c01, c10, c11, c20, c21 := g2Add(c00, c01, c10, c11, c20, c21, c00, c01, c10, c11, c20, c21)
+                // c00, c01, c10, c11, c20, c21 := g2Sub(c00, c01, c10, c11, c20, c21, d00, d01, d10, d11, d20, d21)
 
-                ret := and(g2AffinePointIsOnCurve(c00, c01, c10, c11), g2ProjectivePointIsInfinity(c00, c01, c10, c11, c20, c21))
+                // ret := and(g2AffinePointIsOnCurve(c00, c01, c10, c11), g2ProjectivePointIsInfinity(c00, c01, c10, c11, c20, c21))
             }
 
             function g2ProjectiveDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
@@ -787,24 +804,23 @@ object "EcPairing" {
             // 090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b
             // 12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa
             
-            let g2_y0 := intoMontgomeryForm(0)
-            let g2_x0 := intoMontgomeryForm(8)
+            let g1_y := intoMontgomeryForm(0)
+            let g1_x := intoMontgomeryForm(8)
 
-            let g2_y1 := intoMontgomeryForm(0x00d3270b7da683f988d3889abcdad9776ecd45abaca689f1118c3fd33404b439)
-            let g2_x1 := intoMontgomeryForm(0x2588360d269af2cd3e0803839ea274c2b8f062a6308e8da85fd774c26f1bcb87)
+            let g2_x2 := intoMontgomeryForm(0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2)
+            let g2_x1 := intoMontgomeryForm(0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed)
+            let g2_y2 := intoMontgomeryForm(0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b)
+            let g2_y1 := intoMontgomeryForm(0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa)
 
-            let g2_y2 := intoMontgomeryForm(0x198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2)
-            let g2_x2 := intoMontgomeryForm(0x1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed)
-            let g2_y3 := intoMontgomeryForm(0x090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b)
-            let g2_x3 := intoMontgomeryForm(0x12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa)
+            g2IsInSubGroup(g2_x1,g2_x2, g2_y1, g2_y2, MONTGOMERY_ONE(), 0) 
 
-            if iszero(g2IsInSubGroup(g2_x0,g2_x1, g2_y0, g2_y1, MONTGOMERY_ONE(), 0)) {
-                console_log(0xCAFE)
-			}
+            // if iszero(g2IsInSubGroup(g2_x0,g2_x1, g2_y0, g2_y1, MONTGOMERY_ONE(), 0)) {
+            //     console_log(0xAAA)
+			// }
 
-            if g2IsInSubGroup(g2_x2,g2_x3, g2_y2, g2_y3, MONTGOMERY_ONE(), 0) {
-                console_log(0xCAFE)
-			}
+            // if g2IsInSubGroup(g2_x2,g2_x3, g2_y2, g2_y3, MONTGOMERY_ONE(), 0) {
+            //     console_log(0xBBB)
+			// }
 
 		}
 	}
