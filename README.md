@@ -33,8 +33,8 @@ In the next weeks we will add more optimizations and benchmarks.
     - **Optimizing Accumulated Value:** We are currently naively multiplying two fp12 elements, which contain many zeros. Modifying this calculation could enhance efficiency. *This is in WIP.*
 
     **Future Investigations:**  We need to investigate the reliability of additional optimizations, such as the application of the GLV method for multiplication of rational points of elliptic curves.
-- `P256VERIFY` is already working with the Shamir’s trick optimization. *This precompile has not been audited yet.*
-- `secp256k1VERIFY` is already working with the Shamir’s trick optimization. *This precompile has not been audited yet.*
+- `P256VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
+- `secp256k1VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
 
 ## [Gas Consumption](./docs/src/gas_consumption.md)
 
