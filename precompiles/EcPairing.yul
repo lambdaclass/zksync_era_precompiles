@@ -142,6 +142,9 @@ object "EcPairing" {
 				precompileCall(0, gas())
 		  	}
 
+            /// @notice Calculate the bit length of a number.
+            /// @param x The number to calculate the bit length of.
+            /// @return ret The bit length of the number.
             function bitLen(x) -> ret {
                 ret := 0
                 for {} x {} {
@@ -150,8 +153,13 @@ object "EcPairing" {
                 }
             }
 
-            function checkBit(index, t) -> ret {
-                ret := and(shr(index, t), 1)
+            /// @notice Check the bit at the given index.
+            /// @dev The index is counted from the right, starting at 0.
+            /// @param index The index of the bit to check.
+            /// @param n The number to check the bit of.
+            /// @return ret The value of the bit at the given index.
+            function checkBit(index, n) -> ret {
+                ret := and(shr(index, n), 1)
             }
 
             // MONTGOMERY
