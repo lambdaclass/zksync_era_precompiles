@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, fs::OpenOptions, io::Write};
 use zksync_web3_rs::{
     providers::{Http, Middleware, Provider, ProviderError},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest},
@@ -8,6 +8,50 @@ use zksync_web3_rs::{
 static DEFAULT_L1_PROVIDER_URL: &str =
     "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
+
+pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
+    let gas_used_bytes = bytes[0..4].to_vec();
+    let output = bytes[4..].to_vec();
+    let gas_used = u32::from_le_bytes(gas_used_bytes.try_into().unwrap());
+
+    (output.into(), gas_used)
+}
+
+fn write_line_to_report(used_gas: u32, report_to_write: &str) {
+    let mut file = OpenOptions::new()
+        .append(true)
+        .open(report_to_write)
+        .unwrap();
+
+    let curr_thread = std::thread::current();
+    let test_name = curr_thread.name().unwrap();
+
+    write!(file, "| {test_name}  | {used_gas} | \n").unwrap();
+}
+
+pub fn write_modexp_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/modexp_report.md");
+}
+
+pub fn write_ecadd_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/ecadd_report.md");
+}
+
+pub fn write_ecmul_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/ecmul_report.md");
+}
+
+pub fn write_ecpairing_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/ecpairing_report.md");
+}
+
+pub fn write_p256verify_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/p256verify_report.md");
+}
+
+pub fn write_secp256k1verify_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/secp256k1verify_report.md");
+}
 
 pub fn eth_provider() -> Provider<Http> {
     let url: String =

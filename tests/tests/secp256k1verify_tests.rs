@@ -1,12 +1,12 @@
 use zksync_web3_rs::types::{Address, Bytes, H160};
 
+mod test_utils;
+use test_utils::{era_call, parse_call_result, write_secp256k1verify_gas_result};
+
 pub const SECP256K1VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x20,
 ]);
-
-mod test_utils;
-use test_utils::era_call;
 
 const RESPONSE_VALID: [u8; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
@@ -27,7 +27,9 @@ async fn secp256k1verify_valid_signature_one() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_secp256k1verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
@@ -39,7 +41,9 @@ async fn secp256k1verify_valid_signature_two() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_secp256k1verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
@@ -51,7 +55,9 @@ async fn secp256k1verify_invalid_signature() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_INVALID))
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_secp256k1verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_INVALID))
 }
 
 #[tokio::test]
