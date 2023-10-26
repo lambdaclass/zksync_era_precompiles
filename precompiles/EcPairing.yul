@@ -512,7 +512,7 @@ object "EcPairing" {
                     // Infinity + Infinity = Infinity
                     leave
                 }
-                if and(rIsInfinity, iszero(qIsInfinity)) {
+                if rIsInfinity {
                     // Infinity + P = P
                     c00 := xq0
                     c01 := xq1
@@ -522,7 +522,7 @@ object "EcPairing" {
                     c21 := zq1
                     leave
                 }
-                if and(iszero(rIsInfinity), qIsInfinity) {
+                if qIsInfinity {
                     // P + Infinity = P
                     c00 := xr0
                     c01 := xr1
