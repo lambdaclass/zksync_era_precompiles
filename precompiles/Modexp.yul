@@ -42,7 +42,12 @@ object "ModExp" {
                     mstore(toAddress, 0)
                 }
             }
-            
+
+            function oneWithLimbSizeAt(nLimbs, toAddress) {
+                zeroWithLimbSizeAt(sub(nLimbs, 1), toAddress)
+                mstore(add(toAddress, mul(sub(nLimbs, 1), 32)), 0x1)
+            }
+
             /// @notice Copy a big unsigned integer from one memory location to another.
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param fromAddress The pointer to the MSB of the number to copy.
@@ -564,6 +569,95 @@ object "ModExp" {
                    }
             }
 
+            /// @notice Computes the quotiend and reminder of dividing two big unsigned integers.
+            /// @dev
+            /// @dev Temporary buffers:
+            /// @dev ------------------
+            /// @dev
+            /// @dev This function requires two temporary buffers for internal storage:
+            /// @dev - Both buffers must provide `nLimbs * 32` bytes of writable memory space.
+            /// @dev - Neither buffer should overlap with each other.
+            /// @dev - Neither needs to be initialized to any particular value.
+            /// @dev - Consider the written values as undefined after the function returns.
+            /// @dev
+            /// @dev Return values:
+            /// @dev --------------
+            /// @dev
+            /// @dev - resulting `quotient` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
+            /// @dev - resulting `reminder` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
+            /// @dev
+            /// @param dividend_ptr Base pointer for a big unsigned integer representing the dividend.
+            /// @param divisor_ptr  Base pointer for a big unsigned integer representing the divisor.
+            /// @param tmp_ptr_1    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param tmp_ptr_2    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param nLimbs      Amount of limbs for each big unsigned integer.
+            /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
+            /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
+            function bigUIntDivRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, quotient_ptr, rem_ptr) {
+                // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
+                // parameters to prevent the leakage of implementation details.
+                let c_ptr := tmp_ptr_1
+                let r_ptr := tmp_ptr_2
+
+                copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend 
+
+                // Init quotient to 0.
+                zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
+
+                let mb := bigUIntBitSize(divisor_ptr, nLimbs)
+                let bd := sub(mul(nLimbs, 256), mb)
+                bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
+
+                for { } iszero(0) { } {
+                    let borrow := bigUIntSubWithBorrow(rem_ptr, c_ptr, nLimbs, r_ptr)
+
+                    if iszero(borrow) {
+                        copyBigUint(nLimbs, r_ptr, rem_ptr)
+                    }
+
+                    copyBigUint(nLimbs, quotient_ptr, r_ptr) // r = quotient
+                    bigUIntInPlaceOrWith1(r_ptr, nLimbs) // r = quotient | 1
+
+                    if iszero(borrow) {
+                        copyBigUint(nLimbs, r_ptr, quotient_ptr)
+                    }
+
+                    if iszero(bd) {
+                        break
+                    }
+
+                    bd := sub(bd, 1)
+                    bigUIntOneShiftRight(c_ptr, nLimbs) // c = c >> 1
+                    bigUIntOneShiftLeft(quotient_ptr, nLimbs) // q[] = q[] << 1
+                }
+
+                if iszero(mb) {
+                    zeroWithLimbSizeAt(nLimbs, quotient_ptr)
+                }
+            }
+
+            function calculateBarretConstantFactors(nLimbs, moduloPtr, factorPtr, scratchBuf1Ptr, scratchBuf2Ptr) -> factorPtr, barretShiftFactor {
+                     // shift := (bitLengthOfModulo(modulo)*2) 
+                     barretShiftFactor := mul(bigUIntBitSize(moduloPtr, nLimbs), 2)
+                     console_log(0xFACE)
+                     console_log(eq(barretShiftFactor, 6))
+                     // scratchbuf1ptr := 1_bigUInt
+                     oneWithLimbSizeAt(nLimbs, scratchBuf1Ptr)
+                     console_log(0xFACEDEAD)
+                     console_log(mload(scratchBuf1Ptr))
+                     shiftLeftNTimesInPlace(nLimbs, barretShiftFactor, scratchBuf1Ptr)
+                     console_log(0xDEADCAFE)
+                     console_log(eq(mload(scratchBuf1Ptr), 64))
+                     // bigUIntOneShiftLeft()
+                     // TODO: Maybe use proper buffers for this
+                     console_log(mload(factorPtr))
+                     // console_log(0xB00B1ES)
+                     console_log(mload(moduloPtr))
+                     bigUIntDivRem(scratchBuf1Ptr, moduloPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, 0x6000, 0x7000)
+                     console_log(mload(0x6000))
+                     console_log(mload(add(0x6000, 0x20)))
+            }
+
             function barretReduction(nLimbs, barretFactorPtr, barretShift, numPtr, moduloPtr, resultPtr) {
                 // result := num*barretFactorPtr
                 // Works ✅ 
@@ -616,7 +710,7 @@ object "ModExp" {
 
                 // result := x - result
                 // Works ✅: Disagreement between limb size
-                // To check: barretFactorNewPtr and resultNewPtr are needed
+                // To check: moduloExtendedWithZeroesPtr and resultNewPtr are needed
                 // as scratch buffers
                 // Note: I think resultNewPtr can be reduced again to nLimbs.
 
@@ -843,6 +937,12 @@ object "ModExp" {
             // result := 0
             // barretFactor := 10
             let barretFactorPtr := 0x390
+            let scratchBufferPtr1 := 0x1000
+            let scratchBufferPtr2 := 0x2000
+            // let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
+            calculateBarretConstantFactors(1, modPtr, barretFactorPtr, scratchBufferPtr1, scratchBufferPtr2)
+            console_log(0xBEEF)
+            console_log(mload(barretFactorPtr))
             mstore(barretFactorPtr, 10)
 
             let resultPtr := 0x1000
