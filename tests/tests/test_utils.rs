@@ -23,6 +23,14 @@ pub fn era_provider() -> Provider<Http> {
     Provider::try_from(url).unwrap()
 }
 
+pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
+    let gas_used_bytes = bytes[0..4].to_vec();
+    let output = bytes[4..].to_vec();
+    let gas_used = u32::from_le_bytes(gas_used_bytes.try_into().unwrap());
+
+    (output.into(), gas_used)
+}
+
 #[allow(dead_code)]
 pub async fn eth_call(
     precompile_address: Address,
