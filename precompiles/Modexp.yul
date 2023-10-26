@@ -914,13 +914,12 @@ object "ModExp" {
             if lt(maxLimbNumber, limbsModLen) {
                 maxLimbNumber := limbsModLen
             }
-            // x := 10
+            // x := 40
             let xPtr := 0x300
             mstore(xPtr, 40)            
-            // mod := 6
+            // mod := 7
             let modPtr := 0x320
             mstore(modPtr, 7)
-            let barretShift := 6
             // result := 0
             // barretFactor := 10
             let barretFactorPtr := 0x390
@@ -929,7 +928,6 @@ object "ModExp" {
             let scratchBufferPtr3 := 0x2500
             // let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
             let barretFactorPtr, shift := calculateBarretConstantFactors(1, modPtr, barretFactorPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3)
-
             let resultPtr := 0x1000
             mstore(resultPtr, 0x0)
             barretReduction(1, barretFactorPtr, shift, xPtr, modPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2)
