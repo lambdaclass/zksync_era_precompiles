@@ -9,6 +9,15 @@ static DEFAULT_L1_PROVIDER_URL: &str =
     "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
 
+#[allow(dead_code)]
+pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
+    let gas_used_bytes = bytes[0..4].to_vec();
+    let output = bytes[4..].to_vec();
+    let gas_used = u32::from_le_bytes(gas_used_bytes.try_into().unwrap());
+
+    (output.into(), gas_used)
+}
+
 pub fn eth_provider() -> Provider<Http> {
     let url: String =
         env::var("ZKSYNC_WEB3_RS_L1_PROVIDER_URL").unwrap_or(DEFAULT_L1_PROVIDER_URL.to_owned());
@@ -19,14 +28,6 @@ pub fn era_provider() -> Provider<Http> {
     let url: String =
         env::var("ZKSYNC_WEB3_RS_L2_PROVIDER_URL").unwrap_or(DEFAULT_L2_PROVIDER_URL.to_owned());
     Provider::try_from(url).unwrap()
-}
-
-pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
-    let gas_used_bytes = bytes[0..4].to_vec();
-    let output = bytes[4..].to_vec();
-    let gas_used = u32::from_le_bytes(gas_used_bytes.try_into().unwrap());
-
-    (output.into(), gas_used)
 }
 
 #[allow(dead_code)]
@@ -74,6 +75,7 @@ pub async fn call(
     }
 }
 
+#[allow(unused)]
 pub async fn eth_raw_call(
     precompile_address: Address,
     data: Bytes,
@@ -81,6 +83,7 @@ pub async fn eth_raw_call(
     raw_call(precompile_address, data, &eth_provider()).await
 }
 
+#[allow(unused)]
 pub async fn era_raw_call(
     precompile_address: Address,
     data: Bytes,
@@ -88,6 +91,7 @@ pub async fn era_raw_call(
     raw_call(precompile_address, data, &era_provider()).await
 }
 
+#[allow(unused)]
 pub async fn raw_call(
     precompile_address: Address,
     data: Bytes,
