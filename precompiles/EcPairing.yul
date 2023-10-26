@@ -153,7 +153,7 @@ object "EcPairing" {
                 }
             }
 
-            /// @notice Check the bit at the given index.
+            /// @notice Checks if the bit of a number at a given index is 1.
             /// @dev The index is counted from the right, starting at 0.
             /// @param index The index of the bit to check.
             /// @param n The number to check the bit of.
