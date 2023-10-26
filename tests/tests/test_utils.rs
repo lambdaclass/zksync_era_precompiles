@@ -1,9 +1,7 @@
 use std::env;
 use zksync_web3_rs::{
     providers::{Http, Middleware, Provider, ProviderError},
-    types::{
-        transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest,
-    },
+    types::{transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest},
     zks_utils::{ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS},
 };
 
