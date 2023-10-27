@@ -4,7 +4,7 @@ use std::io::Write;
 fn main() {
     let directory = "gas_reports";
     if !std::path::Path::new(&directory).exists() {
-        std::fs::create_dir(&directory).unwrap();
+        std::fs::create_dir(directory).unwrap();
     }
 
     let precompiles_report_list: Vec<String> = vec![
@@ -27,7 +27,7 @@ fn main() {
                 .open(file_path)
                 .unwrap();
 
-            write!(file, "| Test case | Gas used |\n").unwrap();
-            write!(file, "| --------- | -------- |\n").unwrap();
+            writeln!(file, "| Test case | Gas used |").unwrap();
+            writeln!(file, "| --------- | -------- |").unwrap();
         });
 }
