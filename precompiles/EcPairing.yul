@@ -113,8 +113,8 @@ object "EcPairing" {
                 z211 := 0
             }
 
-            /// @notice Constant function for the lenght of the input of a single pair of points to compute the pairing.
-            /// @return ret The lenght of a pair of points input.
+            /// @notice Constant function for the length of the input of a single pair of points to compute the pairing.
+            /// @return ret The length of a pair of points input.
             function PAIR_LENGTH() -> ret {
                 ret := 0xc0
             }
@@ -350,9 +350,9 @@ object "EcPairing" {
 			/// @dev Both input and output coordinates are encoded in Montgomery form.
             /// @dev If x and y differ from 0, just add z = (1,0).
             /// @dev If x and y are equal to 0, then P is the infinity point, and z = (0,0).
-            /// @param xp0, xp1 The x coordinate to trasnform.
+            /// @param xp0, xp1 The x coordinate to transform.
             /// @param yp0, yp1 The y coordinate to transform.
-            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The projectives coordinates of the given G2 point.
+            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The projectiles coordinates of the given G2 point.
 			function g2ProjectiveFromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
 				xr0 := xp0
 				xr1 := xp1
@@ -411,7 +411,7 @@ object "EcPairing" {
             }
 
 			/// @notice Computes the negation of a point G2 affine point.
-            /// @dev Negating a point in G2 is negating the Y coordenate.
+            /// @dev Negating a point in G2 is negating the Y coordinate.
             /// @param x0, x1 The X coordinate of the point.
             /// @param y0, y1 The Y coordinate of the point.
             /// @return nx0, nx1, ny0, ny1 The coordinates of the negated point.
@@ -1213,7 +1213,7 @@ object "EcPairing" {
             /// @dev It computes the exponentiation of a Fp12 elemento to e, with e = (p^12 -1)/r
             /// @dev We can split this exponentitation in three parts: e = (p^6 - 1)(p^2 + 1)((p^4 - p^2 + 1)/r)
             /// @dev The first 2 parts are easy to compute using the Frobenius operator.
-            /// @dev To calcualte this we use the first 5 lines of Algorithm 31 in: https://eprint.iacr.org/2010/354.pdf
+            /// @dev To calculate this we use the first 5 lines of Algorithm 31 in: https://eprint.iacr.org/2010/354.pdf
             /// @dev For the hard part we use the Fuentes et al. method. Algorithm 6 in: https://eprint.iacr.org/2015/192.pdf
             /// @params a000, a001, a010, a011, a020, a021, a100, a101, a110, a111, a120, a121 The coefficients of the Fp12 element A.
             /// @return f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 The coefficients of A^((p^12 -1)/r)
