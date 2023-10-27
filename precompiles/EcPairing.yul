@@ -417,18 +417,12 @@ object "EcPairing" {
             /// @param y0, y1 The y coordinate to check.
             /// @return ret True if the point is in the curve, false otherwise.
             function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
-                // FIXME: this check should be outside of the function
-                if g2AffinePointIsInfinity(x0, x1, y0, y1) {
-                    ret := 1
-                }
-                if iszero(g2AffinePointIsInfinity(x0, x1, y0, y1)) {
-                    let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
-                    let b0, b1 := fp2Mul(x0, x1, x0, x1)
-                    b0, b1 := fp2Mul(b0, b1, x0, x1)
-                    b0, b1 := fp2Add(b0, b1, a0, a1)
-                    let c0, c1 := fp2Mul(y0, y1, y0, y1)
-                    ret := and(eq(b0, c0), eq(b1, c1))
-                }
+                let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
+                let b0, b1 := fp2Mul(x0, x1, x0, x1)
+                b0, b1 := fp2Mul(b0, b1, x0, x1)
+                b0, b1 := fp2Add(b0, b1, a0, a1)
+                let c0, c1 := fp2Mul(y0, y1, y0, y1)
+                ret := and(eq(b0, c0), eq(b1, c1))
 			}
 
             /// @notice Checks if a G2 point in projective coordinates is the point at infinity.
