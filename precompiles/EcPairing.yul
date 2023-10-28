@@ -352,7 +352,7 @@ object "EcPairing" {
             /// @dev If x and y are equal to 0, then P is the infinity point, and z = (0,0).
             /// @param xp0, xp1 The x coordinate to transform.
             /// @param yp0, yp1 The y coordinate to transform.
-            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The projectiles coordinates of the given G2 point.
+            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The projective coordinates of the given G2 point.
 			function g2ProjectiveFromAffine(xp0, xp1, yp0, yp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
 				xr0 := xp0
 				xr1 := xp1
