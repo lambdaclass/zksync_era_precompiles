@@ -2,7 +2,10 @@ use std::env;
 use zksync_web3_rs::{
     providers::{Http, Middleware, Provider, ProviderError},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest},
-    zks_utils::{ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS},
+    zks_utils::{
+        ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS,
+        MODEXP_PRECOMPILE_ADDRESS,
+    },
 };
 
 static DEFAULT_L1_PROVIDER_URL: &str =
@@ -49,7 +52,8 @@ pub async fn era_call(
     // This check was necessary because the revert from yul returns `0x00` and is not being parsed as an error in the node side when it should be.
     if (precompile_address == ECMUL_PRECOMPILE_ADDRESS
         || precompile_address == ECADD_PRECOMPILE_ADDRESS
-        || precompile_address == ECPAIRING_PRECOMPILE_ADDRESS)
+        || precompile_address == ECPAIRING_PRECOMPILE_ADDRESS
+        || precompile_address == MODEXP_PRECOMPILE_ADDRESS)
         && (response.len() == 1)
     {
         return Err(ProviderError::CustomError("Reverted".to_owned()));

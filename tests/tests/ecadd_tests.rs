@@ -3,6 +3,8 @@ use zksync_web3_rs::{types::Bytes, zks_utils::ECADD_PRECOMPILE_ADDRESS};
 mod test_utils;
 use test_utils::{era_call, eth_call};
 
+use crate::test_utils::parse_call_result;
+
 // Puts the points (6, 9) and (19274124, 124124) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes
 #[tokio::test]
 async fn ecadd_6_9_19274124_124124_25000_128() {
@@ -27,7 +29,9 @@ async fn ecadd_0_0_0_0_21000_0() {
     )
     .await
     .unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 0 bytes. Gives the execution 21000 bytes");
+
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 0 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -35,7 +39,8 @@ async fn ecadd_0_0_0_0_21000_0() {
 async fn ecadd_1_2_0_0_21000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes
@@ -43,7 +48,8 @@ async fn ecadd_1_2_0_0_21000_128() {
 async fn ecadd_0_0_0_0_25000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (0, 3) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes
@@ -65,7 +71,8 @@ async fn ecadd_0_0_1_3_25000_128() {
 async fn ecadd_0_0_1_2_25000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes
@@ -73,7 +80,8 @@ async fn ecadd_0_0_1_2_25000_128() {
 async fn ecadd_0_0_0_0_25000_64() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -81,7 +89,8 @@ async fn ecadd_0_0_0_0_25000_64() {
 async fn ecadd_1_2_1_2_21000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (1, 3) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 25000 bytes
@@ -96,7 +105,8 @@ async fn ecadd_1_3_0_0_25000_80() {
 async fn ecadd_1_2_0_0_25000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes
@@ -104,7 +114,8 @@ async fn ecadd_1_2_0_0_25000_192() {
 async fn ecadd_0_0_0_0_21000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 25000 bytes
@@ -112,7 +123,8 @@ async fn ecadd_0_0_0_0_21000_192() {
 async fn ecadd_0_0_0_0_25000_80() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes
@@ -120,7 +132,8 @@ async fn ecadd_0_0_0_0_25000_80() {
 async fn ecadd_1145_3932_1145_4651_21000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa92e83f8d734803fc370eba25ed1f6b8768bd6d83887b87165fc2434fe11a830cb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa92e83f8d734803fc370eba25ed1f6b8768bd6d83887b87165fc2434fe11a830cb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes
@@ -128,7 +141,8 @@ async fn ecadd_1145_3932_1145_4651_21000_192() {
 async fn ecadd_0_0_1_2_21000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes
@@ -136,7 +150,8 @@ async fn ecadd_0_0_1_2_21000_192() {
 async fn ecadd_1_2_1_2_25000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes
@@ -144,7 +159,8 @@ async fn ecadd_1_2_1_2_25000_192() {
 async fn ecadd_1_2_0_0_25000_64() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -152,7 +168,8 @@ async fn ecadd_1_2_0_0_25000_64() {
 async fn ecadd_1145_3932_2969_1336_21000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c039730ea8dff1254c0fee9c0ea777d29a9c710b7e616683f194f18c43b43b869073a5ffcc6fc7a28c30723d6e58ce577356982d65b833a5a5c15bf9024b43d98").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c039730ea8dff1254c0fee9c0ea777d29a9c710b7e616683f194f18c43b43b869073a5ffcc6fc7a28c30723d6e58ce577356982d65b833a5a5c15bf9024b43d98").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (6, 9) and (19274124, 124124) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -167,7 +184,8 @@ async fn ecadd_6_9_19274124_124124_21000_128() {
 async fn ecadd_0_0_0_0_21000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 3) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -189,7 +207,8 @@ async fn ecadd_0_0_1_3_21000_128() {
 async fn ecadd_1_2_0_0_25000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (1, 3) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -204,7 +223,8 @@ async fn ecadd_1_3_0_0_21000_80() {
 async fn ecadd_1_2_1_2_25000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 0 bytes. Gives the execution 25000 bytes
@@ -224,7 +244,9 @@ async fn ecadd_0_0_0_0_25000_0() {
     )
     .await
     .unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 0 bytes. Gives the execution 25000 bytes");
+
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 0 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -232,7 +254,8 @@ async fn ecadd_0_0_0_0_25000_0() {
 async fn ecadd_0_0_1_2_21000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -240,7 +263,8 @@ async fn ecadd_0_0_1_2_21000_128() {
 async fn ecadd_0_0_0_0_21000_64() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -248,7 +272,8 @@ async fn ecadd_0_0_0_0_21000_64() {
 async fn ecadd_0_0_0_0_21000_80() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes
@@ -256,7 +281,8 @@ async fn ecadd_0_0_0_0_21000_80() {
 async fn ecadd_0_0_0_0_25000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes
@@ -264,7 +290,8 @@ async fn ecadd_0_0_0_0_25000_192() {
 async fn ecadd_1_2_0_0_21000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes
@@ -272,7 +299,8 @@ async fn ecadd_1_2_0_0_21000_192() {
 async fn ecadd_1_2_1_2_21000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes
@@ -280,7 +308,8 @@ async fn ecadd_1_2_1_2_21000_192() {
 async fn ecadd_0_0_1_2_25000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (0, 0) and (1, 2) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes
@@ -288,7 +317,8 @@ async fn ecadd_0_0_1_2_25000_192() {
 async fn ecadd_1145_3932_1145_4651_25000_192() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa92e83f8d734803fc370eba25ed1f6b8768bd6d83887b87165fc2434fe11a830cb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa92e83f8d734803fc370eba25ed1f6b8768bd6d83887b87165fc2434fe11a830cb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) into the ECADD precompile, truncating or expanding the input data to 192 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes
@@ -296,7 +326,8 @@ async fn ecadd_1145_3932_1145_4651_25000_192() {
 async fn ecadd_1145_3932_2969_1336_25000_128() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c039730ea8dff1254c0fee9c0ea777d29a9c710b7e616683f194f18c43b43b869073a5ffcc6fc7a28c30723d6e58ce577356982d65b833a5a5c15bf9024b43d98").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("17c139df0efee0f766bc0204762b774362e4ded88953a39ce849a8a7fa163fa901e0559bacb160664764a357af8a9fe70baa9258e0b959273ffc5718c6d4cc7c039730ea8dff1254c0fee9c0ea777d29a9c710b7e616683f194f18c43b43b869073a5ffcc6fc7a28c30723d6e58ce577356982d65b833a5a5c15bf9024b43d98").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) and (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) into the ECADD precompile, truncating or expanding the input data to 128 bytes. Gives the execution 25000 bytes");
 }
 
 // Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -304,5 +335,6 @@ async fn ecadd_1145_3932_2969_1336_25000_128() {
 async fn ecadd_1_2_0_0_21000_64() {
     let eth_response = eth_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECADD_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the points (1, 2) and (0, 0) into the ECADD precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
 }
