@@ -3,6 +3,8 @@ use zksync_web3_rs::{types::Bytes, zks_utils::ECMUL_PRECOMPILE_ADDRESS};
 mod test_utils;
 use test_utils::{era_call, eth_call};
 
+use crate::test_utils::parse_call_result;
+
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
 #[tokio::test]
 async fn ecmul_1_3_0_21000_128() {
@@ -15,7 +17,8 @@ async fn ecmul_1_3_0_21000_128() {
 async fn ecmul_1_2_5616_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes
@@ -44,7 +47,8 @@ async fn ecmul_1_3_5617_28000_96() {
 async fn ecmul_1_2_5616_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -73,7 +77,8 @@ async fn ecmul_1_3_5616_28000_128() {
 async fn ecmul_7827_6598_5616_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -95,7 +100,8 @@ async fn ecmul_1_3_5617_28000_128() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -117,7 +123,8 @@ async fn ecmul_1_3_1_28000_128() {
 async fn ecmul_1_2_9935_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -125,7 +132,8 @@ async fn ecmul_1_2_9935_21000_96() {
 async fn ecmul_1_2_5617_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -133,7 +141,8 @@ async fn ecmul_1_2_5617_28000_128() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -141,7 +150,8 @@ async fn ecmul_1_2_340282366920938463463374607431768211456_21000_80() {
 async fn ecmul_1_2_2_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -156,7 +166,8 @@ async fn ecmul_1_3_9_21000_128() {
 async fn ecmul_7827_6598_1456_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -164,7 +175,8 @@ async fn ecmul_7827_6598_1456_21000_80() {
 async fn ecmul_7827_6598_0_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -172,7 +184,8 @@ async fn ecmul_7827_6598_0_28000_96() {
 async fn ecmul_7827_6598_1456_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -180,7 +193,8 @@ async fn ecmul_7827_6598_1456_21000_96() {
 async fn ecmul_7827_6598_0_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -202,7 +216,8 @@ async fn ecmul_1_3_9_28000_96() {
 async fn ecmul_7827_6598_9935_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -210,7 +225,8 @@ async fn ecmul_7827_6598_9935_21000_96() {
 async fn ecmul_1_2_5617_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -239,7 +255,8 @@ async fn ecmul_1_3_9935_28000_96() {
 async fn ecmul_7827_6598_0_28000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -247,7 +264,8 @@ async fn ecmul_7827_6598_0_28000_64() {
 async fn ecmul_1_2_9935_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -262,7 +280,8 @@ async fn ecmul_1_3_9935_28000_128() {
 async fn ecmul_1_2_9935_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -270,7 +289,8 @@ async fn ecmul_1_2_9935_28000_128() {
 async fn ecmul_7827_6598_1_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -278,7 +298,8 @@ async fn ecmul_7827_6598_1_21000_96() {
 async fn ecmul_1_2_9_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -286,7 +307,8 @@ async fn ecmul_1_2_9_28000_96() {
 async fn ecmul_1_2_5617_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -322,7 +344,8 @@ async fn ecmul_1_3_5616_21000_96() {
 async fn ecmul_7827_6598_2_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -330,7 +353,8 @@ async fn ecmul_7827_6598_2_21000_96() {
 async fn ecmul_1_2_9_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -352,7 +376,8 @@ async fn ecmul_1_3_2_21000_128() {
 async fn ecmul_7827_6598_5617_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -367,7 +392,8 @@ async fn ecmul_1_3_0_28000_80() {
 async fn ecmul_7827_6598_9_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -375,7 +401,8 @@ async fn ecmul_7827_6598_9_28000_96() {
 async fn ecmul_1_2_9_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -390,7 +417,8 @@ async fn ecmul_1_3_5617_21000_96() {
 async fn ecmul_1_2_5616_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -405,7 +433,8 @@ async fn ecmul_1_3_0_21000_64() {
 async fn ecmul_7827_6598_5616_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -420,7 +449,8 @@ async fn ecmul_1_3_1_28000_96() {
 async fn ecmul_7827_6598_2_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -428,7 +458,8 @@ async fn ecmul_7827_6598_2_21000_128() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -436,7 +467,8 @@ async fn ecmul_1_2_340282366920938463463374607431768211456_21000_128() {
 async fn ecmul_7827_6598_9935_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -444,7 +476,8 @@ async fn ecmul_7827_6598_9935_28000_128() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -452,7 +485,8 @@ async fn ecmul_1_2_340282366920938463463374607431768211456_28000_80() {
 async fn ecmul_1_2_9935_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -467,7 +501,8 @@ async fn ecmul_1_3_2_28000_96() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -475,7 +510,8 @@ async fn ecmul_1_2_340282366920938463463374607431768211456_28000_96() {
 async fn ecmul_1_2_340282366920938463463374607431768211456_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -483,7 +519,8 @@ async fn ecmul_1_2_340282366920938463463374607431768211456_28000_128() {
 async fn ecmul_7827_6598_2_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -491,7 +528,8 @@ async fn ecmul_7827_6598_2_28000_128() {
 async fn ecmul_7827_6598_0_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -499,7 +537,8 @@ async fn ecmul_7827_6598_0_21000_80() {
 async fn ecmul_7827_6598_1456_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -507,7 +546,8 @@ async fn ecmul_7827_6598_1456_28000_96() {
 async fn ecmul_7827_6598_0_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -515,7 +555,8 @@ async fn ecmul_7827_6598_0_21000_96() {
 async fn ecmul_7827_6598_9935_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -523,7 +564,8 @@ async fn ecmul_7827_6598_9935_21000_128() {
 async fn ecmul_7827_6598_1456_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -531,7 +573,8 @@ async fn ecmul_7827_6598_1456_28000_80() {
 async fn ecmul_7827_6598_9935_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -546,7 +589,8 @@ async fn ecmul_1_3_9_21000_96() {
 async fn ecmul_7827_6598_5617_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -561,7 +605,8 @@ async fn ecmul_1_3_9935_21000_96() {
 async fn ecmul_7827_6598_1456_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -569,7 +614,8 @@ async fn ecmul_7827_6598_1456_21000_128() {
 async fn ecmul_7827_6598_0_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -577,7 +623,8 @@ async fn ecmul_7827_6598_0_28000_128() {
 async fn ecmul_1_2_2_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -585,7 +632,8 @@ async fn ecmul_1_2_2_28000_96() {
 async fn ecmul_7827_6598_0_21000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f6").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -593,7 +641,8 @@ async fn ecmul_7827_6598_0_21000_64() {
 async fn ecmul_7827_6598_5617_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -601,7 +650,8 @@ async fn ecmul_7827_6598_5617_28000_128() {
 async fn ecmul_7827_6598_0_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -609,7 +659,8 @@ async fn ecmul_7827_6598_0_21000_128() {
 async fn ecmul_7827_6598_1456_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -617,7 +668,8 @@ async fn ecmul_7827_6598_1456_28000_128() {
 async fn ecmul_1_2_9_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -625,7 +677,8 @@ async fn ecmul_1_2_9_21000_96() {
 async fn ecmul_7827_6598_1_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -647,7 +700,8 @@ async fn ecmul_1_3_340282366920938463463374607431768211456_21000_96() {
 async fn ecmul_7827_6598_9_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -669,7 +723,8 @@ async fn ecmul_1_3_340282366920938463463374607431768211456_21000_128() {
 async fn ecmul_1_2_5617_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -677,7 +732,8 @@ async fn ecmul_1_2_5617_28000_96() {
 async fn ecmul_7827_6598_5616_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -685,7 +741,8 @@ async fn ecmul_7827_6598_5616_28000_128() {
 async fn ecmul_7827_6598_2_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -693,7 +750,8 @@ async fn ecmul_7827_6598_2_28000_96() {
 async fn ecmul_7827_6598_1_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -708,7 +766,8 @@ async fn ecmul_1_3_0_21000_80() {
 async fn ecmul_7827_6598_5617_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -716,7 +775,8 @@ async fn ecmul_7827_6598_5617_28000_96() {
 async fn ecmul_7827_6598_9_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -738,7 +798,8 @@ async fn ecmul_1_3_0_21000_96() {
 async fn ecmul_7827_6598_5616_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f630644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -746,7 +807,8 @@ async fn ecmul_7827_6598_5616_21000_128() {
 async fn ecmul_1_2_616_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000230644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -754,7 +816,8 @@ async fn ecmul_1_2_616_28000_96() {
 async fn ecmul_7827_6598_9_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f60000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -762,7 +825,8 @@ async fn ecmul_7827_6598_9_21000_96() {
 async fn ecmul_7827_6598_1_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("1a87b0584ce92f4593d161480614f2989035225609f08058ccfa3d0f940febe31a2f3c951f6dadcc7ee9007dff81504b0fcd6d7cf59996efdc33d92bf7f9f8f600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -770,7 +834,8 @@ async fn ecmul_7827_6598_1_28000_128() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -778,7 +843,8 @@ async fn ecmul_0_0_340282366920938463463374607431768211456_28000_80() {
 async fn ecmul_0_0_0_21000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -786,7 +852,8 @@ async fn ecmul_0_0_0_21000_64() {
 async fn ecmul_0_0_1_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -794,7 +861,8 @@ async fn ecmul_0_0_1_21000_128() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 28000 bytes
@@ -802,7 +870,8 @@ async fn ecmul_0_0_340282366920938463463374607431768211456_28000_96() {
 async fn ecmul_0_0_0_28000_40() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -810,7 +879,8 @@ async fn ecmul_0_0_0_28000_40() {
 async fn ecmul_0_0_5616_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -818,7 +888,8 @@ async fn ecmul_0_0_5616_21000_96() {
 async fn ecmul_0_0_9_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -833,7 +904,8 @@ async fn ecmul_0_3_2_21000_96() {
 async fn ecmul_0_0_1_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -841,7 +913,8 @@ async fn ecmul_0_0_1_28000_96() {
 async fn ecmul_1_2_0_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -856,7 +929,8 @@ async fn ecmul_0_3_9935_28000_96() {
 async fn ecmul_1_2_0_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -864,7 +938,8 @@ async fn ecmul_1_2_0_28000_96() {
 async fn ecmul_0_0_1_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -872,7 +947,8 @@ async fn ecmul_0_0_1_28000_128() {
 async fn ecmul_0_0_9_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -887,7 +963,8 @@ async fn ecmul_0_3_9_28000_96() {
 async fn ecmul_0_0_2_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes
@@ -902,7 +979,8 @@ async fn ecmul_0_3_0_28000_64() {
 async fn ecmul_0_0_0_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -910,7 +988,8 @@ async fn ecmul_0_0_0_28000_128() {
 async fn ecmul_0_0_9935_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -925,7 +1004,8 @@ async fn ecmul_0_3_5616_21000_96() {
 async fn ecmul_0_0_9_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 0 bytes. Gives the execution 21000 bytes
@@ -945,7 +1025,9 @@ async fn ecmul_0_0_0_21000_0() {
     )
     .await
     .unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 0 bytes. Gives the execution 21000 bytes");
+
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 0 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -960,7 +1042,8 @@ async fn ecmul_0_3_1_21000_96() {
 async fn ecmul_1_2_2_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -968,7 +1051,8 @@ async fn ecmul_1_2_2_21000_128() {
 async fn ecmul_0_0_0_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -976,7 +1060,8 @@ async fn ecmul_0_0_0_21000_128() {
 async fn ecmul_0_0_2_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -984,7 +1069,8 @@ async fn ecmul_0_0_2_21000_128() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -992,7 +1078,8 @@ async fn ecmul_0_0_340282366920938463463374607431768211456_21000_128() {
 async fn ecmul_1_2_0_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1000,7 +1087,8 @@ async fn ecmul_1_2_0_21000_128() {
 async fn ecmul_1_2_2_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1022,7 +1110,8 @@ async fn ecmul_0_3_0_28000_80() {
 async fn ecmul_1_2_0_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1037,7 +1126,8 @@ async fn ecmul_0_3_5617_28000_96() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1045,7 +1135,8 @@ async fn ecmul_0_0_340282366920938463463374607431768211456_28000_128() {
 async fn ecmul_0_0_2_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1053,7 +1144,8 @@ async fn ecmul_0_0_2_28000_128() {
 async fn ecmul_1_2_1_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1061,7 +1153,8 @@ async fn ecmul_1_2_1_28000_128() {
 async fn ecmul_0_0_5617_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1083,7 +1176,8 @@ async fn ecmul_0_3_340282366920938463463374607431768211456_21000_80() {
 async fn ecmul_1_2_0_28000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -1091,7 +1185,8 @@ async fn ecmul_1_2_0_28000_64() {
 async fn ecmul_1_2_1_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1099,7 +1194,8 @@ async fn ecmul_1_2_1_21000_128() {
 async fn ecmul_0_0_0_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1107,7 +1203,8 @@ async fn ecmul_0_0_0_21000_96() {
 async fn ecmul_1_2_1_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -1115,7 +1212,8 @@ async fn ecmul_1_2_1_21000_96() {
 async fn ecmul_0_0_0_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1123,7 +1221,8 @@ async fn ecmul_0_0_0_21000_80() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 21000 bytes
@@ -1131,7 +1230,8 @@ async fn ecmul_0_0_340282366920938463463374607431768211456_21000_96() {
 async fn ecmul_0_0_0_21000_40() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 40 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -1139,7 +1239,8 @@ async fn ecmul_0_0_0_21000_40() {
 async fn ecmul_0_0_5616_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes
@@ -1147,7 +1248,8 @@ async fn ecmul_0_0_5616_21000_128() {
 async fn ecmul_0_0_0_28000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -1174,7 +1276,9 @@ async fn ecmul_0_0_0_28000_0() {
     )
     .await
     .unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 0 bytes. Gives the execution 28000 bytes");
+
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 0 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes
@@ -1182,7 +1286,8 @@ async fn ecmul_0_0_0_28000_0() {
 async fn ecmul_0_0_340282366920938463463374607431768211456_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1211,7 +1316,8 @@ async fn ecmul_0_3_2_28000_96() {
 async fn ecmul_0_0_5616_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1219,7 +1325,8 @@ async fn ecmul_0_0_5616_28000_96() {
 async fn ecmul_1_2_0_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1234,7 +1341,8 @@ async fn ecmul_0_3_9935_21000_96() {
 async fn ecmul_1_2_0_21000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1249,7 +1357,8 @@ async fn ecmul_0_3_340282366920938463463374607431768211456_28000_128() {
 async fn ecmul_0_0_1_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1257,7 +1366,8 @@ async fn ecmul_0_0_1_21000_96() {
 async fn ecmul_0_0_5616_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes
@@ -1293,7 +1403,8 @@ async fn ecmul_0_3_5617_21000_128() {
 async fn ecmul_0_0_2_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 2 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1301,7 +1412,8 @@ async fn ecmul_0_0_2_21000_96() {
 async fn ecmul_0_0_9935_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1309,7 +1421,8 @@ async fn ecmul_0_0_9935_21000_96() {
 async fn ecmul_0_0_5617_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -1331,7 +1444,8 @@ async fn ecmul_0_3_5617_28000_128() {
 async fn ecmul_0_0_9_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495616 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1346,7 +1460,8 @@ async fn ecmul_0_3_5616_28000_96() {
 async fn ecmul_0_0_5617_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f00000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1375,7 +1490,8 @@ async fn ecmul_0_3_9935_28000_128() {
 async fn ecmul_0_0_9935_21000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 9 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
@@ -1425,7 +1541,8 @@ async fn ecmul_0_3_9_21000_128() {
 async fn ecmul_0_0_9935_28000_128() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 115792089237316195423570985008687907853269984665640564039457584007913129639935 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes
@@ -1440,7 +1557,8 @@ async fn ecmul_0_3_5617_21000_96() {
 async fn ecmul_0_0_5617_21000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 21888242871839275222246405745257275088548364400416034343698204186575808495617 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes
@@ -1448,7 +1566,8 @@ async fn ecmul_0_0_5617_21000_96() {
 async fn ecmul_1_2_0_21000_64() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 64 bytes. Gives the execution 21000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 340282366920938463463374607431768211456 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes
@@ -1477,7 +1596,8 @@ async fn ecmul_0_3_340282366920938463463374607431768211456_28000_96() {
 async fn ecmul_0_0_0_28000_80() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 80 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1485,7 +1605,8 @@ async fn ecmul_0_0_0_28000_80() {
 async fn ecmul_1_2_1_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (1, 2) and the factor 1 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes
@@ -1493,7 +1614,8 @@ async fn ecmul_1_2_1_28000_96() {
 async fn ecmul_0_0_0_28000_96() {
     let eth_response = eth_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(ECMUL_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    assert_eq!(eth_response, era_response, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(eth_response, era_output, "Puts the point (0, 0) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 96 bytes. Gives the execution 28000 bytes");
 }
 
 // Puts the point (0, 3) and the factor 0 into the ECMUL precompile, truncating or expanding the input data to 128 bytes. Gives the execution 28000 bytes
