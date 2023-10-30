@@ -9,6 +9,7 @@ static DEFAULT_L1_PROVIDER_URL: &str =
     "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
 
+#[allow(dead_code)]
 pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
     let gas_used_bytes = bytes[0..4].to_vec();
     let output = bytes[4..].to_vec();

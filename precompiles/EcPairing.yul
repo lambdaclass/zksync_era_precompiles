@@ -41,6 +41,13 @@ object "EcPairing" {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
+            /// @notice Constant function for the twisted curve subgroup order.
+            /// @dev See https://hackmd.io/@jpw/bn254#Parameter-for-BN254 for further details.
+            /// @return ret The twisted curve subgroup orde.
+            function TWISTED_SUBGROUP_ORDER() -> ret {
+                ret := 21888242871839275222246405745257275088548364400416034343698204186575808495617
+            }
+
             /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
             /// @dev R^2 is the Montgomery residue of the value 2^512.
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
@@ -134,6 +141,26 @@ object "EcPairing" {
 				// will burn the provided gas by calling this function.
 				precompileCall(0, gas())
 		  	}
+
+            /// @notice Calculate the bit length of a number.
+            /// @param x The number to calculate the bit length of.
+            /// @return ret The bit length of the number.
+            function bitLen(x) -> ret {
+                ret := 0
+                for {} x {} {
+                    ret := add(ret, 1)
+                    x := shr(1, x)
+                }
+            }
+
+            /// @notice Checks if the bit of a number at a given index is 1.
+            /// @dev The index is counted from the right, starting at 0.
+            /// @param index The index of the bit to check.
+            /// @param n The number to check the bit of.
+            /// @return ret The value of the bit at the given index.
+            function checkBit(index, n) -> ret {
+                ret := and(shr(index, n), 1)
+            }
 
             // MONTGOMERY
 
@@ -345,8 +372,8 @@ object "EcPairing" {
             }
 
             // G2
-            
-            /// @notice Converts a G2 point in affine coordinates to projective coordinates.
+
+			/// @notice Converts a G2 point in affine coordinates to projective coordinates.
 			/// @dev Both input and output coordinates are encoded in Montgomery form.
             /// @dev If x and y differ from 0, just add z = (1,0).
             /// @dev If x and y are equal to 0, then P is the infinity point, and z = (0,0).
@@ -384,13 +411,12 @@ object "EcPairing" {
 
             /// @notice Checks if a G2 point in affine coordinates belongs to the twisted curve.
             /// @dev The coordinates are encoded in Montgomery form.
-            /// @dev In Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
-            /// @dev The point is assumed not to be the point at infinity.
+            /// @dev in Affine coordinates the point belongs to the curve if it satisfies the equation: y^3 = x^2 + 3/(9+u).
             /// @dev See https://hackmd.io/@jpw/bn254#Twists for further details.
             /// @param x0, x1 The x coordinate to check.
             /// @param y0, y1 The y coordinate to check.
             /// @return ret True if the point is in the curve, false otherwise.
-			function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
+            function g2AffinePointIsOnCurve(x0, x1, y0, y1) -> ret {
                 let a0, a1 := MONTGOMERY_TWISTED_CURVE_COEFFS()
                 let b0, b1 := fp2Mul(x0, x1, x0, x1)
                 b0, b1 := fp2Mul(b0, b1, x0, x1)
@@ -410,16 +436,189 @@ object "EcPairing" {
                 ret := iszero(or(z0, z1))
             }
 
-			/// @notice Computes the negation of a point G2 affine point.
-            /// @dev Negating a point in G2 is negating the Y coordenate.
-            /// @param x0, x1 The X coordinate of the point.
-            /// @param y0, y1 The Y coordinate of the point.
+            /// @notice Negates a G2 point in affine coordinates.
+            /// @dev The coordinates are encoded in Montgomery form.
+            /// @dev The negation of a point (x, y) is (x, -y).
+            /// @param x0, x1 The x coordinate of the point.
+            /// @param y0, y1 The y coordinate of the point.
             /// @return nx0, nx1, ny0, ny1 The coordinates of the negated point.
-			function g2Neg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
-				nx0 := x0
-				nx1 := x1
-				ny0, ny1 := fp2Neg(y0, y1)
-			}
+            function g2AffineNeg(x0, x1, y0, y1) -> nx0, nx1, ny0, ny1 {
+                nx0 := x0
+                nx1 := x1
+                ny0, ny1 := fp2Neg(y0, y1)
+            }
+
+            /// @notice Check if a G2 point in jacobian coordinates is in the subgroup of the twisted curve.
+            /// @dev The coordinates are encoded in Montgomery form.
+            /// @param xp0, xp1 The x coordinate of the point.
+            /// @param yp0, yp1 The y coordinate of the point.
+            /// @param zp0, zp1 The z coordinate of the point.
+            /// @return ret True if the point is in the subgroup, false otherwise.
+            function g2IsInSubGroup(xp0, xp1, yp0, yp1, zp0, zp1) -> ret {
+                let xr0, xr1, yr0, yr1, zr0, zr1 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, TWISTED_SUBGROUP_ORDER())
+                ret := and(iszero(zr0), iszero(zr1))
+            }
+
+            /// @notice Double a g2 point represented in jacobian coordinates.
+            /// @dev The coordinates must be encoded in Montgomery form.
+            /// @param xp0, xp1 The x coordinate of the point.
+            /// @param yp0, yp1 The y coordinate of the point.
+            /// @param zp0, zp1 The z coordinate of the point.
+            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The coordinates of the doubled point.
+            function g2JacobianDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
+                let a00, a01 := fp2Mul(xp0, xp1, xp0, xp1) // A = X1^2
+                let b00, b01 := fp2Mul(yp0, yp1, yp0, yp1) // B = Y1^2
+                let c00, c01 := fp2Mul(b00, b01, b00, b01) // C = B^2
+                let t00, t01 := fp2Add(xp0, xp1, b00, b01) // t0 = X1+B
+                let t10, t11 := fp2Mul(t00, t01, t00, t01) // t1 = t0^2
+                let t20, t21 := fp2Sub(t10, t11, a00, a01) // t2 = t1-A
+                let t30, t31 := fp2Sub(t20, t21, c00, c01) // t3 = t2-C
+                let d00, d01 := fp2Add(t30, t31, t30, t31) // D = 2*t3
+                let e00, e01 := fp2Add(a00, a01, a00, a01) // E = 3*A
+                e00, e01 := fp2Add(e00, e01, a00, a01)
+                let f00, f01 := fp2Mul(e00, e01, e00, e01) // F = E^2
+                let t40, t41 := fp2Add(d00, d01, d00, d01) // t4 = 2*D
+                xr0, xr1 := fp2Sub(f00, f01, t40, t41) // X3 = F-t4
+                let t50, t51 := fp2Sub(d00, d01, xr0, xr1) // t5 = D-X3
+                let t60, t61 := fp2Add(c00, c01, c00, c01) // t6 = 8*C
+                t60, t61 := fp2Add(t60, t61, t60, t61)
+                t60, t61 := fp2Add(t60, t61, t60, t61)
+                let t70, t71 := fp2Mul(e00, e01, t50, t51) // t7 = E*t5
+                yr0, yr1 := fp2Sub(t70, t71, t60, t61) // Y3 = t7-t6
+                let t80, t81 := fp2Mul(yp0, yp1, zp0, zp1) // t8 = Y1*Z1
+                zr0, zr1 := fp2Add(t80, t81, t80, t81) // Z3 = 2*t8
+            }
+
+            /// @notice Add two g2 points represented in jacobian coordinates.
+            /// @dev The coordinates must be encoded in Montgomery form.
+            /// @param xq0, xq1 The x coordinate of the first point.
+            /// @param yq0, yq1 The y coordinate of the first point.
+            /// @param zq0, zq1 The z coordinate of the first point.
+            /// @param xr0, xr1 The x coordinate of the second point.
+            /// @param yr0, yr1 The y coordinate of the second point.
+            /// @param zr0, zr1 The z coordinate of the second point.
+            /// @return c00, c01, c10, c11, c20, c21 The coordinates of the added points.
+            function g2JacobianAdd(xq0, xq1, yq0, yq1, zq0, zq1, xr0, xr1, yr0, yr1, zr0, zr1) -> c00, c01, c10, c11, c20, c21 {
+                // Check for infinity in projective coordinates is the same as jacobian
+                let qIsInfinity := g2ProjectivePointIsInfinity(xq0, xq1, yq0, yq1, zq0, zq1)
+                let rIsInfinity := g2ProjectivePointIsInfinity(xr0, xr1, yr0, yr1, zr0, zr1)
+                if and(rIsInfinity, qIsInfinity) {
+                    // Infinity + Infinity = Infinity
+                    leave
+                }
+                if rIsInfinity {
+                    // Infinity + P = P
+                    c00 := xq0
+                    c01 := xq1
+                    c10 := yq0
+                    c11 := yq1
+                    c20 := zq0
+                    c21 := zq1
+                    leave
+                }
+                if qIsInfinity {
+                    // P + Infinity = P
+                    c00 := xr0
+                    c01 := xr1
+                    c10 := yr0
+                    c11 := yr1
+                    c20 := zr0
+                    c21 := zr1
+                    leave
+                }
+
+                // Z1Z1 = Z1^2
+                let zqzq0, zqzq1 := fp2Mul(zq0, zq1, zq0, zq1)
+                // Z2Z2 = Z2^2
+                let zrzr0, zrzr1 := fp2Mul(zr0, zr1, zr0, zr1)
+                // U1 = X1*Z2Z2
+                let u0, u1 := fp2Mul(xq0, xq1, zrzr0, zrzr1)
+                // U2 = X2*Z1Z1
+                let u2, u3 := fp2Mul(xr0, xr1, zqzq0, zqzq1)
+                // t0 = Z2*Z2Z2
+                let t0, t1 := fp2Mul(zr0, zr1, zrzr0, zrzr1)
+                // S1 = Y1*t0
+                let s0, s1 := fp2Mul(yq0, yq1, t0, t1)
+                // t1 = Z1*Z1Z1
+                let t2, t3 := fp2Mul(zq0, zq1, zqzq0, zqzq1)
+                // S2 = Y2*t1
+                let s2, s3 := fp2Mul(yr0, yr1, t2, t3)
+                // H = U2-U1
+                let h0, h1 := fp2Sub(u2, u3, u0, u1)
+                // t2 = 2*H
+                let t4, t5 := fp2Add(h0, h1, h0, h1)
+                // I = t2^2
+                let i0, i1 := fp2Mul(t4, t5, t4, t5)
+                // J = H*I
+                let j0, j1 := fp2Mul(h0, h1, i0, i1)
+                // t3 = S2-S1
+                let t6, t7 := fp2Sub(s2, s3, s0, s1)
+                // r = 2*t3
+                let r0, r1 := fp2Add(t6, t7, t6, t7)
+                // V = U1*I
+                let v0, v1 := fp2Mul(u0, u1, i0, i1)
+                // t4 = r^2
+                let t8, t9 := fp2Mul(r0, r1, r0, r1)
+                // t5 = 2*V
+                let t10, t11 := fp2Add(v0, v1, v0, v1)
+                // t6 = t4-J
+                let t12, t13 := fp2Sub(t8, t9, j0, j1)
+                // X3 = t6-t5
+                c00, c01 := fp2Sub(t12, t13, t10, t11)
+                // t7 = V-X3
+                let t14, t15 := fp2Sub(v0, v1, c00, c01)
+                // t8 = S1*J
+                let t16, t17 := fp2Mul(s0, s1, j0, j1)
+                // t9 = 2*t8
+                let t18, t19 := fp2Add(t16, t17, t16, t17)
+                // t10 = r*t7
+                let t20, t21 := fp2Mul(r0, r1, t14, t15)
+                // Y3 = t10-t9
+                c10, c11 := fp2Sub(t20, t21, t18, t19)
+                // t11 = Z1+Z2
+                let t22, t23 := fp2Add(zq0, zq1, zr0, zr1)
+                // t12 = t11^2
+                let t24, t25 := fp2Mul(t22, t23, t22, t23)
+                // t13 = t12-Z1Z1
+                let t26, t27 := fp2Sub(t24, t25, zqzq0, zqzq1)
+                // t14 = t13-Z2Z2
+                let t28, t29 := fp2Sub(t26, t27, zrzr0, zrzr1)
+                // Z3 = t14*H
+                c20, c21 := fp2Mul(t28, t29, h0, h1)
+            }
+
+            /// @notice Multiplies a G2 point represented in jacobian coordinates by a scalar.
+            /// @dev The coordinates must be encoded in Montgomery form.
+            /// @dev The scalar must not be encoded in Montgomery form.
+            /// @param xp0, xp1 The x coordinate of the point.
+            /// @param yp0, yp1 The y coordinate of the point.
+            /// @param zp0, zp1 The z coordinate of the point.
+            /// @param scalar The scalar to multiply the point by.
+            /// @return xr0, xr1, yr0, yr1, zr0, zr1 The coordinates of the multiplied point.
+            function g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, scalar) -> xr0, xr1, yr0, yr1, zr0, zr1 {
+                let scalarBitIndex := bitLen(scalar)
+                switch scalar
+                case 0x02 {
+                    xr0, xr1, yr0, yr1, zr0, zr1 := g2JacobianDouble(xp0, xp1, yp0, yp1, zp0, yp1)
+                }
+                default {
+                    xr0 := 0
+                    xr1 := 0
+                    yr0 := MONTGOMERY_ONE()
+                    yr1 := 0
+                    zr0 := 0
+                    zr1 := 0
+                    for {} scalarBitIndex {} {
+                        scalarBitIndex := sub(scalarBitIndex, 1)
+                        xr0, xr1, yr0, yr1, zr0, zr1 := g2JacobianDouble(xr0, xr1, yr0, yr1, zr0, zr1)
+                        let bitindex := checkBit(scalarBitIndex, scalar)
+                        if bitindex {
+                            xr0, xr1, yr0, yr1, zr0, zr1 := g2JacobianAdd(xp0, xp1, yp0, yp1, zp0, zp1, xr0, xr1, yr0, yr1, zr0, zr1)
+                        }
+                        
+                    }
+                }
+            }
 
             // FP2 ARITHMETHICS
 
@@ -1274,7 +1473,7 @@ object "EcPairing" {
             /// @return f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 The Fp12 element result of the Miller Loop
             function millerLoop(xq0, xq1, yq0, yq1, xp, yp) -> f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 {
                 let t00, t01, t10, t11, t20, t21 := g2ProjectiveFromAffine(xq0, xq1, yq0, yq1)
-                let mq00, mq01, mq10, mq11 := g2Neg(xq0, xq1, yq0, yq1)
+                let mq00, mq01, mq10, mq11 := g2AffineNeg(xq0, xq1, yq0, yq1)
                 f000, f001, f010, f011, f020, f021, f100, f101, f110, f111, f120, f121 := FP12_ONE()
                 let naf := NAF_REPRESENTATIVE()
                 let n_iter := 63
@@ -1434,7 +1633,9 @@ object "EcPairing" {
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
 
-                // TODO: Add G2 subgroup check.
+                if iszero(g2IsInSubGroup(g2_x0,g2_x1, g2_y0, g2_y1, MONTGOMERY_ONE(), 0)) {
+                    burnGas()
+				}
 
                 if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
 					burnGas()
