@@ -19,7 +19,6 @@ def write_reference(test_file: io.TextIOWrapper):
     test_file.write("\n")
 
 def write_imports(test_file: io.TextIOWrapper, precompile):
-    test_file.write("use hex;\n")
     test_file.write(f"use zksync_web3_rs::types::{{Address, Bytes, H160}};\n")
     test_file.write("\n")
     test_file.write("mod test_utils;\n")
