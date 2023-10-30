@@ -4,7 +4,6 @@
     https://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_random_valid.jsonl
 */
 
-use hex;
 use zksync_web3_rs::types::{Address, Bytes, H160};
 
 mod test_utils;
