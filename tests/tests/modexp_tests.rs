@@ -262,7 +262,7 @@ async fn modexp_28() {
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let (era_output, gas_used) = parse_call_result(&era_response);
     write_modexp_gas_result(gas_used);
-    assert_eq!(era_output, Bytes::from(&[]))
+    assert_eq!(era_output, Bytes::from(&[]));
 }
 
 #[tokio::test]

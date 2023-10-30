@@ -1,5 +1,4 @@
 use zksync_web3_rs::types::{Address, Bytes, H160};
-
 mod test_utils;
 use test_utils::{era_call, parse_call_result, write_p256verify_gas_result};
 
