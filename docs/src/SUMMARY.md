@@ -13,4 +13,5 @@
     - [Optimizations](ecpairing/optimizations.md)
 - [ModExp]()
     - [Specification](modexp/spec.md)
+    - [API Docs](modexp/api.md)
     - [Optimizations](modexp/optimizations.md)

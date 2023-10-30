@@ -1,15 +1,17 @@
 use zksync_web3_rs::{types::Bytes, zks_utils::MODEXP_PRECOMPILE_ADDRESS};
 
+#[cfg(test)]
 mod test_utils;
 use test_utils::{era_call, eth_call};
 
-use crate::test_utils::parse_call_result;
+use crate::test_utils::{parse_call_result, write_modexp_gas_result};
 
 #[tokio::test]
 async fn modexp_0() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002003fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2efffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002003fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2efffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -17,11 +19,11 @@ async fn modexp_0() {
 async fn modexp_1() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2efffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2efffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_2() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd").unwrap()))).await.is_err());
@@ -32,7 +34,8 @@ async fn modexp_2() {
 async fn modexp_3() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003ffff800000000000000000000000000000000000000000000000000000000000000007").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003ffff800000000000000000000000000000000000000000000000000000000000000007").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -40,7 +43,8 @@ async fn modexp_3() {
 async fn modexp_4() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003ffff80").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003ffff80").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -48,7 +52,8 @@ async fn modexp_4() {
 async fn modexp_5() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000002003").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -56,7 +61,8 @@ async fn modexp_5() {
 async fn modexp_6() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020038000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020038000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -64,7 +70,8 @@ async fn modexp_6() {
 async fn modexp_7() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -72,7 +79,8 @@ async fn modexp_7() {
 async fn modexp_8() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -80,7 +88,8 @@ async fn modexp_8() {
 async fn modexp_9() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000101").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000101").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -88,7 +97,8 @@ async fn modexp_9() {
 async fn modexp_10() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000304").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000304").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -96,7 +106,8 @@ async fn modexp_10() {
 async fn modexp_11() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -104,7 +115,8 @@ async fn modexp_11() {
 async fn modexp_12() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020300").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020300").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -112,7 +124,8 @@ async fn modexp_12() {
 async fn modexp_13() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010304").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010304").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -120,7 +133,8 @@ async fn modexp_13() {
 async fn modexp_14() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010204").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010204").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -128,7 +142,8 @@ async fn modexp_14() {
 async fn modexp_15() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000203").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000203").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -136,7 +151,8 @@ async fn modexp_15() {
 async fn modexp_16() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000202030006").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000202030006").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -144,7 +160,8 @@ async fn modexp_16() {
 async fn modexp_17() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020306").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001020306").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -152,7 +169,8 @@ async fn modexp_17() {
 async fn modexp_18() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002020300").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002020300").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -160,7 +178,8 @@ async fn modexp_18() {
 async fn modexp_19() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000202030000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000202030000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -168,7 +187,8 @@ async fn modexp_19() {
 async fn modexp_20() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020203").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020203").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -176,7 +196,8 @@ async fn modexp_20() {
 async fn modexp_21() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002023003").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002023003").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -184,7 +205,8 @@ async fn modexp_21() {
 async fn modexp_22() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020230").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020230").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -192,7 +214,8 @@ async fn modexp_22() {
 async fn modexp_23() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000202").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000202").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -200,7 +223,8 @@ async fn modexp_23() {
 async fn modexp_24() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -208,7 +232,8 @@ async fn modexp_24() {
 async fn modexp_25() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001001001010010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001001001010010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -216,7 +241,8 @@ async fn modexp_25() {
 async fn modexp_26() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -224,15 +250,18 @@ async fn modexp_26() {
 async fn modexp_27() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000010100000000000000000000000000000000000000000000000000000000000000020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030006").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000010100000000000000000000000000000000000000000000000000000000000000020200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030006").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_28() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(&[]));
 }
 
@@ -240,7 +269,8 @@ async fn modexp_28() {
 async fn modexp_29() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -248,7 +278,8 @@ async fn modexp_29() {
 async fn modexp_30() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -256,7 +287,8 @@ async fn modexp_30() {
 async fn modexp_31() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000002100000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010035ee4e488f45e64d2f07becd54646357381d32f30b74c299a8c25d5202c04938ef6c4764a04f10fc908b78c4486886000f6d290251a79681a83b950c7e5c37351").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000002100000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010035ee4e488f45e64d2f07becd54646357381d32f30b74c299a8c25d5202c04938ef6c4764a04f10fc908b78c4486886000f6d290251a79681a83b950c7e5c37351").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -264,7 +296,8 @@ async fn modexp_31() {
 async fn modexp_32() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000cd935b43e42204fcbfb734a6e27735e8e90204fcc1fd2727bb040f9eecb").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000cd935b43e42204fcbfb734a6e27735e8e90204fcc1fd2727bb040f9eecb").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -272,7 +305,8 @@ async fn modexp_32() {
 async fn modexp_33() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000060846813a8d2d451387340fa0597c6545ae63").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000060846813a8d2d451387340fa0597c6545ae63").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -280,7 +314,8 @@ async fn modexp_33() {
 async fn modexp_34() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000000000000000000000000000000000000000000d02534f82b1013f20d9c7d18d62cd95674d2e013f20d9c7d18d62cd95674d2f").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000d000000000000000000000000000000000000000000000000000000000000000d02534f82b1013f20d9c7d18d62cd95674d2e013f20d9c7d18d62cd95674d2f").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -288,16 +323,18 @@ async fn modexp_34() {
 async fn modexp_35() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000120785e45de3d6be050ba3c4d33ff0bb2d010ace3b1dfe9c49f4c7a8075102fa19a86c010ace3b1dfe9c49f4c7a8075102fa19a86d").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000120785e45de3d6be050ba3c4d33ff0bb2d010ace3b1dfe9c49f4c7a8075102fa19a86c010ace3b1dfe9c49f4c7a8075102fa19a86d").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_36() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000ff2a1e5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000ff2a1e5300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(&[]));
 }
 
@@ -311,7 +348,8 @@ async fn modexp_37() {
 async fn modexp_tests_0() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -319,7 +357,8 @@ async fn modexp_tests_0() {
 async fn modexp_tests_1() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -327,7 +366,8 @@ async fn modexp_tests_1() {
 async fn modexp_tests_2() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -335,7 +375,8 @@ async fn modexp_tests_2() {
 async fn modexp_tests_3() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -343,7 +384,8 @@ async fn modexp_tests_3() {
 async fn modexp_tests_4() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -351,7 +393,8 @@ async fn modexp_tests_4() {
 async fn modexp_tests_5() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -359,7 +402,8 @@ async fn modexp_tests_5() {
 async fn modexp_tests_6() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -367,7 +411,8 @@ async fn modexp_tests_6() {
 async fn modexp_tests_7() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -375,7 +420,8 @@ async fn modexp_tests_7() {
 async fn modexp_tests_8() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -383,7 +429,8 @@ async fn modexp_tests_8() {
 async fn modexp_tests_9() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -391,48 +438,45 @@ async fn modexp_tests_9() {
 async fn modexp_tests_10() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1_048_578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1_048_578.
 #[tokio::test]
 async fn modexp_tests_11() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_12() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_13() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_14() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_15() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_16() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -443,7 +487,8 @@ async fn modexp_tests_16() {
 async fn modexp_tests_17() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -451,7 +496,8 @@ async fn modexp_tests_17() {
 async fn modexp_tests_18() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -459,7 +505,8 @@ async fn modexp_tests_18() {
 async fn modexp_tests_19() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -467,7 +514,8 @@ async fn modexp_tests_19() {
 async fn modexp_tests_20() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -475,7 +523,8 @@ async fn modexp_tests_20() {
 async fn modexp_tests_21() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -483,7 +532,8 @@ async fn modexp_tests_21() {
 async fn modexp_tests_22() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -491,7 +541,8 @@ async fn modexp_tests_22() {
 async fn modexp_tests_23() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -499,7 +550,8 @@ async fn modexp_tests_23() {
 async fn modexp_tests_24() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -507,7 +559,8 @@ async fn modexp_tests_24() {
 async fn modexp_tests_25() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -515,7 +568,8 @@ async fn modexp_tests_25() {
 async fn modexp_tests_26() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -523,48 +577,45 @@ async fn modexp_tests_26() {
 async fn modexp_tests_27() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_28() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_29() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_30() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_31() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_32() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_33() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -575,7 +626,8 @@ async fn modexp_tests_33() {
 async fn modexp_tests_34() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -583,7 +635,8 @@ async fn modexp_tests_34() {
 async fn modexp_tests_35() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -591,7 +644,8 @@ async fn modexp_tests_35() {
 async fn modexp_tests_36() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -599,7 +653,8 @@ async fn modexp_tests_36() {
 async fn modexp_tests_37() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -607,7 +662,8 @@ async fn modexp_tests_37() {
 async fn modexp_tests_38() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -615,7 +671,8 @@ async fn modexp_tests_38() {
 async fn modexp_tests_39() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -623,7 +680,8 @@ async fn modexp_tests_39() {
 async fn modexp_tests_40() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -631,7 +689,8 @@ async fn modexp_tests_40() {
 async fn modexp_tests_41() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -639,7 +698,8 @@ async fn modexp_tests_41() {
 async fn modexp_tests_42() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -647,7 +707,8 @@ async fn modexp_tests_42() {
 async fn modexp_tests_43() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -655,7 +716,8 @@ async fn modexp_tests_43() {
 async fn modexp_tests_44() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -663,48 +725,45 @@ async fn modexp_tests_44() {
 async fn modexp_tests_45() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_46() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_47() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_48() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_49() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_50() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_51() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -715,7 +774,8 @@ async fn modexp_tests_51() {
 async fn modexp_tests_52() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -723,7 +783,8 @@ async fn modexp_tests_52() {
 async fn modexp_tests_53() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -731,102 +792,105 @@ async fn modexp_tests_53() {
 async fn modexp_tests_54() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 16.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 16.
 #[tokio::test]
 async fn modexp_tests_55() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 16]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 32.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 32.
 #[tokio::test]
 async fn modexp_tests_56() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 32]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 64.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 64.
 #[tokio::test]
 async fn modexp_tests_57() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 64]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 100.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 100.
 #[tokio::test]
 async fn modexp_tests_58() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 100]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 128.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 128.
 #[tokio::test]
 async fn modexp_tests_59() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 128]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 4.097.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 4.097.
 #[tokio::test]
 async fn modexp_tests_60() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 4_097]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
 #[tokio::test]
 async fn modexp_tests_61() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_62() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_63() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_64() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_65() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff00000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff00000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_66() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -837,7 +901,8 @@ async fn modexp_tests_66() {
 async fn modexp_tests_67() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -845,7 +910,8 @@ async fn modexp_tests_67() {
 async fn modexp_tests_68() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -853,7 +919,8 @@ async fn modexp_tests_68() {
 async fn modexp_tests_69() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -861,7 +928,8 @@ async fn modexp_tests_69() {
 async fn modexp_tests_70() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -869,7 +937,8 @@ async fn modexp_tests_70() {
 async fn modexp_tests_71() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -877,7 +946,8 @@ async fn modexp_tests_71() {
 async fn modexp_tests_72() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -885,7 +955,8 @@ async fn modexp_tests_72() {
 async fn modexp_tests_73() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -893,7 +964,8 @@ async fn modexp_tests_73() {
 async fn modexp_tests_74() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -901,7 +973,8 @@ async fn modexp_tests_74() {
 async fn modexp_tests_75() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -909,7 +982,8 @@ async fn modexp_tests_75() {
 async fn modexp_tests_76() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -917,48 +991,45 @@ async fn modexp_tests_76() {
 async fn modexp_tests_77() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578.
 #[tokio::test]
 async fn modexp_tests_78() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_79() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_80() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_81() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_82() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_83() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -969,7 +1040,8 @@ async fn modexp_tests_83() {
 async fn modexp_tests_84() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -977,7 +1049,8 @@ async fn modexp_tests_84() {
 async fn modexp_tests_85() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -985,7 +1058,8 @@ async fn modexp_tests_85() {
 async fn modexp_tests_86() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -993,7 +1067,8 @@ async fn modexp_tests_86() {
 async fn modexp_tests_87() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000004").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1001,7 +1076,8 @@ async fn modexp_tests_87() {
 async fn modexp_tests_88() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1009,7 +1085,8 @@ async fn modexp_tests_88() {
 async fn modexp_tests_89() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1017,7 +1094,8 @@ async fn modexp_tests_89() {
 async fn modexp_tests_90() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1025,7 +1103,8 @@ async fn modexp_tests_90() {
 async fn modexp_tests_91() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1033,7 +1112,8 @@ async fn modexp_tests_91() {
 async fn modexp_tests_92() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1041,7 +1121,8 @@ async fn modexp_tests_92() {
 async fn modexp_tests_93() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000080").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1049,48 +1130,45 @@ async fn modexp_tests_93() {
 async fn modexp_tests_94() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 1.048.578
 #[tokio::test]
 async fn modexp_tests_95() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000100002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 1_048_578]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_96() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000010000004").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_97() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000001000000008").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_98() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000ffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_99() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
     assert!(era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000ffffffffffffff").unwrap()))).await.is_err());
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_tests_100() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000ffffffffffffffff").unwrap()))).await.is_err());
@@ -1101,7 +1179,8 @@ async fn modexp_tests_100() {
 async fn modexp_tests_101() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1109,7 +1188,8 @@ async fn modexp_tests_101() {
 async fn modexp_tests_102() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1117,7 +1197,8 @@ async fn modexp_tests_102() {
 async fn modexp_tests_103() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1125,7 +1206,8 @@ async fn modexp_tests_103() {
 async fn modexp_tests_104() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1133,7 +1215,8 @@ async fn modexp_tests_104() {
 async fn modexp_tests_105() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1141,7 +1224,8 @@ async fn modexp_tests_105() {
 async fn modexp_tests_106() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1149,7 +1233,8 @@ async fn modexp_tests_106() {
 async fn modexp_tests_107() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1157,7 +1242,8 @@ async fn modexp_tests_107() {
 async fn modexp_tests_108() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1165,7 +1251,8 @@ async fn modexp_tests_108() {
 async fn modexp_tests_109() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1173,7 +1260,8 @@ async fn modexp_tests_109() {
 async fn modexp_tests_110() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1181,7 +1269,8 @@ async fn modexp_tests_110() {
 async fn modexp_tests_111() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1189,7 +1278,8 @@ async fn modexp_tests_111() {
 async fn modexp_tests_112() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000002").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1197,106 +1287,118 @@ async fn modexp_tests_112() {
 async fn modexp_tests_113() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000050000000000000000000000000000000000000000000000000000000000000064").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 39.936.
+// FIXME:This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 39.936.
 #[tokio::test]
 async fn modexp_tests_114() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000027000000000000000000000000000000000000000000000000000000000000009c00").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000027000000000000000000000000000000000000000000000000000000000000009c00").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 39_936]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 11.579.
+// FIXME:This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 11.579.
 #[tokio::test]
 async fn modexp_tests_115() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000071140000000000000000000000000000000000000000000000000000000000002d3b").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000071140000000000000000000000000000000000000000000000000000000000002d3b").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 11_579]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_116() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000900000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_117() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000e7f00000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000090000000000000000000000000000000000000000000000000000000000000e7f00000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 2.401.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 2.401.
 #[tokio::test]
 async fn modexp_tests_118() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000003100000000000000000000000000000000000000000000000000000000000009610000000000000000000000000000000000000000000000000000000000000961").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000003100000000000000000000000000000000000000000000000000000000000009610000000000000000000000000000000000000000000000000000000000000961").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 2_401]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 22000.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 22000.
 #[tokio::test]
 async fn modexp_tests_119() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000009100000000000000000000000000000000000000000000000000000000000000578b00000000000000000000000000000000000000000000000000000000000055f0").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000009100000000000000000000000000000000000000000000000000000000000000578b00000000000000000000000000000000000000000000000000000000000055f0").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 22000]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_tests_120() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(&[]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00` because of mod length being 1.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00` because of mod length being 1.
 #[tokio::test]
 async fn modexp_tests_121() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(&[0]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 37.111.
 #[tokio::test]
 async fn modexp_tests_122() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f700000000000000000000000000000000000000000000000000000000000090f7").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 37_111]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
 #[tokio::test]
 async fn modexp_tests_123() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000001bd000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000001bd000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 97]));
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 97.
 #[tokio::test]
 async fn modexp_tests_124() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000910000000000000000000000000000000000000000000000000000000000000090f70000000000000000000000000000000000000000000000000000000000000061").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 97]));
 }
 
@@ -1304,16 +1406,18 @@ async fn modexp_tests_124() {
 async fn modexp_tests_125() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000009c000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000d7a1").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000009c000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000d7a1").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 42.965
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 42.965
 #[tokio::test]
 async fn modexp_tests_126() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000a7d5").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000d796000000000000000000000000000000000000000000000000000000000000a7d5").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 42_965]));
 }
 
@@ -1321,20 +1425,21 @@ async fn modexp_tests_126() {
 async fn modexp_random_input_0() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000e300000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000e300000000000000000000000000000000000000000000000000").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
-// This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
+// FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x` because of mod length being 0.
 #[tokio::test]
 async fn modexp_random_input_1() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000008000000000000000000000000000000000000000000000000000000000000400000000000000000000000a").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000008000000000000000000000000000000000000000000000000000000000000400000000000000000000000a").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(&[]));
 }
 
-// This test fails on L1 with "out of gas" error and is reverted on L2 returning `0x00`.
 #[tokio::test]
 async fn modexp_random_input_2() {
     assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001147000000000000000000000000000000000000000000000000000000000061660350000000000000000000000000000000000000000000000000000000000000008").unwrap()))).await.is_err());
@@ -1357,8 +1462,8 @@ async fn modexp_edge_cases_1() {
     )
     .await
     .unwrap();
-
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1366,7 +1471,8 @@ async fn modexp_edge_cases_1() {
 async fn modexp_edge_cases_2() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000001").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1374,7 +1480,8 @@ async fn modexp_edge_cases_2() {
 async fn modexp_edge_cases_3() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000100").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000100").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1382,7 +1489,8 @@ async fn modexp_edge_cases_3() {
 async fn modexp_edge_cases_4() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001010200").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001010200").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
 
@@ -1390,6 +1498,7 @@ async fn modexp_edge_cases_4() {
 async fn modexp_edge_cases_5() {
     let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff02f1").unwrap()))).await.unwrap();
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff02f1").unwrap()))).await.unwrap();
-    let (era_output, _) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_modexp_gas_result(gas_used);
     assert_eq!(eth_response, era_output);
 }
