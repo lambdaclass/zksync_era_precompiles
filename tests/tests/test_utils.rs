@@ -8,8 +8,7 @@ use zksync_web3_rs::{
     },
 };
 
-static DEFAULT_L1_PROVIDER_URL: &str =
-    "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
+static DEFAULT_L1_PROVIDER_URL: &str = "http://localhost:8545";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
 
 #[allow(dead_code)]
@@ -30,7 +29,7 @@ fn write_line_to_report(used_gas: u32, report_to_write: &str) {
     let curr_thread = std::thread::current();
     let test_name = curr_thread.name().unwrap();
 
-    write!(file, "| {test_name}  | {used_gas} | \n").unwrap();
+    writeln!(file, "| {test_name}  | {used_gas} |").unwrap();
 }
 
 #[allow(dead_code)]
