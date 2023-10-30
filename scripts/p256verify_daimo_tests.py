@@ -15,7 +15,6 @@ def write_reference(test_file: io.TextIOWrapper):
     test_file.write("\tThese tests were generated using Daimo's test vectors, you can find the original files here:\n")
     test_file.write("\thttps://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_wycheproof.jsonl\n")
     test_file.write("\thttps://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_random_valid.jsonl\n")
-    test_file.write("\thttps://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_scure_base64url.jsonl\n")
     test_file.write("*/\n")
     test_file.write("\n")
 
@@ -78,9 +77,9 @@ def main():
                 calldata = hash + r + s + x + y
 
                 if "wycheproof" in entry_file.name:    
-                    name = f"wycheproof_{i}"
                     comment = test_case["comment"]
                     valid = test_case["valid"]
+                    name = f"wycheproof_{i}_{'should_fail' if not valid else 'should_pass'}"
                     i += 1
                 else:
                     name = "_".join(test_case["comment"].split(" "))
