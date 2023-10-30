@@ -1,7 +1,7 @@
 use zksync_web3_rs::types::{Address, Bytes, H160};
 
 mod test_utils;
-use test_utils::era_call;
+use test_utils::{era_call, parse_call_result};
 
 pub const P256VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -27,7 +27,8 @@ async fn p256verify_valid_signature_one() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
@@ -39,7 +40,8 @@ async fn p256verify_valid_signature_two() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_VALID))
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
 }
 
 #[tokio::test]
@@ -51,7 +53,8 @@ async fn p256verify_invalid_signature() {
     )
     .await
     .unwrap();
-    assert_eq!(era_response, Bytes::from(RESPONSE_INVALID))
+    let (era_output, _) = parse_call_result(&era_response);
+    assert_eq!(era_output, Bytes::from(RESPONSE_INVALID))
 }
 
 #[tokio::test]
