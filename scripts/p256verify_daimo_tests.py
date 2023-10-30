@@ -10,11 +10,6 @@ TESTS_PATHS = [
     "assets/vectors_wycheproof.json"
 ]
 
-# /*
-#     These tests were generated using Daimo's test vectors, you can find the original files here:
-#     https://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_wycheproof.jsonl
-#     https://github.com/daimo-eth/p256-verifier/blob/master/test-vectors/vectors_random_valid.jsonl
-# */
 def write_reference(test_file: io.TextIOWrapper):
     test_file.write("/*\n")
     test_file.write("\tThese tests were generated using Daimo's test vectors, you can find the original files here:\n")
@@ -95,8 +90,6 @@ def main():
                 test_case_data.append({"name": name,"calldata": calldata, "comment": comment, "valid": valid})
 
             write_test_suit(test_case_data, open("tests/tests/p256verify_daimo_tests.rs", "w"))
-
-
 
 if __name__ == "__main__":
     main()
