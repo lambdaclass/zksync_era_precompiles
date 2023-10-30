@@ -1,3 +1,5 @@
+OPT ?= 3
+
 .PHONY: setup update run test docs
 
 setup:
@@ -15,10 +17,11 @@ copy-precompiles:
 
 .PHONY: build-precompiles
 build-precompiles: copy-precompiles
+	sed -i '' -e 's/--optimization [123sz]/--optimization ${OPT}/' submodules/era-test-node/etc/system-contracts/scripts/compile-yul.ts
 	cd submodules/era-test-node && make build-precompiles
 
 run: build-precompiles
-	cd submodules/era-test-node && cargo run -- --show-calls=all --resolve-hashes run
+	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes run
 
 test:
 	cd tests && \
