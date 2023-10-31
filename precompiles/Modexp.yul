@@ -660,36 +660,70 @@ object "ModExp" {
                 // Works ✅ 
                 // Notes: bigUIntMul duplicates limbs, so scratchBufferPtr1
                 // now has 2nLimbs limbs
-                let lowPartOfScratchBufferPtr1 := bigUIntLowerHalfPtr(shl(1, nLimbs), scratchBufferPtr1)
-                let lowPartOfScratchBufferPtr3 := bigUIntLowerHalfPtr(shl(1, nLimbs), scratchBufferPtr3)
+                let lowPartOfScratchBufferPtr1 := bigUIntLowerHalfPtr(shl(2, nLimbs), scratchBufferPtr1)
+                let lowPartOfScratchBufferPtr3 := bigUIntLowerHalfPtr(shl(2, nLimbs), scratchBufferPtr3)
                 //let lowLowPartOfScratchBufferPtr1 := bigUIntLowerHalfPtr(shr(1, nLimbs), lowPartOfScratchBufferPtr1)
+                // console_log(0xCAFECAFE)
+                // console_log(mload(numPtr))
+                // console_log(mload(add(numPtr,0x20)))
+                // console_log(mload(barretFactorPtr))
+                // console_log(mload(add(barretFactorPtr,0x20)))
                 bigUIntMul(numPtr, barretFactorPtr, nLimbs, lowPartOfScratchBufferPtr1) // scratchBufferPtr1 = 2*nLimbs
+                // console_log(mload(lowPartOfScratchBufferPtr1))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x20)))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x40)))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x60)))
                 // result := result >> barretShift
                 // Works ✅
                 // Notes:
                 // ❌ To check: barretShift is currently assumed to be
                 // a u256 NOT A BIG NUM.
                 shiftRightNTimesInPlace(shl(1, nLimbs), barretShift, lowPartOfScratchBufferPtr1)
+                // console_log(0xDEAD)
+                // console_log(mload(lowPartOfScratchBufferPtr1))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x20)))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x40)))
+                // console_log(mload(add(lowPartOfScratchBufferPtr1,0x60)))
+                // console_log(0xDEAD)
                 // result := result * factor
                 // Works ✅: Disagreement between limb size
                 // To check: scratchBuf1Ptr and resultNewPtr are needed
                 // as scratch buffers
                 // Note: I think resultNewPtr can be reduced again to nLimbs.
                 bigUIntPadWithZeros(moduloPtr, nLimbs, shl(1, nLimbs), lowPartOfScratchBufferPtr3) // scratchBufferPtr3 = 2*nLimbs
-                bigUIntMul(scratchBufferPtr1, scratchBufferPtr3, mul(2, nLimbs), scratchBufferPtr2) // scratchBufferPtr2 = 4*nLimbs
+                let newLimbAmount := shl(2, nLimbs)
+                bigUIntMul(scratchBufferPtr1, scratchBufferPtr3, newLimbAmount, scratchBufferPtr2) // scratchBufferPtr2 = 4*nLimbs
                 // assert result := result * factor
                 // result := num - result
                 // Works ✅:
                 // To check: moduloExtendedWithZeroesPtr and resultNewPtr are needed
                 // as scratch buffers
                 // Note: I think resultNewPtr can be reduced again to nLimbs.
-                let newLimbAmount := shl(2, nLimbs)
                 let paddedNumPtr := scratchBufferPtr1
-                zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr3) // scratchBufferPtr3 = 4*nLimbs
-                let subBuffer := 0x5000
+                let lowPaddedNumPtr := bigUIntLowerHalfPtr(newLimbAmount, paddedNumPtr)
+                let lowLowPaddedNumPtr := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowPaddedNumPtr)
                 zeroWithLimbSizeAt(newLimbAmount, paddedNumPtr) // scratchBufferPtr1 = 4*nLimbs
+                copyBigUint(nLimbs, numPtr, lowLowPaddedNumPtr)
                 // zeroWithLimbSizeAt(nLimbs, scratchBufferPtr2)
                 zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr3)
+                // console_log(0xABABA)
+                // console_log(mload(paddedNumPtr))
+                // console_log(mload(add(paddedNumPtr,0x20)))
+                // console_log(mload(add(paddedNumPtr,0x40)))
+                // console_log(mload(add(paddedNumPtr,0x60)))
+                // console_log(mload(add(paddedNumPtr,0x80)))
+                // console_log(mload(add(paddedNumPtr,0xa0)))
+                // console_log(mload(add(paddedNumPtr,0xc0)))
+                // console_log(mload(add(paddedNumPtr,0xe0)))
+                // console_log(0xbababa)
+                // console_log(mload(scratchBufferPtr2))
+                // console_log(mload(add(scratchBufferPtr2,0x20)))
+                // console_log(mload(add(scratchBufferPtr2,0x40)))
+                // console_log(mload(add(scratchBufferPtr2,0x60)))
+                // console_log(mload(add(scratchBufferPtr2,0x80)))
+                // console_log(mload(add(scratchBufferPtr2,0xa0)))
+                // console_log(mload(add(scratchBufferPtr2,0xc0)))
+                // console_log(mload(add(scratchBufferPtr2,0xe0)))
                 bigUIntSubWithBorrow(paddedNumPtr, scratchBufferPtr2, newLimbAmount, scratchBufferPtr3)
                 // Pad modulo with zeroes for comparison
                 zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr2)
@@ -697,12 +731,13 @@ object "ModExp" {
 
                 // return result if (result < mod) else (result - mod)
                 if bigNumberGreaterThan(newLimbAmount, scratchBufferPtr3, scratchBufferPtr2) {
-                   zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr1) 
-                   bigUIntSubWithBorrow(scratchBufferPtr3, scratchBufferPtr2, newLimbAmount, scratchBufferPtr1)
-                   let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr1)
-                   let lowerHalfHalfOfPtr1 := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowerHalfOfPtr1)
-                   copyBigUint(nLimbs, lowerHalfHalfOfPtr1, resultPtr)
-                   leave
+                    console_log(0xDEAD)
+                    zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr1) 
+                    bigUIntSubWithBorrow(scratchBufferPtr3, scratchBufferPtr2, newLimbAmount, scratchBufferPtr1)
+                    let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr1)
+                    let lowerHalfHalfOfPtr1 := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowerHalfOfPtr1)
+                    copyBigUint(nLimbs, lowerHalfHalfOfPtr1, resultPtr)
+                    leave
                 }
                 let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr3)
                 let lowerHalfHalfOfPtr1 := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowerHalfOfPtr1)
@@ -742,7 +777,10 @@ object "ModExp" {
                     // PSEUDOCODE: `result := 1`
                     // Again, we are using the precondition that `result[] == 0`
                     let shift := calculateBarretConstantFactors(nLimbs, modulusPtr, barretFactorPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr)
-
+                    // console_log(shift)
+                    // console_log(0xCAFE)
+                    // console_log(mload(barretFactorPtr))
+                    // console_log(mload(add(barretFactorPtr, 0x20)))
                     bigUIntInPlaceOrWith1(resultPtr, nLimbs)
                     let modulusBitSize := bigUIntBitSize(modulusPtr, nLimbs)
                     let exponentBitSize := bigUIntBitSize(exponentPtr, nLimbs)
@@ -751,6 +789,8 @@ object "ModExp" {
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
                     bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, scratchBuf3Ptr)
                     basePtr, scratchBuf3Ptr := flip(basePtr, scratchBuf3Ptr)
+                    // console_log(mload(basePtr))
+                    // console_log(mload(add(basePtr, 0x20)))
 
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
@@ -762,15 +802,25 @@ object "ModExp" {
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
                             let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
-                            
+                            console_log(0xBABE)
+                            console_log(mload(result_low_ptr))
+                            console_log(mload(base_low_ptr))
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
+                            
+                            console_log(mload(scratchBuf1Ptr))
+                            console_log(mload(add(scratchBuf1Ptr,0x20)))
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
                             //bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, resultPtr)
 
                             barretReduction(nLimbs, barretFactorPtr, shift, scratchBuf1Ptr, modulusPtr, resultPtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3)
+                            console_log(0xAAA)
+                            console_log(mload(resultPtr))
+                            console_log(mload(add(resultPtr,0x20)))
                         }
-
+                        console_log(0xAADD)
+                        console_log(mload(resultPtr))
+                        console_log(mload(add(resultPtr,0x20)))
                         // PSEUDOCODE: `exponent := exponent >> 1`
                         // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
                         bigUIntOneShiftRight(exponentPtr, nLimbs)
@@ -781,7 +831,13 @@ object "ModExp" {
 
                         // base <- temp % modulus
                         //bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, modulusBitSize, basePtr)
-                        barretReduction(nLimbs, barretFactorPtr, shift, scratchBuf2Ptr, modulusPtr, resultPtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3)
+                        barretReduction(nLimbs, barretFactorPtr, shift, scratchBuf2Ptr, modulusPtr, basePtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3)
+                        console_log(0xBBB)
+                        console_log(mload(basePtr))
+                        console_log(mload(add(basePtr,0x20)))
+                        console_log(0xAADD)
+                        console_log(mload(resultPtr))
+                        console_log(mload(add(resultPtr,0x20)))
                     }
                 }
             }
@@ -938,7 +994,7 @@ object "ModExp" {
 
             let resultPtr := add(scratchBufferForBarret3, memForMaxLimbNumber)
 
-            bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, barretFactorPtr, scratchBufferPtr3, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3) 
+            bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3, barretFactorPtr,scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3) 
 
             let finalResultEnd := add(resultPtr, memForMaxLimbNumber)
             let finalResultStart := sub(finalResultEnd, modLen)
