@@ -18,8 +18,8 @@ fn main() {
     precompiles_report_list
         .into_iter()
         .for_each(|mut precompile_name| {
-            let file_path = format!("{}/{}_report.md", directory, precompile_name);
-            precompile_name.push_str("_report.md");
+            let file_path = format!("{}/{}_report.csv", directory, precompile_name);
+            precompile_name.push_str("_report.csv");
             let mut file = OpenOptions::new()
                 .create(true)
                 .write(true)
@@ -27,7 +27,6 @@ fn main() {
                 .open(file_path)
                 .unwrap();
 
-            writeln!(file, "| Test case | Gas used |").unwrap();
-            writeln!(file, "| --------- | -------- |").unwrap();
+            writeln!(file, "test, gas").unwrap();
         });
 }

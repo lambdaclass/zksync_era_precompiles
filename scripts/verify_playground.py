@@ -1,0 +1,22 @@
+t0 = "17e2abeac82f76497d4db6d47356d29014f743e7185cd518ed3680ab0c98855f"
+t1 = "f43d8c4297bbbd84ad63da6edfa2bebc1fd103f32881337f3bbd16b9b3b9875a"
+
+t0 = "000" + bin(int(t0, 16))[2:]
+t1 = bin(int(t1, 16))[2:]
+
+print(len(t0))
+print(len(t1))
+
+print(t0)
+print(t1)
+
+for i in range(len(t0)):
+    print((int(t0[i]) * 2) + int(t1[i]))
+
+
+21:34:25 [INFO] d466d1ccec6839e2255966b7cbe9f7163c31fdfd39c74252489115c4815256ff
+21:34:25 [INFO] a90158693a6dd13f31b3c5a45d7aadc393da920bfbc7b964bd2bc952fb239729
+21:34:25 [INFO] 35d402a40b6af63efda9830b825ceb1863cadbcd996e7d55020a874a5441f58b
+21:34:25 [INFO] d466d1ccec6839e2255966b7cbe9f7163c31fdfd39c74252489115c4815256ff
+21:34:25 [INFO] a90158693a6dd13f31b3c5a45d7aadc393da920bfbc7b964bd2bc952fb239729
+21:34:25 [INFO] 35d402a40b6af63efda9830b825ceb1863cadbcd996e7d55020a874a5441f58b

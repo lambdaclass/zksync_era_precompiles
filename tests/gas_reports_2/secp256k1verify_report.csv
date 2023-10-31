@@ -1,0 +1,4 @@
+test, gas
+secp256k1verify_invalid_signature,1565501
+secp256k1verify_valid_signature_one,1543181
+secp256k1verify_valid_signature_two,1566059

@@ -5,7 +5,7 @@ import requests
 import time
 
 def main():
-    optimization = ["2"]
+    optimization = ["z"]
 
     headers = {
         # Already added when you pass json=
@@ -20,7 +20,7 @@ def main():
     }
 
     for opt in optimization:
-        popen = subprocess.Popen(["make", "run", "OTP={opt}"])
+        popen = subprocess.Popen(["make", "run", f"OPT={opt}"])
         while True:
             try:
                 response = requests.post('http://localhost:8011', headers=headers, json=json_data)
@@ -31,6 +31,8 @@ def main():
                 time.sleep(5)
         subprocess.run(["make", "test"])  
         subprocess.run(["mv", "./tests/gas_reports", f"./tests/gas_reports_{opt}"])
+    
+        popen.kill()
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,4 @@
+test, gas
+p256verify_valid_signature_one,2070647
+p256verify_invalid_signature,2058851
+p256verify_valid_signature_two,2067593
