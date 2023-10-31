@@ -2,7 +2,6 @@ object "ModExp" {
 	code { }
 	object "ModExp_deployed" {
 		code {
-
             // CONSTANTS
             function LIMB_SIZE_IN_BYTES() -> limbSize {
                 limbSize := 0x20
@@ -40,7 +39,13 @@ object "ModExp" {
                     mstore(toAddress, 0)
                 }
             }
-            
+
+            function oneWithLimbSizeAt(nLimbs, toAddress) {
+                // At this point we know that nLimbs is at least 2.
+                zeroWithLimbSizeAt(sub(nLimbs, 2), toAddress)
+                mstore(add(toAddress, mul(sub(nLimbs, 1), 32)), 0x1)
+            }
+
             /// @notice Copy a big unsigned integer from one memory location to another.
             /// @param nLimbs The number of limbs needed to represent the operand.
             /// @param fromAddress The pointer to the MSB of the number to copy.
@@ -344,7 +349,6 @@ object "ModExp" {
                         // Loading the i-th and j-th limbs of the first and second numbers.
                         let word1 := mload(add(multiplicandPtr, shl(5, sub(i, 1))))
                         let word2 := mload(add(multiplierPtr, shl(5, sub(j, 1))))
-
                         let product, carryFlag := overflowingAdd(mul(word1, word2), carry)
                         carry := add(getHighestHalfOfMultiplication(word1, word2), carryFlag)
 
@@ -480,7 +484,7 @@ object "ModExp" {
 
                 let bd := sub(shl(8, realLimbs), modulusBitSize)
                 bigUIntShl(bd, divisor_ptr, nLimbs, tmp_ptr_1) // c == divisor << bd
-                
+
                 for { } iszero(0) { } {
                     let borrow := bigUIntSubWithBorrow(rem_ptr, tmp_ptr_1, nLimbs, tmp_ptr_2)
 
@@ -539,13 +543,173 @@ object "ModExp" {
                 p := add(basePtr, upperHalfSizeInBytes)
             }
 
+            function shiftRightNTimesInPlace(nLimbs, timesToShift, resultPtr) {
+                   for {let i := 0} lt(i, timesToShift) {i := add(i, 1)} {
+                       bigUIntOneShiftRight(resultPtr, nLimbs)                   
+                   }
+            }
+
+            function shiftLeftNTimesInPlace(nLimbs, timesToShift, resultPtr) {
+                   for {let i := 0} lt(i, timesToShift) {i := add(i, 1)} {
+                       bigUIntOneShiftLeft(resultPtr, nLimbs)                   
+                   }
+            }
+
+            function bigNumberGreaterThan(nLimbs, xPtr, yPtr) -> isxBiggerThany {
+                   isxBiggerThany := 0
+                   for {let i := 0} gt(i, 0) {i := add(i, i)}  {
+                       let xLimb := mload(add(mul(i, 32), xPtr))
+                       let yLimb := mload(add(mul(i, 32), xPtr))
+                       if gt(xLimb, yLimb) {
+                        isxBiggerThany := 1
+                        leave
+                       }
+                   }
+            }
+
+            /// @notice Computes the quotiend and reminder of dividing two big unsigned integers.
+            /// @dev
+            /// @dev Temporary buffers:
+            /// @dev ------------------
+            /// @dev
+            /// @dev This function requires two temporary buffers for internal storage:
+            /// @dev - Both buffers must provide `nLimbs * 32` bytes of writable memory space.
+            /// @dev - Neither buffer should overlap with each other.
+            /// @dev - Neither needs to be initialized to any particular value.
+            /// @dev - Consider the written values as undefined after the function returns.
+            /// @dev
+            /// @dev Return values:
+            /// @dev --------------
+            /// @dev
+            /// @dev - resulting `quotient` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
+            /// @dev - resulting `reminder` will be written `mem[basePtr, basePtr + 32 * nLimbs)`
+            /// @dev
+            /// @param dividend_ptr Base pointer for a big unsigned integer representing the dividend.
+            /// @param divisor_ptr  Base pointer for a big unsigned integer representing the divisor.
+            /// @param tmp_ptr_1    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param tmp_ptr_2    Base pointer for a contiguous memory space of `nLimbs` for internal usage. Will be overwritten.
+            /// @param nLimbs      Amount of limbs for each big unsigned integer.
+            /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
+            /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
+            function bigUIntDiv(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, realLimbs,  modulusBitSize, quotient_ptr) {
+                // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
+                // parameters to prevent the leakage of implementation details.
+                let c_ptr := tmp_ptr_1
+                let r_ptr := tmp_ptr_2
+
+                // copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend 
+
+                // Init quotient to 0.
+                zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
+
+                let bd := sub(shl(8, realLimbs), modulusBitSize)
+                bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
+
+                for { } iszero(0) { } {
+                    let borrow := bigUIntSubWithBorrow(dividend_ptr, c_ptr, nLimbs, r_ptr)
+
+                    if iszero(borrow) {
+                        copyBigUint(nLimbs, r_ptr, dividend_ptr)
+                    }
+
+                    copyBigUint(nLimbs, quotient_ptr, r_ptr) // r = quotient
+                    bigUIntInPlaceOrWith1(r_ptr, nLimbs) // r = quotient | 1
+
+                    if iszero(borrow) {
+                        copyBigUint(nLimbs, r_ptr, quotient_ptr)
+                    }
+
+                    if iszero(bd) {
+                        break
+                    }
+
+                    bd := sub(bd, 1)
+                    bigUIntOneShiftRight(c_ptr, nLimbs) // c = c >> 1
+                    bigUIntOneShiftLeft(quotient_ptr, nLimbs) // q[] = q[] << 1
+                }
+
+                if iszero(modulusBitSize) {
+                    zeroWithLimbSizeAt(nLimbs, quotient_ptr)
+                }
+            }
+
+            function calculateBarretConstantFactors(nLimbs, moduloPtr, factorPtr, limbsToDiv, modulusBitSize, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr) -> barretShiftFactor {
+                // shift := (bitLengthOfModulo(modulo)*2) 
+                barretShiftFactor := mul(bigUIntBitSize(moduloPtr, nLimbs), 2)
+                // scratchbuf1ptr := 1
+                oneWithLimbSizeAt(nLimbs, scratchBuf1Ptr)
+                // scratchbuf1ptr := 1 << barretShiftfactor
+                shiftLeftNTimesInPlace(nLimbs, barretShiftFactor, scratchBuf1Ptr)
+                // bigUIntOneShiftLeft()
+                // factorPtr := scratchbuf1ptr / modulo
+                bigUIntDiv(scratchBuf1Ptr, moduloPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, limbsToDiv, modulusBitSize, factorPtr)
+            }
+
+            function barretReduction(nLimbs, barretFactorPtr, barretShift, numPtr, moduloPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3) {
+                zeroWithLimbSizeAt(shl(2, nLimbs), scratchBufferPtr1)
+                zeroWithLimbSizeAt(shl(2, nLimbs), scratchBufferPtr2)
+                zeroWithLimbSizeAt(shl(2, nLimbs), scratchBufferPtr3)
+                
+                // result := num*barretFactorPtr
+                // Works ✅ 
+                // Notes: bigUIntMul duplicates limbs, so scratchBufferPtr1
+                // now has 2nLimbs limbs
+                let lowPartOfScratchBufferPtr1 := bigUIntLowerHalfPtr(shl(2, nLimbs), scratchBufferPtr1)
+                let lowPartOfScratchBufferPtr3 := bigUIntLowerHalfPtr(shl(2, nLimbs), scratchBufferPtr3)
+                bigUIntMul(numPtr, barretFactorPtr, nLimbs, lowPartOfScratchBufferPtr1) // scratchBufferPtr1 = 2*nLimbs
+                // result := result >> barretShift
+                // Works ✅
+                // Notes:
+                // ❌ To check: barretShift is currently assumed to be
+                // a u256 NOT A BIG NUM.
+                shiftRightNTimesInPlace(shl(1, nLimbs), barretShift, lowPartOfScratchBufferPtr1)
+                // result := result * factor
+                // Works ✅: Disagreement between limb size
+                // To check: scratchBuf1Ptr and resultNewPtr are needed
+                // as scratch buffers
+                // Note: I think resultNewPtr can be reduced again to nLimbs.
+                bigUIntPadWithZeros(moduloPtr, nLimbs, shl(1, nLimbs), lowPartOfScratchBufferPtr3) // scratchBufferPtr3 = 2*nLimbs
+                let newLimbAmount := shl(2, nLimbs)
+                bigUIntMul(lowPartOfScratchBufferPtr1, lowPartOfScratchBufferPtr3, shl(1, nLimbs), scratchBufferPtr2) // scratchBufferPtr2 = 4*nLimbs
+                // assert result := result * factor
+                // result := num - result
+                // Works ✅:
+                // To check: moduloExtendedWithZeroesPtr and resultNewPtr are needed
+                // as scratch buffers
+                // Note: I think resultNewPtr can be reduced again to nLimbs.
+                let paddedNumPtr := scratchBufferPtr1
+                let lowPaddedNumPtr := bigUIntLowerHalfPtr(newLimbAmount, paddedNumPtr)
+                let lowLowPaddedNumPtr := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowPaddedNumPtr)
+                zeroWithLimbSizeAt(newLimbAmount, paddedNumPtr) // scratchBufferPtr1 = 4*nLimbs
+                copyBigUint(nLimbs, numPtr, lowLowPaddedNumPtr)
+                // zeroWithLimbSizeAt(nLimbs, scratchBufferPtr2)
+                zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr3)
+                bigUIntSubWithBorrow(paddedNumPtr, scratchBufferPtr2, newLimbAmount, scratchBufferPtr3)
+                // Pad modulo with zeroes for comparison
+                zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr2)
+                bigUIntPadWithZeros(moduloPtr, nLimbs, newLimbAmount, scratchBufferPtr2)
+
+                // return result if (result < mod) else (result - mod)
+                if bigNumberGreaterThan(newLimbAmount, scratchBufferPtr3, scratchBufferPtr2) {
+                    zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr1) 
+                    bigUIntSubWithBorrow(scratchBufferPtr3, scratchBufferPtr2, newLimbAmount, scratchBufferPtr1)
+                    let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr1)
+                    let lowerHalfHalfOfPtr1 := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowerHalfOfPtr1)
+                    copyBigUint(nLimbs, lowerHalfHalfOfPtr1, resultPtr)
+                    leave
+                }
+                let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr3)
+                let lowerHalfHalfOfPtr1 := bigUIntLowerHalfPtr(shr(1, newLimbAmount), lowerHalfOfPtr1)
+                copyBigUint(nLimbs, lowerHalfHalfOfPtr1, resultPtr)
+            }
+
             // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
             // @param nLimbs Amount of limbs that compose each of the big unsigned integer parameters.
             // @param basePtr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
             // @param exponentPtr Base pointer to a big unsigned integer representing the `exponent[]`. It's most significant half must be zeros.
             // @param modulusPtr Base pointer to a big unsigned integer representing the `modulus[]`. Must be greater than 0. It's most significant half must be zeros.
             // @param resultPtr Base pointer to a big unsigned integer to store the result[]. Must be initialized to zeros.
-            function bigUIntModularExponentiation(nLimbs, basePtr, exponentPtr, modulusPtr, resultPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr) {
+            function bigUIntModularExponentiation(nLimbs, basePtr, exponentPtr, modulusPtr, resultPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr, barretFactorPtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3) {
                 // Algorithm pseudocode:
                 // See: https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
                 // function modular_pow(base, exponent, modulus) is
@@ -571,13 +735,14 @@ object "ModExp" {
 
                     // PSEUDOCODE: `result := 1`
                     // Again, we are using the precondition that `result[] == 0`
-                    bigUIntInPlaceOrWith1(resultPtr, nLimbs)
                     let modulusBitSize := bigUIntBitSize(modulusPtr, nLimbs)
                     let exponentBitSize := bigUIntBitSize(exponentPtr, nLimbs)
-
+                    let limbsToRem := bigIntLimbsWithoutZeros(basePtr, nLimbs)
+                    let shift := calculateBarretConstantFactors(nLimbs, modulusPtr, barretFactorPtr, limbsToRem, modulusBitSize , scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr)
+                    bigUIntInPlaceOrWith1(resultPtr, nLimbs)
+                    
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
-                    let limbsToRem := bigIntLimbsWithoutZeros(basePtr, nLimbs)
                     bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, limbsToRem, modulusBitSize, scratchBuf3Ptr)
                     basePtr, scratchBuf3Ptr := flip(basePtr, scratchBuf3Ptr)
 
@@ -587,18 +752,18 @@ object "ModExp" {
                         let base_low_ptr := bigUIntLowerHalfPtr(nLimbs, basePtr)
                         // PSEUDOCODE: `if (exponent mod 2 == 1) then`
                         if bigUIntModTwo(nLimbs, exponentPtr) {
-
+                        
                             // PSEUDOCODE: `result := (result * base) mod modulus`
                             // Since result[] is our return value, we are allowed to mutate it.
                             let result_low_ptr := bigUIntLowerHalfPtr(nLimbs, resultPtr)
-                            
                             // scratch_buf_1 <- result * base. NOTICE that the higher half of `scratch_buf_1` may be non-0.
                             bigUIntMul(result_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf1Ptr)
+                            
                             // result <- scratch_buf_1 % modulus. The upper half of return is guaranteed to be 0.
-                            let limbsToRem := bigIntLimbsWithoutZeros(scratchBuf1Ptr, nLimbs)
-                            bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, limbsToRem, modulusBitSize, resultPtr)
-                        }
+                            //bigUIntRem(scratchBuf1Ptr, modulusPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, resultPtr)
 
+                            barretReduction(nLimbs, barretFactorPtr, shift, scratchBuf1Ptr, modulusPtr, resultPtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3)
+                        }
                         // PSEUDOCODE: `exponent := exponent >> 1`
                         // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
                         bigUIntOneShiftRight(exponentPtr, nLimbs)
@@ -607,9 +772,9 @@ object "ModExp" {
                         // scratch_buf_2 <- base * base
                         bigUIntMul(base_low_ptr, base_low_ptr, shr(1, nLimbs), scratchBuf2Ptr)
 
-                        let limbsToRem := bigIntLimbsWithoutZeros(scratchBuf2Ptr, nLimbs)
                         // base <- temp % modulus
-                        bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, limbsToRem, modulusBitSize, basePtr)
+                        //bigUIntRem(scratchBuf2Ptr, modulusPtr, scratchBuf1Ptr, scratchBuf3Ptr, nLimbs, modulusBitSize, basePtr)
+                        barretReduction(nLimbs, barretFactorPtr, shift, scratchBuf2Ptr, modulusPtr, basePtr, scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3)
                     }
                 }
             }
@@ -625,6 +790,8 @@ object "ModExp" {
                 for { let i } lt(i, currentLimbNumber) { i := add(i, 1) } {
                     // Move the limb to the right position
                     mstore(add(resultPtr, shl(5, sub(sub(newLimbNumber, 1), i))), mload(add(ptr, shl(5, sub(sub(currentLimbNumber,1), i)))))
+                    // Store zero in the position of the moved limb
+                    mstore(add(resultPtr, shl(5, sub(sub(currentLimbNumber,1), i))), 0)
                 }
             }
 
@@ -740,7 +907,6 @@ object "ModExp" {
             if lt(maxLimbNumber, limbsModLen) {
                 maxLimbNumber := limbsModLen
             }
-            
             maxLimbNumber := add(maxLimbNumber, maxLimbNumber)
             let memForMaxLimbNumber := shl(5, maxLimbNumber)
             let baseStartPtr := add(ptrModLimbs, shl(5, limbsModLen))
@@ -751,12 +917,18 @@ object "ModExp" {
             bigUIntPadWithZeros(ptrExpLimbs, limbsExpLen, maxLimbNumber, exponentStartPtr)
             bigUIntPadWithZeros(ptrModLimbs, limbsModLen, maxLimbNumber, moduloStartPtr)
 
+            // Modexp 
             let scratchBufferPtr1 := add(moduloStartPtr, memForMaxLimbNumber)
             let scratchBufferPtr2 := add(scratchBufferPtr1, memForMaxLimbNumber)
             let scratchBufferPtr3 := add(scratchBufferPtr2, memForMaxLimbNumber)
-            let resultPtr := add(scratchBufferPtr3, memForMaxLimbNumber)
 
-            bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3) 
+            // Barret buffers
+            let barretFactorPtr := add(scratchBufferPtr3, memForMaxLimbNumber)
+            let scratchBufferForBarret1 := add(barretFactorPtr, memForMaxLimbNumber)
+            let scratchBufferForBarret2 := add(scratchBufferForBarret1, shl(2, memForMaxLimbNumber))
+            let scratchBufferForBarret3 := add(scratchBufferForBarret2, shl(2, memForMaxLimbNumber))
+            let resultPtr := add(scratchBufferForBarret3, shl(2, memForMaxLimbNumber))
+            bigUIntModularExponentiation(maxLimbNumber, baseStartPtr, exponentStartPtr, moduloStartPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3, barretFactorPtr,scratchBufferForBarret1, scratchBufferForBarret2, scratchBufferForBarret3) 
 
             let finalResultEnd := add(resultPtr, memForMaxLimbNumber)
             let finalResultStart := sub(finalResultEnd, modLen)

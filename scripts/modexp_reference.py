@@ -1,22 +1,27 @@
 #! /usr/bin/python3
+import math
+from barret_reduction import barret_reduce
 def modular_pow(base, exponent, modulus):
     if modulus == 1:
         return 0
 
     result = 1
     base %= modulus
-
+    
     while exponent > 0:
-        print(f"Exponent: {hex(exponent)}, result: {hex(result)}, base: {hex(base)}")
+        print(f"face: {hex(result)}")
+        print(f"dead: {hex(exponent)}")
         if exponent % 2 == 1:
             result = (result * base) % modulus
         exponent >>= 1
-        base = (base * base) % modulus
-
+        base = barret_reduce(base*base, modulus) 
     return result
 
 # Example usage:
-base = 390298093899999943928098409885853890809480289080848908498808490890809858888590
-exponent = 328010176336108753607932954472681594880
-modulus = 328083392909999939299399093209090192209
+base = 3
+exponent = 115792089237316195423570985008687907853269984665640564039457584007908834671662
+modulus = 115792089237316195423570985008687907853269984665640564039457584007908834671663
 result = modular_pow(base, exponent, modulus)
+expected = (pow(base, exponent, modulus)) 
+print(f"Expected: {expected}, got: {result}")
+assert result == expected
