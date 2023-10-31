@@ -7,20 +7,20 @@ In the next weeks we will add more optimizations and benchmarks.
 
 # Current Status
 
-| Precompile | MVP | Optimized | Audited |
-| --- | --- | --- | --- |
-| ecAdd | ✅ | ✅ | 🏗️ |
-| ecMul | ✅ | ✅ | 🏗️ |
-| ecPairing | ✅ | ✅ | 🏗️ |
-| modexp | 🏗️ | ❌ | ❌ |
-| P256VERIFY | ✅ | ❌ | ❌ |
-| secp256k1VERIFY | ✅ | ❌ | ❌ |
+| Precompile | MVP | Optimized | Optional Future Optimizations | Audited | Comments |
+| --- | --- | --- | --- | --- | --- |
+| ecAdd | ✅ | ✅ | Montgomery SOS Squaring | ✅ | - |
+| ecMul | ✅ | ✅ | Montgomery SOS Squaring + Mul GLV | ✅ | - |
+| ecPairing | ✅ | ✅ | - | 🏗️ | G2 subgroup check is missing because of performance limitations |
+| modexp | ✅ | 🏗️ | Montgomery Multiprecision Arithmetic | 🏗️ | Polishing the last details |
+| P256VERIFY | ✅ | ❌ | Shamir’s trick | ❌ | Shamir’s trick could reduce at least the cost of 1 ecMul execution |
+| secp256k1VERIFY | ✅ | ❌ | Shamir’s trick | ❌ | Shamir’s trick could reduce at least the cost of 1 ecMul execution |
 
 ## Summary
 
 - `ecAdd` is optimized with finite field arithmetic in Montgomery form and optimized modular inverse with a modification of the binary extended Euclidean algorithm that skips the Montgomery reduction step for inverting. There is not much more room for optimizations, maybe we could think of Montgomery squaring (SOS) to improve the finite field squaring. *This precompile has been audited a first time and it is currently being audited a second time (after the fixes).*
 - `ecMul` is optimized with finite field arithmetic in Montgomery form, optimized modular inverse with a modification of the binary extended Euclidean algorithm that skips the Montgomery reduction step for inverting, and the elliptic curve point arithmetic is being done in homogeneous projective coordinates. There are some other possible optimizations to implement, one is the one discussed in the Slack channel (endomorphism: GLV or wGLV), the [windowed method](https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Windowed_method), the [sliding-window method](https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Sliding-window_method), [wNAF (windowed non-adjacent form)](https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#w-ary_non-adjacent_form_(wNAF)_method) to improve the elliptic curve point arithmetic, and Montgomery squaring (SOS) to improve the finite field squaring, Jacobian projective coordinates (this would have similar performance and gas costs as working with the homogeneous projective coordinates but it would be free to add it since we need this representation for `ecPairing`). *This precompile has been audited a first time and it is currently being audited a second time (after the fixes).*
-- `modexp` status: is soon to be finished using Big Unsigned Int arithmetic.
+- `modexp` has been updated to support Big Int arithmetic. This means it is now fully compatible with [EIP-198](https://eips.ethereum.org/EIPS/eip-198)'s specification and all the tests are passing, however the gas costs are really high. As an example, passing a modulus with three limbs (three `uint256`s) will most certainly make it run out of gas. The big cost is in the finite field `div_rem` function, which we need to have a modulo operator on big ints, taking around 80/90% of all the gas cost when calling the precompile. The gas cost skyrockets pretty quickly the more limbs numbers have. We are looking into optimization opportunities but gas costs may still remain really high. *This precompile has not been audited yet.*
 - `ecPairing`:
     We have based our algorithm implementation primarily on the guidelines presented in the paper ["High-Speed Software Implementation of the Optimal Ate Pairing over Barreto–Naehrig Curves"](https://eprint.iacr.org/2010/354.pdf) . This implementation includes the utilization of Tower Extension Field Arithmetic and the Frobenius Operator.
 
@@ -30,12 +30,11 @@ In the next weeks we will add more optimizations and benchmarks.
 
     **Remaining Optimizations:** While our implementation has achieved notable results, there are still some straightforward optimizations that can be implemented:
 
-    - **Initial Iterations of Miller Loop:** We can avoid unnecessary multiplications by handling the first iterations of the Miller loop separately.
-    - **Optimizing Accumulated Value:** We are currently naively multiplying two fp12 elements, which contain many zeros. Modifying this calculation could enhance efficiency.
+    - **Optimizing Accumulated Value:** We are currently naively multiplying two fp12 elements, which contain many zeros. Modifying this calculation could enhance efficiency. *This is in WIP.*
 
     **Future Investigations:**  We need to investigate the reliability of additional optimizations, such as the application of the GLV method for multiplication of rational points of elliptic curves.
-- `P256VERIFY` is already working. Shamir’s trick could be implemented in order to optimize the algorithm.
-- `secp256k1VERIFY` is already working. Shamir’s trick could be implemented in order to optimize the algorithm.
+- `P256VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
+- `secp256k1VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
 
 ## [Gas Consumption](./docs/src/gas_consumption.md)
 
