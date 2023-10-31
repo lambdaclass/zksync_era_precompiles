@@ -12,6 +12,16 @@ object "ModExp" {
             }
             
             // HELPER FUNCTIONS
+            function bigIntLimbsWithoutZeros(ptr, totalLimbs) -> limbs {
+                limbs := 0
+                for { let i := 0 } lt(i, totalLimbs) { i := add(i, 1) } {
+                    let limb := mload(add(ptr, shl(5, i)))
+                    if limb {
+                        limbs := add(limbs, 1)
+                    }
+                }
+            }
+
             function bigIntLimbs(length) -> limbs, misalignment {
                 limbs := div(length, LIMB_SIZE_IN_BYTES())
                 misalignment := mod(length, LIMB_SIZE_IN_BYTES())
@@ -464,7 +474,7 @@ object "ModExp" {
             /// @param nLimbs      Amount of limbs for each big unsigned integer.
             /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
             /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
-            function bigUIntRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, modulusBitSize, rem_ptr) {
+            function bigUIntRem(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, realLimbs, modulusBitSize, rem_ptr) {
                 // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
                 // parameters to prevent the leakage of implementation details.
                 zeroWithLimbSizeAt(nLimbs, tmp_ptr_1) // tmp_ptr_1 = 0
@@ -472,7 +482,7 @@ object "ModExp" {
 
                 copyBigUint(nLimbs, dividend_ptr, rem_ptr) // rem = dividend
 
-                let bd := sub(shl(8, nLimbs), modulusBitSize)
+                let bd := sub(shl(8, realLimbs), modulusBitSize)
                 bigUIntShl(bd, divisor_ptr, nLimbs, tmp_ptr_1) // c == divisor << bd
 
                 for { } iszero(0) { } {
@@ -581,7 +591,7 @@ object "ModExp" {
             /// @param nLimbs      Amount of limbs for each big unsigned integer.
             /// @param quotient_ptr Base pointer for a big unsigned integer to write the division quotient.
             /// @param rem_ptr Base pointer for a big unsigned integer to write the division remainder.
-            function bigUIntDiv(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, quotient_ptr) {
+            function bigUIntDiv(dividend_ptr, divisor_ptr, tmp_ptr_1, tmp_ptr_2, nLimbs, realLimbs,  modulusBitSize, quotient_ptr) {
                 // Assign meaningful internal names to the temporary buffers passed as parameters. We use abstract names for
                 // parameters to prevent the leakage of implementation details.
                 let c_ptr := tmp_ptr_1
@@ -592,8 +602,7 @@ object "ModExp" {
                 // Init quotient to 0.
                 zeroWithLimbSizeAt(nLimbs, quotient_ptr) // quotient = 0
 
-                let mb := bigUIntBitSize(divisor_ptr, nLimbs)
-                let bd := sub(mul(nLimbs, 256), mb)
+                let bd := sub(shl(8, realLimbs), modulusBitSize)
                 bigUIntShl(bd, divisor_ptr, nLimbs, c_ptr) // c == divisor << bd
 
                 for { } iszero(0) { } {
@@ -619,23 +628,21 @@ object "ModExp" {
                     bigUIntOneShiftLeft(quotient_ptr, nLimbs) // q[] = q[] << 1
                 }
 
-                if iszero(mb) {
+                if iszero(modulusBitSize) {
                     zeroWithLimbSizeAt(nLimbs, quotient_ptr)
                 }
             }
 
-            function calculateBarretConstantFactors(nLimbs, moduloPtr, factorPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr) -> barretShiftFactor {
+            function calculateBarretConstantFactors(nLimbs, moduloPtr, factorPtr, limbsToDiv, modulusBitSize, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr) -> barretShiftFactor {
                 // shift := (bitLengthOfModulo(modulo)*2) 
                 barretShiftFactor := mul(bigUIntBitSize(moduloPtr, nLimbs), 2)
-                // console_log(eq(barretShiftFactor, 6))
                 // scratchbuf1ptr := 1
                 oneWithLimbSizeAt(nLimbs, scratchBuf1Ptr)
                 // scratchbuf1ptr := 1 << barretShiftfactor
                 shiftLeftNTimesInPlace(nLimbs, barretShiftFactor, scratchBuf1Ptr)
-                // console_log(eq(mload(scratchBuf1Ptr), 64))
                 // bigUIntOneShiftLeft()
                 // factorPtr := scratchbuf1ptr / modulo
-                bigUIntDiv(scratchBuf1Ptr, moduloPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, factorPtr)
+                bigUIntDiv(scratchBuf1Ptr, moduloPtr, scratchBuf3Ptr, scratchBuf2Ptr, nLimbs, limbsToDiv, modulusBitSize, factorPtr)
             }
 
             function barretReduction(nLimbs, barretFactorPtr, barretShift, numPtr, moduloPtr, resultPtr, scratchBufferPtr1, scratchBufferPtr2, scratchBufferPtr3) {
@@ -684,7 +691,6 @@ object "ModExp" {
 
                 // return result if (result < mod) else (result - mod)
                 if bigNumberGreaterThan(newLimbAmount, scratchBufferPtr3, scratchBufferPtr2) {
-                    console_log(0xDEAD)
                     zeroWithLimbSizeAt(newLimbAmount, scratchBufferPtr1) 
                     bigUIntSubWithBorrow(scratchBufferPtr3, scratchBufferPtr2, newLimbAmount, scratchBufferPtr1)
                     let lowerHalfOfPtr1 := bigUIntLowerHalfPtr(newLimbAmount, scratchBufferPtr1)
@@ -729,21 +735,16 @@ object "ModExp" {
 
                     // PSEUDOCODE: `result := 1`
                     // Again, we are using the precondition that `result[] == 0`
-                    let shift := calculateBarretConstantFactors(nLimbs, modulusPtr, barretFactorPtr, scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr)
-                    // console_log(shift)
-                    // console_log(0xCAFE)
-                    // console_log(mload(barretFactorPtr))
-                    // console_log(mload(add(barretFactorPtr, 0x20)))
-                    bigUIntInPlaceOrWith1(resultPtr, nLimbs)
                     let modulusBitSize := bigUIntBitSize(modulusPtr, nLimbs)
                     let exponentBitSize := bigUIntBitSize(exponentPtr, nLimbs)
-
+                    let limbsToRem := bigIntLimbsWithoutZeros(basePtr, nLimbs)
+                    let shift := calculateBarretConstantFactors(nLimbs, modulusPtr, barretFactorPtr, limbsToRem, modulusBitSize , scratchBuf1Ptr, scratchBuf2Ptr, scratchBuf3Ptr)
+                    bigUIntInPlaceOrWith1(resultPtr, nLimbs)
+                    
                     // PSEUDOCODE: `base := base mod modulus`
                     // FIXME: Is ok to mutate the base[] we were given? Shall we use a temporal buffer?
-                    bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, modulusBitSize, scratchBuf3Ptr)
+                    bigUIntRem(basePtr, modulusPtr, scratchBuf1Ptr, scratchBuf2Ptr, nLimbs, limbsToRem, modulusBitSize, scratchBuf3Ptr)
                     basePtr, scratchBuf3Ptr := flip(basePtr, scratchBuf3Ptr)
-                    // console_log(mload(basePtr))
-                    // console_log(mload(add(basePtr, 0x20)))
 
                     // PSEUDOCODE: `while exponent > 0 do`
                     // FIXME: Is ok to mutate the exponent[] we were given? Shall we use a temporal buffer?
