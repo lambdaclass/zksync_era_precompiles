@@ -3637,6 +3637,7 @@ name = "zksync_era_precompiles"
 version = "0.1.0"
 dependencies = [
  "dirs",
+ "env_logger",
  "eyre",
  "hex",
  "log",
