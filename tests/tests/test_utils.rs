@@ -1,11 +1,12 @@
 use std::{env, fs::OpenOptions, io::Write};
 use zksync_web3_rs::{
     providers::{Http, Middleware, Provider, ProviderError},
+    signers::{LocalWallet, Signer},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest},
     zks_utils::{
         ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS,
         MODEXP_PRECOMPILE_ADDRESS,
-    }, signers::{LocalWallet, Signer},
+    },
 };
 
 static DEFAULT_L1_PROVIDER_URL: &str =
@@ -17,7 +18,9 @@ const ERA_IN_MEMORY_NODE_CHAIN_ID: u64 = 260;
 
 #[allow(dead_code)]
 pub fn local_wallet() -> LocalWallet {
-    let wallet: LocalWallet = "0x850683b40d4a740aa6e745f889a6fdc8327be76e122f5aba645a5b02d0248db8".try_into().unwrap();
+    let wallet: LocalWallet = "0x850683b40d4a740aa6e745f889a6fdc8327be76e122f5aba645a5b02d0248db8"
+        .try_into()
+        .unwrap();
     let wallet = wallet.with_chain_id(ERA_IN_MEMORY_NODE_CHAIN_ID);
     wallet
 }
