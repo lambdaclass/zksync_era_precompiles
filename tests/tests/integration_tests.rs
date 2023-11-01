@@ -1,3 +1,4 @@
+use std::env;
 use zksync_era_precompiles::compile::compiler;
 use zksync_web3_rs::{
     types::{Address, Bytes},
@@ -7,16 +8,25 @@ use zksync_web3_rs::{
 
 mod test_utils;
 
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
 const RESPONSE_VALID: [u8; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 ];
 
-const RESPONSE_INVALID: [u8; 32] = [
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-];
+const RESPONSE_INVALID: [u8; 32] = [0; 32];
+
+fn init_logger() {
+    env_logger::builder()
+        .filter_module("reqwest::connect", log::LevelFilter::Off)
+        .filter_level(log::LevelFilter::Debug)
+        .init();
+}
 
 #[tokio::test]
 async fn verifier_succeeds() {
+    init_logger();
+
     // Deploy the verifier.
 
     let era_provider = test_utils::era_provider();
@@ -24,8 +34,8 @@ async fn verifier_succeeds() {
     let zk_wallet = ZKSWallet::new(wallet, None, Some(era_provider.clone()), None).unwrap();
     let verifier_address: Address = {
         let artifact = compiler::compile(
-            "tests/contracts/",
-            "tests/contracts/Verifier.sol",
+            format!("{CARGO_MANIFEST_DIR}/contracts").as_str(),
+            "contracts/Verifier.sol",
             "Verifier",
             compiler::Compiler::ZKSolc,
         )
@@ -39,6 +49,8 @@ async fn verifier_succeeds() {
 
         zk_wallet.deploy(&deploy_request).await.unwrap()
     };
+
+    log::debug!("VERIFIER DEPLOYED AT: {verifier_address:?}");
 
     // Call the verifier.
 
@@ -58,6 +70,8 @@ async fn verifier_succeeds() {
 
 #[tokio::test]
 async fn verifier_fails() {
+    init_logger();
+
     // Deploy the verifier.
 
     let era_provider = test_utils::era_provider();
@@ -65,8 +79,8 @@ async fn verifier_fails() {
     let zk_wallet = ZKSWallet::new(wallet, None, Some(era_provider.clone()), None).unwrap();
     let verifier_address: Address = {
         let artifact = compiler::compile(
-            "tests/contracts/",
-            "tests/contracts/Verifier.sol",
+            format!("{CARGO_MANIFEST_DIR}/contracts/").as_str(),
+            "contracts/Verifier.sol",
             "Verifier",
             compiler::Compiler::ZKSolc,
         )
