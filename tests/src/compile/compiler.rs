@@ -145,22 +145,7 @@ fn build_with_solc(contract_path: &str) -> eyre::Result<()> {
         .arg("--")
         .args(source_files(project.root()));
 
-    let command_output = command.output()?;
-
-    log::info!(
-        "stdout: {}",
-        String::from_utf8_lossy(&command_output.stdout)
-            .into_owned()
-            .trim()
-            .to_owned()
-    );
-    log::info!(
-        "stderr: {}",
-        String::from_utf8_lossy(&command_output.stderr)
-            .into_owned()
-            .trim()
-            .to_owned()
-    );
+    command.output()?;
 
     Ok(())
 }
