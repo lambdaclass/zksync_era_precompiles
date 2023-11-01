@@ -21,8 +21,7 @@ pub fn local_wallet() -> LocalWallet {
     let wallet: LocalWallet = "0x850683b40d4a740aa6e745f889a6fdc8327be76e122f5aba645a5b02d0248db8"
         .try_into()
         .unwrap();
-    let wallet = wallet.with_chain_id(ERA_IN_MEMORY_NODE_CHAIN_ID);
-    wallet
+    wallet.with_chain_id(ERA_IN_MEMORY_NODE_CHAIN_ID)
 }
 
 #[allow(dead_code)]
