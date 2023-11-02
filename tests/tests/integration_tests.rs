@@ -1,3 +1,4 @@
+use crate::test_utils::write_verifier_gas_result;
 use std::env;
 use zksync_era_precompiles::compile::compiler;
 use zksync_web3_rs::{
@@ -64,16 +65,15 @@ async fn verifier_succeeds() {
     )
     .await
     .unwrap();
-    let (era_output, _) = test_utils::parse_call_result(&era_response);
-
+    let (era_output, gas_used) = test_utils::parse_call_result(&era_response);
+    write_verifier_gas_result(gas_used);
+    
     // Check the response.
     assert_eq!(era_output, Bytes::from(RESPONSE_VALID));
 }
 
 #[tokio::test]
 async fn verifier_fails() {
-    init_logger();
-
     // Deploy the verifier.
 
     let era_provider = test_utils::era_provider();
@@ -110,7 +110,8 @@ async fn verifier_fails() {
     )
     .await
     .unwrap();
-    let (era_output, _) = test_utils::parse_call_result(&era_response);
+    let (era_output, gas_used) = test_utils::parse_call_result(&era_response);
+    write_verifier_gas_result(gas_used);
 
     // Check the response.
     assert_eq!(era_output, Bytes::from(RESPONSE_INVALID));
