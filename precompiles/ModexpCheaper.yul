@@ -18,7 +18,6 @@ object "ModExpCheaper" {
 
             // FALLBACK
 
-            // Retrieve the coordinates from the calldata
             let base := calldataload(BASE_CALLDATA_PTR())
             let exponent := calldataload(EXPONENT_CALLDATA_PTR())
             let modulus := calldataload(MODULUS_CALLDATA_PTR())
