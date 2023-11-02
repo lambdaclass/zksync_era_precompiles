@@ -26,3 +26,6 @@ test:
 
 docs:
 	cd docs && mdbook serve --open
+
+clean:
+	rm submodules/era-test-node/src/deps/contracts/*.yul.zbin submodules/era-test-node/etc/system-contracts/contracts/precompiles/*.yul
