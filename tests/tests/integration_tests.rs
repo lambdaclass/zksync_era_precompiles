@@ -67,7 +67,7 @@ async fn verifier_succeeds() {
     .unwrap();
     let (era_output, gas_used) = test_utils::parse_call_result(&era_response);
     write_verifier_gas_result(gas_used);
-    
+
     // Check the response.
     assert_eq!(era_output, Bytes::from(RESPONSE_VALID));
 }
