@@ -75,6 +75,11 @@ pub fn write_secp256k1verify_gas_result(used_gas: u32) {
     write_line_to_report(used_gas, "gas_reports/secp256k1verify_report.md");
 }
 
+#[allow(dead_code)]
+pub fn write_verifier_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/verifier_report.md");
+}
+
 pub fn eth_provider() -> Provider<Http> {
     let url: String =
         env::var("ZKSYNC_WEB3_RS_L1_PROVIDER_URL").unwrap_or(DEFAULT_L1_PROVIDER_URL.to_owned());

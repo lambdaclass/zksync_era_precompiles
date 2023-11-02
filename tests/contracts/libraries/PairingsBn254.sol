@@ -51,7 +51,7 @@ library PairingsBn254 {
         uint256[1] memory result;
         bool success;
         assembly {
-            success := staticcall(gas(), 0x05, input, 0xc0, result, 0x20)
+            success := staticcall(gas(), 0x25, input, 0xc0, result, 0x20)
         }
         require(success);
         return Fr({value: result[0]});
