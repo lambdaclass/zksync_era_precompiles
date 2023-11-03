@@ -539,6 +539,38 @@ object "ModExp" {
                 p := add(basePtr, upperHalfSizeInBytes)
             }
 
+            function oneLimbImplementation() -> {
+                let base := calldataload(96)
+                let exponent := calldataload(128)
+                let modulus := calldataload(160)
+    
+                // Note: This check covers the case where length of the modulo is zero or one.
+                // base^exponent % 0 = 0 || base^exponent % 1 = 0 || 0^exponent % modulus = 0
+                if or(lt(modulus, 2), iszero(base)) {
+                    mstore(0, 0)
+                    return(0, 32)
+                }
+    
+                // 1^exponent % modulus = 1 || base^0 % modulus = 1
+                if or(eq(base, 1), iszero(exponent)) {
+                    mstore(0, 1)
+                    return(0, 32)
+                }
+    
+                let pow := 1
+                base := mod(base, modulus)
+                for {} gt(exponent, 0) {} {
+                    if eq(mod(exponent, 2), 1) {
+                        pow := mulmod(pow, base, modulus)
+                    }
+                    exponent := shr(1, exponent)
+                    base := mulmod(base, base, modulus)
+                }
+    
+                mstore(0, pow)
+                return(0, 32)
+            }
+
             // @notice Computes the big uint modular exponentiation `result[] := base[] ** exponent[] % modulus[]`.
             // @param nLimbs Amount of limbs that compose each of the big unsigned integer parameters.
             // @param basePtr Base pointer to a big unsigned integer representing the `base[]`. It's most significant half must be zeros.
@@ -723,6 +755,10 @@ object "ModExp" {
             let limbsBaseLen, misalignment := bigIntLimbs(baseLen)
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
             let limbsModLen, misalignment := bigIntLimbs(modLen)
+
+            if and(and(eq(limbsBaseLen, 1), eq(limbsExpLen, 1)), eq(limbsModLen, 1)) {
+                oneLimbImplementation()
+            }
 
             let ptrBaseLimbs
             parseCalldata(basePtr, baseLen, ptrBaseLimbs)
