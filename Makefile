@@ -18,7 +18,7 @@ build-precompiles: copy-precompiles
 	cd submodules/era-test-node && make build-precompiles
 
 run: build-precompiles
-	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes run
+	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes --show-gas-details=all run
 
 test:
 	cd tests && \
