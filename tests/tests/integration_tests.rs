@@ -65,7 +65,7 @@ async fn old_verifier_succeeds() {
     )
     .await
     .unwrap();
-    let (era_output, gas_used) = test_utils::parse_call_result(&era_response);
+    let (era_output, _) = test_utils::parse_call_result(&era_response);
     // write_verifier_gas_result(gas_used);
 
     // Check the response.

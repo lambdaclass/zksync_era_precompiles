@@ -1,4 +1,7 @@
-use zksync_web3_rs::{types::{Bytes, Address, H160}, zks_utils::MODEXP_PRECOMPILE_ADDRESS};
+use zksync_web3_rs::{
+    types::{Address, Bytes, H160},
+    zks_utils::MODEXP_PRECOMPILE_ADDRESS,
+};
 
 #[cfg(test)]
 mod test_utils;
