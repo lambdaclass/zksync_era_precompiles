@@ -418,7 +418,7 @@ contract P256Verifier {
         // This seems like a relatively standard way to use this precompile:
         // https://github.com/OpenZeppelin/openzeppelin-contracts/pull/3298/files#diff-489d4519a087ca2c75be3315b673587abeca3b302f807643e97efa7de8cb35a5R427
 
-        (bool success, bytes memory ret) = (address(0x25).staticcall(abi.encode(32, 32, 32, u, minus_2modf, f)));
+        (bool success, bytes memory ret) = (address(0x5).staticcall(abi.encode(32, 32, 32, u, minus_2modf, f)));
         assert(success); // precompile should never fail on regular EVM environments
         result = abi.decode(ret, (uint256));
     }
