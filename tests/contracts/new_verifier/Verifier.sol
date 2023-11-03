@@ -383,7 +383,7 @@ contract Verifier is IVerifier {
                 mstore(0x60, value)
                 mstore(0x80, power)
                 mstore(0xa0, R_MOD)
-                if iszero(staticcall(gas(), 0x25, 0, 0xc0, 0x00, 0x20)) {
+                if iszero(staticcall(gas(), 0x5, 0, 0xc0, 0x00, 0x20)) {
                     revertWithMessage(24, "modexp precompile failed")
                 }
                 res := mload(0x00)
