@@ -117,6 +117,8 @@ async fn old_verifier_fails() {
     assert_eq!(era_output, Bytes::from(RESPONSE_INVALID));
 }
 
+// Note: This test deploys a Verifier with a test verifying key which was
+// extracted from this PR https://github.com/matter-labs/era-contracts/pull/83/files#diff-7d10171e170dd1cd2c7502e8a682141ad6904c95c14bf631f0c97439fa90a0f6.
 #[tokio::test]
 async fn new_verifier_succeeds() {
     init_logger();
@@ -165,6 +167,8 @@ async fn new_verifier_succeeds() {
     assert_eq!(era_output, Bytes::from(RESPONSE_VALID));
 }
 
+// Note: This test deploys a Verifier with a test verifying key which was
+// extracted from this PR https://github.com/matter-labs/era-contracts/pull/83/files#diff-7d10171e170dd1cd2c7502e8a682141ad6904c95c14bf631f0c97439fa90a0f6.
 #[tokio::test]
 async fn new_verifier_fails() {
     // Deploy the verifier.
