@@ -1,6 +1,6 @@
 use std::fs::OpenOptions;
 use std::io::Write;
-use zksync_era_precompiles::compile::compiler;
+use zksync_era_precompiles::compile::compiler::{self, Compiler};
 use zksync_web3_rs::ZKSWallet;
 use zksync_web3_rs::providers::{Provider, Http};
 use zksync_web3_rs::types::{Address, Bytes, H160};
@@ -15,7 +15,7 @@ const P256VERIFTY_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x19,
 ]);
 
-async fn deploy(era_provider: Provider<Http>, project_root_dir: &str, contract_path: &str, contract_name: &str) -> Address {
+async fn deploy(era_provider: &Provider<Http>, project_root_dir: &str, contract_path: &str, contract_name: &str, compiler: Compiler) -> Address {
     let wallet = test_utils::local_wallet();
     let zk_wallet = ZKSWallet::new(wallet, None, Some(era_provider.clone()), None).unwrap();
     let address: Address = {
@@ -23,7 +23,7 @@ async fn deploy(era_provider: Provider<Http>, project_root_dir: &str, contract_p
             project_root_dir,
             contract_path,
             contract_name,
-            compiler::Compiler::ZKSolc,
+            compiler,
         )
         .unwrap();
 
@@ -49,7 +49,8 @@ async fn p256verify_bench() {
 
     let project_root_dir = format!("{CARGO_MANIFEST_DIR}/contracts");
 
-    let p256verify_sol_address = deploy(era_provider, project_root_dir.as_str(), "contracts/p256verify/P256Verify.sol", "P256Verifier").await;
+    let p256verify_sol_address = deploy(&era_provider, project_root_dir.as_str(), "contracts/p256verify/P256Verify.sol", "P256Verifier", Compiler::ZKSolc).await;
+    let p256verify_vy_address = deploy(&era_provider, "contracts/p256verify/P256Verify.vy", "contracts/p256verify/P256Verify.vy", "P256Verifier", Compiler::ZKVyper).await;
 
     let calldata = "93973e2948748003bc6c947d56a47411ea1c812b358be9d0189e2bd0a0b9d11eb03ae0c6a0e3e3ff4af4d16ee034277d34c6a8aa63c502d99b1d162961d07d59114fc42e88471db9de64d0ce23e37800a3b07af311d55119adcc82594b7492bb3caf1e7f618f833b6364862c701c6a1ce93fbeef210ef53f97619a8e0ad5c7b1b6a99bc96565cfdfa61439c441260232c6430726192fbb1cedc36f41570659f2";
 
@@ -62,6 +63,16 @@ async fn p256verify_bench() {
     .await
     .unwrap();
     let (_, p256verify_sol_gas_used) = test_utils::parse_call_result(&p256verify_sol_response);
+
+    // Call P256Verify.vy
+    let p256verify_vy_response = test_utils::era_call(
+        p256verify_vy_address,
+        None,
+        Some(Bytes::from(hex::decode(calldata).unwrap())),
+    )
+    .await
+    .unwrap();
+    let (_, p256verify_vy_gas_used) = test_utils::parse_call_result(&p256verify_vy_response);
 
     // Call P256Verify.yul
     let p256verify_yul_response = test_utils::era_call(
@@ -86,5 +97,6 @@ async fn p256verify_bench() {
     writeln!(file, "| --------- | -------- |").unwrap();
     writeln!(file, "| AmadiMichael's Huff P256 Verifier  ||").unwrap();
     writeln!(file, "| Daimo's Solidity P256 Verifier  | {p256verify_sol_gas_used} |").unwrap();
+    writeln!(file, "| pcaversaccio's Vyper P256 Verifier | {p256verify_vy_gas_used} |").unwrap();
     writeln!(file, "| Lambda's Yul P256 Verifier | {p256verify_yul_gas_used} |").unwrap();
 }
