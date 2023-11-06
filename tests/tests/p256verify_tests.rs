@@ -46,7 +46,7 @@ async fn p256verify_valid_signature_two() {
 }
 
 #[tokio::test]
-async fn p256verify_invalid_signature() {
+async fn p256verify_invalid_signature_one() {
     let era_response = era_call(
         P256VERIFTY_PRECOMPILE_ADDRESS,
         None,
@@ -146,4 +146,18 @@ async fn p256verify_public_key_not_in_curve() {
     .to_string();
 
     assert_eq!(era_response, EXECUTION_REVERTED)
+}
+
+#[tokio::test]
+async fn p256verify_invalid_signature_two() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("5ad83880e16658d7521d4e878521defaf6b43dec1dbd69e514c09ab8f1f2ffe25ad83880e16658d7521d4e878521defaf6b43dec1dbd69e514c09ab8f1f2ffe2871c518be8c56e7f5c901933fdab317efafc588b3e04d19d9a27b29aad8d9e696b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296b01cbd1c01e58065711814b583f061e9d431cca994cea1313449bf97c840ae0a").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_INVALID))
 }
