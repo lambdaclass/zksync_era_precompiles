@@ -170,7 +170,7 @@ async fn p256verify_bench() {
         .open("gas_reports/p256verify_benches_report.md")
         .unwrap();
 
-    let bench_report = format!("| Implementation | Min Gas Used | Avg Used | Max Gas Used |
+    let bench_report = format!("| Implementation | Min Gas Used | Avg Gas Used | Max Gas Used |
     | --- | --- | --- | --- |
     | Daimo's Solidity P256 Verifier  | {p256verify_sol_gas_used_min} | {p256verify_sol_gas_used_avg} | {p256verify_sol_gas_used_max} |
     | pcaversaccio's Vyper P256 Verifier | {p256verify_vy_gas_used_min} | {p256verify_vy_gas_used_avg} | {p256verify_vy_gas_used_max} |
