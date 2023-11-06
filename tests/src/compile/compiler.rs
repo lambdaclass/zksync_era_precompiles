@@ -67,7 +67,11 @@ pub fn compile(
     match compiler {
         Compiler::ZKSolc => compile_with_zksolc(project_root, contract_path, contract_name),
         Compiler::Solc => compile_with_solc(contract_path, contract_name),
-        Compiler::ZKVyper => Ok(compile_with_zkvyper(project_root, contract_path, contract_name)),
+        Compiler::ZKVyper => Ok(compile_with_zkvyper(
+            project_root,
+            contract_path,
+            contract_name,
+        )),
     }
 }
 
@@ -109,11 +113,7 @@ fn compile_with_solc(contract_path: &str, contract_name: &str) -> eyre::Result<A
     Ok(Artifact::SolcArtifact(artifact))
 }
 
-fn compile_with_zkvyper(
-    project_root: &str,
-    contract_path: &str,
-    contract_name: &str,
-) -> Artifact {
+fn compile_with_zkvyper(project_root: &str, contract_path: &str, contract_name: &str) -> Artifact {
     let root = PathBuf::from(project_root);
     let zk_project = ZKSProject::from(
         Project::builder()
@@ -142,14 +142,17 @@ fn compile_with_zkvyper(
     let command_output = command.output().unwrap();
 
     let compilation_output = String::from_utf8_lossy(&command_output.stdout)
-            .into_owned()
-            .trim()
-            .to_owned();
-    
+        .into_owned()
+        .trim()
+        .to_owned();
+
     let parsed_compilation_output = serde_json::Value::from_str(&compilation_output).unwrap();
 
-    let abi: Abi = serde_json::from_value(parsed_compilation_output[contract_path]["abi"].clone()).unwrap();
-    let bin: Bytes = serde_json::from_value(parsed_compilation_output[contract_path]["bytecode"].clone()).unwrap();
+    let abi: Abi =
+        serde_json::from_value(parsed_compilation_output[contract_path]["abi"].clone()).unwrap();
+    let bin: Bytes =
+        serde_json::from_value(parsed_compilation_output[contract_path]["bytecode"].clone())
+            .unwrap();
 
     let zks_artifact = ZKSArtifact {
         abi: Some(abi),
