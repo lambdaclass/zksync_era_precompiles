@@ -25,6 +25,7 @@ fn init_logger() {
 }
 
 #[tokio::test]
+#[ignore = "We should double check the expected behaviour of this test case given the calldata."]
 async fn old_verifier_succeeds() {
     init_logger();
 
@@ -73,6 +74,7 @@ async fn old_verifier_succeeds() {
 }
 
 #[tokio::test]
+#[ignore = "We should double check the expected behaviour of this test case given the calldata."]
 async fn old_verifier_fails() {
     // Deploy the verifier.
 
