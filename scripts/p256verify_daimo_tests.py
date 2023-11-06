@@ -60,7 +60,7 @@ def write_test_suit(test_suit_data, test_file: io.TextIOWrapper):
     for test_case in test_suit_data:
         write_test_case("P256VERIFTY_PRECOMPILE_ADDRESS", test_case, test_file)
 
-def main():
+def write_daimo_tests():
     test_case_data = []
     for test_path in TESTS_PATHS:
         with open(test_path, "r") as entry_file:
@@ -88,6 +88,38 @@ def main():
                 test_case_data.append({"name": name,"calldata": calldata, "comment": comment, "valid": valid})
 
             write_test_suit(test_case_data, open("tests/tests/p256verify_daimo_tests.rs", "w"))
+
+def gen_valid_test_cases_calldata():
+    test_cases_calldata = []
+    for test_path in TESTS_PATHS:
+        with open(test_path, "r") as entry_file:
+            data = json.load(entry_file)
+            i = 0
+            for test_case in data:
+                hash = test_case["hash"]
+                r = test_case["r"]
+                s = test_case["s"]
+                x = test_case["x"]
+                y = test_case["y"]
+
+                calldata = hash + r + s + x + y
+
+                if "wycheproof" in entry_file.name:    
+                    comment = test_case["comment"]
+                    valid = test_case["valid"]
+                    name = f"wycheproof_{i}_{'should_fail' if not valid else 'should_pass'}"
+                    i += 1
+                else:
+                    name = "_".join(test_case["comment"].split(" "))
+                    valid = True
+                    comment = None
+                if valid:
+                    test_cases_calldata.append(calldata)
+    with open("assets/benches_calldata.json", "w") as benches_calldata:
+        json.dump(test_cases_calldata, benches_calldata)
+
+def main():
+    gen_valid_test_cases_calldata()
 
 if __name__ == "__main__":
     main()
