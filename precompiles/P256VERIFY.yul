@@ -234,22 +234,14 @@ object "P256VERIFY" {
             /// @return S The result of the Montgomery reduction.
             function REDC(TLo, THi, n, nPrime) -> S {
                 let m := mul(TLo, nPrime)
-                let tHi, tHiOverflowed := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
+                let tHi, tHiOverflowed1 := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
                 let aLo, aLoOverflowed := overflowingAdd(TLo, mul(m, n))
-                if tHiOverflowed {
-                    // TODO: Check if this addition could overflow.
-                    tHi := add(tHi, sub(0, n))
-                }
+                let tHiOverflowed2 := 0
                 if aLoOverflowed {
-                    tHi, tHiOverflowed := overflowingAdd(tHi, 1)
-                }
-                if tHiOverflowed {
-                    // TODO: Check if this addition could overflow.
-                    tHi := add(tHi, sub(0, n))
+                    tHi, tHiOverflowed2 := overflowingAdd(tHi, 1)
                 }
                 S := tHi
-
-                if iszero(lt(tHi, n)) {
+                if or(or(tHiOverflowed1, tHiOverflowed2), iszero(lt(tHi, n))) {
                     S := sub(tHi, n)
                 }
             }
