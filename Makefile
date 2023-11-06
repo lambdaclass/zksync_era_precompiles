@@ -18,7 +18,7 @@ build-precompiles: copy-precompiles
 	cd submodules/era-test-node && make build-precompiles
 
 run: build-precompiles
-	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes run
+	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes --show-gas-details=all run
 
 test:
 	cd tests && \
@@ -26,3 +26,6 @@ test:
 
 docs:
 	cd docs && mdbook serve --open
+
+clean:
+	rm submodules/era-test-node/src/deps/contracts/*.yul.zbin submodules/era-test-node/etc/system-contracts/contracts/precompiles/*.yul

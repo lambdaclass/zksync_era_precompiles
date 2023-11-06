@@ -1,6 +1,7 @@
 use std::{env, fs::OpenOptions, io::Write};
 use zksync_web3_rs::{
     providers::{Http, Middleware, Provider, ProviderError},
+    signers::{LocalWallet, Signer},
     types::{transaction::eip2718::TypedTransaction, Address, Bytes, Eip1559TransactionRequest},
     zks_utils::{
         ECADD_PRECOMPILE_ADDRESS, ECMUL_PRECOMPILE_ADDRESS, ECPAIRING_PRECOMPILE_ADDRESS,
@@ -11,6 +12,17 @@ use zksync_web3_rs::{
 static DEFAULT_L1_PROVIDER_URL: &str =
     "https://eth-mainnet.alchemyapi.io/v2/Lc7oIGYeL_QvInzI0Wiu_pOZZDEKBrdf";
 static DEFAULT_L2_PROVIDER_URL: &str = "http://localhost:8011";
+
+#[allow(dead_code)]
+const ERA_IN_MEMORY_NODE_CHAIN_ID: u64 = 260;
+
+#[allow(dead_code)]
+pub fn local_wallet() -> LocalWallet {
+    let wallet: LocalWallet = "0x850683b40d4a740aa6e745f889a6fdc8327be76e122f5aba645a5b02d0248db8"
+        .try_into()
+        .unwrap();
+    wallet.with_chain_id(ERA_IN_MEMORY_NODE_CHAIN_ID)
+}
 
 #[allow(dead_code)]
 pub fn parse_call_result(bytes: &[u8]) -> (Bytes, u32) {
@@ -61,6 +73,11 @@ pub fn write_p256verify_gas_result(used_gas: u32) {
 #[allow(dead_code)]
 pub fn write_secp256k1verify_gas_result(used_gas: u32) {
     write_line_to_report(used_gas, "gas_reports/secp256k1verify_report.md");
+}
+
+#[allow(dead_code)]
+pub fn write_verifier_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/verifier_report.md");
 }
 
 pub fn eth_provider() -> Provider<Http> {
