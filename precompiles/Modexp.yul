@@ -709,13 +709,17 @@ object "ModExp" {
                 return(0, 0)
             }
 
+            if and(and(eq(baseLen, 32), eq(expLen, 32)), eq(modLen, 32)) {
+                oneLimbImplementation()
+            }
+
             let basePtr := 96
             let expPtr := add(basePtr, baseLen)
             let modPtr := add(expPtr, expLen)
 
             // Note: This check covers the case where length of the modulo is zero.
             // base^exponent % 0 = 0
-            if callDataBufferIsZero(modPtr, modLen) {
+            if or(callDataBufferIsZero(modPtr, modLen), callDataBufferIsOne(modPtr, modLen)) {
                 // Fulfill memory with all zeroes.
                 for { let ptr } lt(ptr, modLen) { ptr := add(ptr, 32) } {
                     mstore(ptr, 0)
