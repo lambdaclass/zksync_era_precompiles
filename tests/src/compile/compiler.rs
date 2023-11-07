@@ -67,11 +67,7 @@ pub fn compile(
     match compiler {
         Compiler::ZKSolc => compile_with_zksolc(project_root, contract_path, contract_name),
         Compiler::Solc => compile_with_solc(contract_path, contract_name),
-        Compiler::ZKVyper => Ok(compile_with_zkvyper(
-            project_root,
-            contract_path,
-            contract_name,
-        )),
+        Compiler::ZKVyper => Ok(compile_with_zkvyper(project_root, contract_path)),
     }
 }
 
@@ -113,7 +109,7 @@ fn compile_with_solc(contract_path: &str, contract_name: &str) -> eyre::Result<A
     Ok(Artifact::SolcArtifact(artifact))
 }
 
-fn compile_with_zkvyper(project_root: &str, contract_path: &str, contract_name: &str) -> Artifact {
+fn compile_with_zkvyper(project_root: &str, contract_path: &str) -> Artifact {
     let root = PathBuf::from(project_root);
     let zk_project = ZKSProject::from(
         Project::builder()
