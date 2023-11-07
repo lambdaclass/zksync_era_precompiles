@@ -1,4 +1,4 @@
-.PHONY: setup update run test docs
+.PHONY: setup update run test docs clean compilers get-zksolc get-zkvyper benches
 
 setup:
 	git submodule update --init && \
