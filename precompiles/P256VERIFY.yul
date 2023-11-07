@@ -580,6 +580,7 @@ object "P256VERIFY" {
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
             hash := intoMontgomeryForm(hash, N(), N_PRIME(), R2_MOD_N())
+            let rTmp := r
             r := intoMontgomeryForm(r, N(), N_PRIME(), R2_MOD_N())
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
@@ -599,10 +600,9 @@ object "P256VERIFY" {
             xr := montgomeryMul(xr, z_inv, P(), P_PRIME())
             xr := outOfMontgomeryForm(xr, P(), P_PRIME())
 
-            r := outOfMontgomeryForm(r, N(), N_PRIME())
             xr := mod(xr, N())
 
-            mstore(0, eq(xr, r))
+            mstore(0, eq(xr, rTmp))
             return(0, 32)
         }
     }
