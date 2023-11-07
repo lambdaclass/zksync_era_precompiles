@@ -29,3 +29,14 @@ docs:
 
 clean:
 	rm submodules/era-test-node/src/deps/contracts/*.yul.zbin submodules/era-test-node/etc/system-contracts/contracts/precompiles/*.yul
+
+compilers: get-zksolc get-zkvyper
+	
+get-zksolc:
+	wget 'https://github.com/matter-labs/zksolc-bin/raw/main/macosx-arm64/zksolc-macosx-arm64-v1.3.14' -O '/usr/local/bin/zksolc'
+
+get-zkvyper:
+	wget 'https://github.com/matter-labs/zkvyper-bin/blob/main/macosx-arm64/zkvyper-macosx-arm64-v1.3.13' -O '/usr/local/bin/zkvyper'
+
+benches:
+	make test PRECOMPILE=p256verify_bench
