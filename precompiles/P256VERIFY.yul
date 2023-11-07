@@ -7,6 +7,7 @@ object "P256VERIFY" {
             // CURVE CONSTANTS
 
             /// @notice Constant function for curve reduced elliptic group order.
+            /// @dev P is a prime number which defines the field which is a domain of the curve parameters.
             /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
             /// @return p The curve reduced elliptic group order.
             function P() -> p {
@@ -14,6 +15,7 @@ object "P256VERIFY" {
             }
 
             /// @notice Constant function for curve subgroup order.
+            /// @dev N is the order of generator G.
             /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
             /// @return n The curve subgroup order.
             function N() -> n {
@@ -149,8 +151,7 @@ object "P256VERIFY" {
                 for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
                     for {} iszero(and(u, 0x1)) {} {
                         u := shr(1, u)
-                        let currentB := b
-                        switch and(currentB, 0x1)
+                        switch and(b, 0x1)
                         case 0 {
                             b := shr(1, b)
                         }
@@ -166,8 +167,7 @@ object "P256VERIFY" {
 
                     for {} iszero(and(v, 0x1)) {} {
                         v := shr(1, v)
-                        let currentC := c
-                        switch and(currentC, 0x1)
+                        switch and(c, 0x1)
                         case 0 {
                             c := shr(1, c)
                         }
@@ -234,22 +234,14 @@ object "P256VERIFY" {
             /// @return S The result of the Montgomery reduction.
             function REDC(TLo, THi, n, nPrime) -> S {
                 let m := mul(TLo, nPrime)
-                let tHi, tHiOverflowed := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
+                let tHi, tHiOverflowed1 := overflowingAdd(THi, getHighestHalfOfMultiplication(m, n))
                 let aLo, aLoOverflowed := overflowingAdd(TLo, mul(m, n))
-                if tHiOverflowed {
-                    // TODO: Check if this addition could overflow.
-                    tHi := add(tHi, sub(0, n))
-                }
+                let tHiOverflowed2 := 0
                 if aLoOverflowed {
-                    tHi, tHiOverflowed := overflowingAdd(tHi, 1)
-                }
-                if tHiOverflowed {
-                    // TODO: Check if this addition could overflow.
-                    tHi := add(tHi, sub(0, n))
+                    tHi, tHiOverflowed2 := overflowingAdd(tHi, 1)
                 }
                 S := tHi
-
-                if iszero(lt(tHi, n)) {
+                if or(or(tHiOverflowed1, tHiOverflowed2), iszero(lt(tHi, n))) {
                     S := sub(tHi, n)
                 }
             }
@@ -439,13 +431,6 @@ object "P256VERIFY" {
             function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
                 let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                 let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
-                if and(pIsInfinity, qIsInfinity) {
-                    // Infinity + Infinity = Infinity
-                    xr := 0
-                    yr := MONTGOMERY_ONE_P()
-                    zr := 0
-                    leave
-                }
                 if pIsInfinity {
                     // Infinity + Q = Q
                     xr := xq
@@ -490,8 +475,8 @@ object "P256VERIFY" {
             /// @param xq The x coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param yq The y coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param zq The z coordinate of the point Q in projective coordinates in Montgomery form.
-            /// @param t0 The scalar to multiply the point Q by.
-            /// @param t1 The scalar to multiply the generator G by.
+            /// @param t0 The scalar to multiply the generator G by.
+            /// @param t1 The scalar to multiply the point Q by.
             /// @return xr The x coordinate of the resulting point R in projective coordinates in Montgomery form.
             /// @return yr The y coordinate of the resulting point R in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the resulting point R in projective coordinates in Montgomery form.
@@ -591,6 +576,7 @@ object "P256VERIFY" {
             // TODO: Check if r, s, s1, t0 and t1 operations are optimal in Montgomery form or not
 
             hash := intoMontgomeryForm(hash, N(), N_PRIME(), R2_MOD_N())
+            let rTmp := r
             r := intoMontgomeryForm(r, N(), N_PRIME(), R2_MOD_N())
             s := intoMontgomeryForm(s, N(), N_PRIME(), R2_MOD_N())
 
@@ -600,16 +586,19 @@ object "P256VERIFY" {
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
 
             let xr, yr, zr := shamirLinearCombination(x, y, z, t0, t1)
+            if iszero(zr) {
+                mstore(0, 0)
+                return(0, 32)
+            }
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             let z_inv := montgomeryModularInverse(zr, P(), R2_MOD_P())
             xr := montgomeryMul(xr, z_inv, P(), P_PRIME())
             xr := outOfMontgomeryForm(xr, P(), P_PRIME())
 
-            r := outOfMontgomeryForm(r, N(), N_PRIME())
             xr := mod(xr, N())
 
-            mstore(0, eq(xr, r))
+            mstore(0, eq(xr, rTmp))
             return(0, 32)
         }
     }
