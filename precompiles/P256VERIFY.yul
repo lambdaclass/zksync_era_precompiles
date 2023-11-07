@@ -429,13 +429,6 @@ object "P256VERIFY" {
             function projectiveAdd(xp, yp, zp, xq, yq, zq) -> xr, yr, zr {
                 let qIsInfinity := projectivePointIsInfinity(xq, yq, zq)
                 let pIsInfinity := projectivePointIsInfinity(xp, yp, zp)
-                if and(pIsInfinity, qIsInfinity) {
-                    // Infinity + Infinity = Infinity
-                    xr := 0
-                    yr := MONTGOMERY_ONE_P()
-                    zr := 0
-                    leave
-                }
                 if pIsInfinity {
                     // Infinity + Q = Q
                     xr := xq
