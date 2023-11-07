@@ -118,14 +118,8 @@ fn compile_with_zkvyper(project_root: &str, contract_path: &str) -> Artifact {
             .build()
             .unwrap(),
     );
-    let zkvyper_path = dirs::config_dir()
-        .unwrap()
-        .join("eth-compilers")
-        .join("zkvyper");
-    let vyper_path = dirs::config_dir()
-        .unwrap()
-        .join("eth-compilers")
-        .join("vyper");
+    let zkvyper_path = PathBuf::from("/usr/local/bin").join("zkvyper");
+    let vyper_path = PathBuf::from("/usr/local/bin").join("vyper");
 
     let command = &mut std::process::Command::new(zkvyper_path);
     command
