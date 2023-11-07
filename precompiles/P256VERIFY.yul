@@ -604,6 +604,10 @@ object "P256VERIFY" {
             let t1 := outOfMontgomeryForm(montgomeryMul(r, s1, N(), N_PRIME()), N(), N_PRIME())
 
             let xr, yr, zr := shamirLinearCombination(x, y, z, t0, t1)
+            if iszero(zr) {
+                mstore(0, 0)
+                return(0, 32)
+            }
 
             // As we only need xr in affine form, we can skip transforming the `y` coordinate.
             let z_inv := montgomeryModularInverse(zr, P(), R2_MOD_P())
