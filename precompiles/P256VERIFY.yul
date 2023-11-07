@@ -466,11 +466,6 @@ object "P256VERIFY" {
                         xr, yr, zr := projectiveDouble(xp, yp, zp)
                         leave
                     }
-                    // P + (-P) = Infinity
-                    xr := 0
-                    yr := MONTGOMERY_ONE_P()
-                    zr := 0
-                    leave
                 }
 
                 // P1 + P2 = P3
