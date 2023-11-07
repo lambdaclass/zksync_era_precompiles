@@ -149,8 +149,7 @@ object "P256VERIFY" {
                 for {} and(iszero(eq(u, 0x1)), iszero(eq(v, 0x1))) {} {
                     for {} iszero(and(u, 0x1)) {} {
                         u := shr(1, u)
-                        let currentB := b
-                        switch and(currentB, 0x1)
+                        switch and(b, 0x1)
                         case 0 {
                             b := shr(1, b)
                         }
@@ -166,8 +165,7 @@ object "P256VERIFY" {
 
                     for {} iszero(and(v, 0x1)) {} {
                         v := shr(1, v)
-                        let currentC := c
-                        switch and(currentC, 0x1)
+                        switch and(c, 0x1)
                         case 0 {
                             c := shr(1, c)
                         }
