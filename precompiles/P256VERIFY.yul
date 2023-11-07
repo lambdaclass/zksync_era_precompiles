@@ -460,26 +460,22 @@ object "P256VERIFY" {
                     zr := zp
                     leave
                 }
-                if eq(montgomeryMul(xp, zq, P(), P_PRIME()), montgomeryMul(xq, zp, P(), P_PRIME())) {
-                    if eq(montgomeryMul(yp, zq, P(), P_PRIME()), montgomeryMul(yq, zp, P(), P_PRIME())) {
-                        // P + P = 2P
-                        xr, yr, zr := projectiveDouble(xp, yp, zp)
-                        leave
-                    }
-                    // P + (-P) = Infinity
-                    xr := 0
-                    yr := MONTGOMERY_ONE_P()
-                    zr := 0
-                    leave
-                }
 
-                // P1 + P2 = P3
                 let t0 := montgomeryMul(yp, zq, P(), P_PRIME())
                 let t1 := montgomeryMul(yq, zp, P(), P_PRIME())
                 let t := montgomerySub(t0, t1, P())
                 let u0 := montgomeryMul(xp, zq, P(), P_PRIME())
                 let u1 := montgomeryMul(xq, zp, P(), P_PRIME())
                 let u := montgomerySub(u0, u1, P())
+
+                // t = (yp*zq - yq*zp); u = (xp*zq - xq*zp)
+                if iszero(or(t, u)) {
+                    // P + P = 2P
+                    xr, yr, zr := projectiveDouble(xp, yp, zp)
+                    leave
+                }
+            
+                // P1 + P2 = P3
                 let u2 := montgomeryMul(u, u, P(), P_PRIME())
                 let u3 := montgomeryMul(u2, u, P(), P_PRIME())
                 let v := montgomeryMul(zp, zq, P(), P_PRIME())
