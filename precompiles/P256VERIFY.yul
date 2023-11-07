@@ -7,6 +7,7 @@ object "P256VERIFY" {
             // CURVE CONSTANTS
 
             /// @notice Constant function for curve reduced elliptic group order.
+            /// @dev P is a prime number which defines the field which is a domain of the curve parameters.
             /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
             /// @return p The curve reduced elliptic group order.
             function P() -> p {
@@ -14,6 +15,7 @@ object "P256VERIFY" {
             }
 
             /// @notice Constant function for curve subgroup order.
+            /// @dev N is the order of generator G.
             /// @dev See https://neuromancer.sk/std/secg/secp256r1 for further details.
             /// @return n The curve subgroup order.
             function N() -> n {
