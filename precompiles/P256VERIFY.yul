@@ -494,8 +494,8 @@ object "P256VERIFY" {
             /// @param xq The x coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param yq The y coordinate of the point Q in projective coordinates in Montgomery form.
             /// @param zq The z coordinate of the point Q in projective coordinates in Montgomery form.
-            /// @param t0 The scalar to multiply the point Q by.
-            /// @param t1 The scalar to multiply the generator G by.
+            /// @param t0 The scalar to multiply the generator G by.
+            /// @param t1 The scalar to multiply the point Q by.
             /// @return xr The x coordinate of the resulting point R in projective coordinates in Montgomery form.
             /// @return yr The y coordinate of the resulting point R in projective coordinates in Montgomery form.
             /// @return zr The z coordinate of the resulting point R in projective coordinates in Montgomery form.
