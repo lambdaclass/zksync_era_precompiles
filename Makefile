@@ -1,4 +1,4 @@
-.PHONY: setup update run test docs clean compilers get-zksolc get-zkvyper benches
+.PHONY: setup update run test docs clean compilers get-zksolc get-zkvyper get-vyper benches
 
 setup:
 	git submodule update --init && \
@@ -30,13 +30,16 @@ docs:
 clean:
 	rm submodules/era-test-node/src/deps/contracts/*.yul.zbin submodules/era-test-node/etc/system-contracts/contracts/precompiles/*.yul
 
-compilers: get-zksolc get-zkvyper
+compilers: get-zksolc get-zkvyper get-vyper
 	
 get-zksolc:
-	wget 'https://github.com/matter-labs/zksolc-bin/raw/main/macosx-arm64/zksolc-macosx-arm64-v1.3.14' -O '/usr/local/bin/zksolc'
+	wget 'https://github.com/matter-labs/zksolc-bin/raw/main/macosx-arm64/zksolc-macosx-arm64-v1.3.14' -O ~/Library/Application\ Support/eth-compilers/zksolc
 
 get-zkvyper:
-	wget 'https://github.com/matter-labs/zkvyper-bin/blob/main/macosx-arm64/zkvyper-macosx-arm64-v1.3.13' -O '/usr/local/bin/zkvyper'
+	wget 'https://github.com/matter-labs/zkvyper-bin/blob/main/macosx-arm64/zkvyper-macosx-arm64-v1.3.13' -O ~/Library/Application\ Support/eth-compilers/zkvyper
+
+get-vyper:
+	wget 'https://github.com/vyperlang/vyper/releases/download/v0.3.10/vyper.0.3.10+commit.91361694.darwin' -O ~/Library/Application\ Support/eth-compilers/vyper
 
 benches:
 	make test PRECOMPILE=p256verify_bench
