@@ -6,7 +6,7 @@ import "@matterlabs/hardhat-zksync-solc";
 import "@matterlabs/hardhat-zksync-verify";
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "zkSyncTestnet",
+  defaultNetwork: "inMemoryNode",
   networks: {
     zkSyncTestnet: {
       url: "https://testnet.era.zksync.dev",
