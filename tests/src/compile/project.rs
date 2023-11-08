@@ -1,5 +1,4 @@
 use super::{errors::ZKCompilerError, output::ZKSCompilationOutput};
-use std::path::PathBuf;
 use zksync_web3_rs::{prelude::Project, solc::utils::source_files};
 
 pub struct ZKSProject {
@@ -14,8 +13,18 @@ impl From<Project> for ZKSProject {
 
 impl ZKSProject {
     pub fn compile(&self) -> Result<ZKSCompilationOutput, ZKCompilerError> {
-        let zksolc_path = PathBuf::from("/usr/local/bin").join("zksolc");
-        let solc_path = PathBuf::from("/usr/local/bin").join("solc");
+        let zksolc_path = dirs::config_dir()
+            .ok_or(ZKCompilerError::CompilationError(
+                "config dir not found".to_owned(),
+            ))?
+            .join("eth-compilers")
+            .join("zksolc");
+        let solc_path = dirs::config_dir()
+            .ok_or(ZKCompilerError::CompilationError(
+                "config dir not found".to_owned(),
+            ))?
+            .join("eth-compilers")
+            .join("solc");
 
         let command = &mut std::process::Command::new(zksolc_path);
         command
@@ -40,8 +49,18 @@ impl ZKSProject {
     }
 
     pub fn build(&self) -> Result<(), ZKCompilerError> {
-        let zksolc_path = PathBuf::from("/usr/local/bin").join("zksolc");
-        let solc_path = PathBuf::from("/usr/local/bin").join("solc");
+        let zksolc_path = dirs::config_dir()
+            .ok_or(ZKCompilerError::CompilationError(
+                "config dir not found".to_owned(),
+            ))?
+            .join("eth-compilers")
+            .join("zksolc");
+        let solc_path = dirs::config_dir()
+            .ok_or(ZKCompilerError::CompilationError(
+                "config dir not found".to_owned(),
+            ))?
+            .join("eth-compilers")
+            .join("solc");
 
         let command = &mut std::process::Command::new(zksolc_path);
         command

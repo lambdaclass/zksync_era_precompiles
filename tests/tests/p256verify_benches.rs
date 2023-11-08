@@ -73,8 +73,6 @@ async fn p256verify_bench() {
         Compiler::ZKSolc,
     )
     .await;
-    log::info!("P256Verify.sol deployed at: {p256verify_sol_address:?}");
-
     let p256verify_vy_address = deploy(
         &era_provider,
         "contracts/p256verify/P256Verify.vy",
@@ -83,7 +81,6 @@ async fn p256verify_bench() {
         Compiler::ZKVyper,
     )
     .await;
-    log::info!("P256Verify.vy deployed at: {p256verify_vy_address:?}");
 
     // Read calldata.
     let valid_calldata_cases: Vec<&str> =
