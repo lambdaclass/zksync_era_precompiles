@@ -1,5 +1,7 @@
 object "P256VERIFY" {
-    code { }
+    code {
+        return(0, 0)
+    }
     object "P256VERIFY_deployed" {
         code {
             // Constants
