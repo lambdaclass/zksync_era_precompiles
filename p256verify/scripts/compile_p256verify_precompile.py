@@ -23,7 +23,7 @@ def main():
         "factoryDeps": {}
     }
     bin = subprocess \
-        .run([ZKSOLC_PATH, "--solc", SOLC_PATH, "--system-mode", "--yul", P256VERIFY_PRECOMPILE_PATH, "--bin"], stdout=subprocess.PIPE) \
+        .run([ZKSOLC_PATH, "--solc", SOLC_PATH, "--system-mode", "-Oz", "--yul", P256VERIFY_PRECOMPILE_PATH, "--bin"], stdout=subprocess.PIPE) \
         .stdout \
         .decode("utf-8") \
         .split("bytecode: ")[1] \
