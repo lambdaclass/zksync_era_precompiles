@@ -161,3 +161,87 @@ async fn p256verify_invalid_signature_two() {
     write_p256verify_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(RESPONSE_INVALID))
 }
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_1() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000018c47ad0afe2e980cc144632bdc1d442c34fd234661f9cb983e66a59abc1eed05844c7bf016cf7cb4ae740fac63cc8ca08e6db74890d94db8954c52fd77bf040c6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_2() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000016b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2976b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_3() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000006b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_4() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f3e12c4246f8bce6e563a440f2ba1c82d386d3951c00e76e82dc359d446b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_5() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc6325516b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
+
+#[tokio::test]
+async fn p256verify_hash_edge_case_valid_6() {
+    let era_response = era_call(
+        P256VERIFTY_PRECOMPILE_ADDRESS,
+        None,
+        Some(Bytes::from(hex::decode("ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc6325506b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2966b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2956b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5").unwrap())),
+    )
+    .await
+    .unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_p256verify_gas_result(gas_used);
+    assert_eq!(era_output, Bytes::from(RESPONSE_VALID))
+}
