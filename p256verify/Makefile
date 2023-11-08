@@ -1,5 +1,8 @@
 .PHONY: compile deploy
 
+setup:
+	yarn install
+
 compile:
 	python3 scripts/compile_p256verify_precompile.py
 
