@@ -15,7 +15,7 @@ yarn install
 2. Deploy
 
 ```bash
-make deploy NET=zkSyncTestnet
+make deploy-testnet
 ```
 
 ## How to deploy on the in-memory node
@@ -35,5 +35,5 @@ make run-node
 3. Deploy
 
 ```bash
-make deploy NET=inMemoryNode
+make deploy-local
 ```
