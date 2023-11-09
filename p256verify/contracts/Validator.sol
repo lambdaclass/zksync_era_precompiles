@@ -41,7 +41,6 @@ contract Validator {
         bytes calldata signature,
         bytes32[2] calldata pubKey
     ) external returns (bool valid) {
-        // log(0xaca);
         bytes32[2] memory rs = abi.decode(signature, (bytes32[2]));
 
         bool success = callVerifier(sha256(abi.encodePacked(signedHash)), rs, pubKey);
