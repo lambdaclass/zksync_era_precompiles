@@ -15,6 +15,7 @@ yarn install
 2. Deploy
 
 ```bash
+cd p256verify
 make deploy-testnet
 ```
 
@@ -35,5 +36,6 @@ make run-node
 3. Deploy
 
 ```bash
+cd p256verify
 make deploy-local
 ```
