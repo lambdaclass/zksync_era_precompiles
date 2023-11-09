@@ -9,7 +9,7 @@ def main():
     artifact = {
         "_format": "hh-zksolc-artifact-1",
         "contractName": "P256VERIFY",
-        "sourceName": "p256verify/contracts/P256VERIFY.sol",
+        "sourceName": "contracts/P256VERIFY.sol",
         "abi": [
             {
                 "stateMutability": "nonpayable",
