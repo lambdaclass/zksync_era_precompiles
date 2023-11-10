@@ -12,29 +12,9 @@ import {SystemContractsCaller} from '@matterlabs/zksync-contracts/l2/system-cont
  */
 contract Validator {
     //dummy value
-    address constant P256_VERIFIER = 0x4213c20482E08877D6Fe7c8a2362599765a3F11F;
-    // address constant P256_VERIFIER = 0x0000000000000000000000000000000000000019;
-    // address constant P256_VERIFIER = 0x18c994fD76764aE2229b85978361D23bCFc2aE5a;
+    address constant P256_VERIFIER = 0x18c994fD76764aE2229b85978361D23bCFc2aE5a;
 
     //event Test(bool success);
-
-    function log(uint256 val) public view {
-        assembly {
-            // CONSOLE.LOG Caller
-            // It prints 'val' in the node console and it works using the 'mem'+0x40 memory sector
-            let log_address := 0x000000000000000000636F6e736F6c652e6c6f67
-            // load the free memory pointer
-            let freeMemPointer := 0x1000
-            // store the function selector of log(uint256) in memory
-            mstore(freeMemPointer, 0xf82c50f1)
-            // store the first argument of log(uint256) in the next memory slot
-            mstore(add(freeMemPointer, 0x20), val)
-            // call the console.log contract
-            if iszero(staticcall(gas(),log_address,add(freeMemPointer, 28),add(freeMemPointer, 0x40),0x00,0x00)) {
-                revert(0,0)
-            }
-        }
-    }
 
     function validateSignature(
         bytes32 signedHash,
