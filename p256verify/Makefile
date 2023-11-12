@@ -24,10 +24,15 @@ deploy-validator-local: compile-validator
 deploy-validator-testnet: compile-validator
 	yarn hardhat deploy-zksync --script deploy/deploy-validator.ts --network zkSyncTestnet
 
-tx-output:
+tx-output-testnet:
 	curl -X POST  -H "Content-Type: application/json"  \
 	--data '{"jsonrpc":"2.0", "id":2, "method": "debug_traceTransaction", "params": [ "${HASH}" ] }' \
 	"https://testnet.era.zksync.dev"
+
+tx-output-local:
+	curl -X POST  -H "Content-Type: application/json"  \
+	--data '{"jsonrpc":"2.0", "id":2, "method": "debug_traceTransaction", "params": [ "${HASH}" ] }' \
+	"http://localhost:8011"
 
 replay-tx:
 	cd ../submodules/era-test-node && \
