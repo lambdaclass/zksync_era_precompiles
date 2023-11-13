@@ -1,50 +1,174 @@
 # Gas Consumption
 
-> Disclaimer: The following values are approximate because contract calls were needed to print the values
-> 
+> Disclaimer: The following values are approximate because contract calls were needed to print the values.
+
+## Verifier
+
+| Test case | Gas used |
+| --------- | -------- |
+| new_verifier_succeeds  | 32320282 |
+
 
 ## ecAdd
 
 The test cases are a subset of Ethereum’s [General State Tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests)
 
-| Test Case | L1 | Unoptimized L2 | Optimized L2 | Improvement |
-| --- | --- | --- | --- | --- |
-| (0, 0) + (0, 0) | 500 | 7631 | 90 | 84:1 |
-| (1, 2) + (0, 0) | 500 | 8417 | 882 | 9,54:1 |
-| (0, 0) + (1, 2) | 500 | 8375 | 852 |  |
-| (1, 2) + (1, 2) | 500 | 114971 | 39672 |  |
-| (1, 3) + (0, 0) | all | all | all | - |
-| (0, 0) + (1, 3) | all | all | all | - |
-| (6, 9) + (19274124, 124124) | all | all | all | - |
-| (0, 3) + (1, 2) | all | all | all | - |
-| (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) + (10744596414106452074759370245733544594153395043370666422502510773307029471145, 21039565435327757486054843320102702720990930294403178719740356721829973864651) | 500 | 9239 | 1716 |  |
-| (10744596414106452074759370245733544594153395043370666422502510773307029471145, 848677436511517736191562425154572367705380862894644942948681172815252343932) + (1624070059937464756887933993293429854168590106605707304006200119738501412969, 3269329550605213075043232856820720631601935657990457502777101397807070461336) | 500 | 115289 | 37314 |  |
+| Test case | Gas used |
+| --------- | -------- |
+| ecadd_0_0_0_0_21000_0  | 53973 |
+| ecadd_0_0_0_0_21000_64  | 53991 |
+| ecadd_0_0_0_0_25000_128  | 53991 |
+| ecadd_0_0_0_0_21000_128  | 53991 |
+| ecadd_0_0_0_0_25000_192  | 53991 |
+| ecadd_0_0_0_0_21000_192  | 53991 |
+| ecadd_0_0_0_0_21000_80  | 53991 |
+| ecadd_0_0_0_0_25000_64  | 53991 |
+| ecadd_0_0_1_2_21000_128  | 54465 |
+| ecadd_0_0_1_2_25000_192  | 54465 |
+| ecadd_0_0_1_2_25000_128  | 54465 |
+| ecadd_0_0_0_0_25000_80  | 53991 |
+| ecadd_0_0_1_2_21000_192  | 54465 |
+| ecadd_1145_3932_2969_1336_21000_128  | 90285 |
+| ecadd_1145_3932_1145_4651_25000_192  | 54573 |
+| ecadd_1145_3932_2969_1336_25000_128  | 90285 |
+| ecadd_1145_3932_1145_4651_21000_192  | 54573 |
+| ecadd_1_2_0_0_21000_128  | 54507 |
+| ecadd_1_2_0_0_21000_192  | 54507 |
+| ecadd_1_2_0_0_21000_64  | 54507 |
+| ecadd_1_2_0_0_25000_128  | 54507 |
+| ecadd_1_2_0_0_25000_64  | 54507 |
+| ecadd_1_2_1_2_25000_128  | 92469 |
+| ecadd_1_2_1_2_21000_192  | 92469 |
+| ecadd_1_2_0_0_25000_192  | 54507 |
+| ecadd_1_2_1_2_21000_128  | 92469 |
+| ecadd_1_2_1_2_25000_192  | 92469 |
+| ecadd_0_0_0_0_25000_0  | 53973 |
+
 
 ## ecMul
 
 The test cases are a subset of Ethereum’s [General State Tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests)
 
-| Test Case | Operation | L1 | Unoptimized L2 | Optimized L2 | Optimized L2 v2* | Optimzed L2 V3* |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1_3_n | (1, 3) * n | all | all | all | all | all |
-| 0_3_n | (0, 3) * n | all | all | all | all | all |
-| 1_2_5617 | (1 ,2) * 21888242871839275222246405745257275088548364400416034343698204186575808495617 | 40000 | 37370993 | 12414062 | 437753 | 434969 |
-| 7827_6598_5616 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 21888242871839275222246405745257275088548364400416034343698204186575808495616 | 40000 | 37349429 | 12408464 | 470951 | 469205 |
-| 1_2_340282366920938463463374607431768211456 | (1, 2) * 340282366920938463463374607431768211456 | 40000 | 13666379 | 4532132 | 183425 | 211433 |
-| 1_2_9935 | (1, 2) * 115792089237316195423570985008687907853269984665640564039457584007913129639935 | 40000 | 54052937 | 17960468 | 700655 | 562049 |
-| 1_2_5617 | (1, 2) * 21888242871839275222246405745257275088548364400416034343698204186575808495617 | 40000 | 37370993 | 12402404 | 437753 | 434969 |
-| 1_2_2 | (1, 2) * 2 | 40000 | 108023 | 38594 | 38669 | 38681 |
-| 7827_6598_1456 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 340282366920938463463374607431768211456 | 40000 | 13666421 | 4539146 | 183383 | 211391 |
-| 7827_6598_0 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 0 | 40000 | 2615 | 920 | 557 | 569 |
-| 7827_6598_9935 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 115792089237316195423570985008687907853269984665640564039457584007913129639935 | 40000 | 54020201 | 17939828 | 701843 | 562379 |
-| 7827_6598_1 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 1 | 40000 | 2627 | 932 | 569 | 581 |
-| 1_2_9 | (1, 2) * 9 | 40000 | 530891 | 182684 | 41951 | 92903 |
-| 7827_6598_2 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 2 | 40000 | 107933 | 34850 | 36401 | 36413 |
-| 7827_6598_5617 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 21888242871839275222246405745257275088548364400416034343698204186575808495617 | 40000 | 37361489 | 12416594 | 437753 | 434969 |
-| 7827_6598_9 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 9 | 40000 | 532079 | 173864 | 42383 | 93335 |
-| 1_2_5616 | (1, 2) * 21888242871839275222246405745257275088548364400416034343698204186575808495616 | 40000 | 37376663 | 12414062 | 471749 | 467423 |
-| 7827_6598_5616 | (11999875504842010600789954262886096740416429265635183817701593963271973497827, 11843594000332171325303933275547366297934113019079887694534126289021216356598) * 21888242871839275222246405745257275088548364400416034343698204186575808495616 | 40000 | 37349429 | 12408464 | 470951 | 469205 |
-| 0_0_n | (0, 0) * n | 40000 | 1817 | 116 | 107 | 101 |
+| Test case | Gas used |
+| --------- | -------- |
+| ecmul_0_0_0_21000_96  | 54546 |
+| ecmul_0_0_0_21000_64  | 54546 |
+| ecmul_0_0_0_21000_128  | 54546 |
+| ecmul_0_0_0_21000_0  | 54528 |
+| ecmul_0_0_0_21000_40  | 54546 |
+| ecmul_0_0_0_28000_0  | 54528 |
+| ecmul_0_0_0_28000_128  | 54546 |
+| ecmul_0_0_0_21000_80  | 54546 |
+| ecmul_0_0_0_28000_40  | 54546 |
+| ecmul_0_0_1_21000_96  | 54546 |
+| ecmul_0_0_0_28000_80  | 54546 |
+| ecmul_0_0_0_28000_96  | 54546 |
+| ecmul_0_0_1_28000_96  | 54546 |
+| ecmul_0_0_0_28000_64  | 54546 |
+| ecmul_0_0_1_21000_128  | 54546 |
+| ecmul_0_0_1_28000_128  | 54546 |
+| ecmul_0_0_2_21000_128  | 54546 |
+| ecmul_0_0_2_28000_128  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_21000_128  | 54546 |
+| ecmul_0_0_2_21000_96  | 54546 |
+| ecmul_0_0_2_28000_96  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_28000_128  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_21000_80  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_21000_96  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_28000_80  | 54546 |
+| ecmul_0_0_340282366920938463463374607431768211456_28000_96  | 54546 |
+| ecmul_0_0_5616_21000_96  | 54546 |
+| ecmul_0_0_5616_21000_128  | 54546 |
+| ecmul_0_0_5616_28000_128  | 54546 |
+| ecmul_0_0_5617_21000_128  | 54546 |
+| ecmul_0_0_5617_28000_128  | 54546 |
+| ecmul_0_0_5617_21000_96  | 54546 |
+| ecmul_0_0_5617_28000_96  | 54546 |
+| ecmul_0_0_5616_28000_96  | 54546 |
+| ecmul_0_0_9935_21000_128  | 54546 |
+| ecmul_0_0_9935_28000_128  | 54546 |
+| ecmul_0_0_9935_21000_96  | 54546 |
+| ecmul_0_0_9935_28000_96  | 54546 |
+| ecmul_0_0_9_21000_128  | 54546 |
+| ecmul_0_0_9_28000_128  | 54546 |
+| ecmul_0_0_9_21000_96  | 54546 |
+| ecmul_0_0_9_28000_96  | 54546 |
+| ecmul_1_2_0_21000_128  | 54996 |
+| ecmul_1_2_0_21000_64  | 54996 |
+| ecmul_1_2_0_21000_80  | 54996 |
+| ecmul_1_2_0_28000_128  | 54996 |
+| ecmul_1_2_0_28000_80  | 54996 |
+| ecmul_1_2_1_21000_128  | 55008 |
+| ecmul_1_2_1_21000_96  | 55008 |
+| ecmul_1_2_0_28000_64  | 54996 |
+| ecmul_1_2_0_28000_96  | 54996 |
+| ecmul_1_2_1_28000_128  | 55008 |
+| ecmul_1_2_1_28000_96  | 55008 |
+| ecmul_1_2_0_21000_96  | 54996 |
+| ecmul_1_2_2_21000_128  | 93108 |
+| ecmul_1_2_2_28000_128  | 93108 |
+| ecmul_1_2_2_21000_96  | 93108 |
+| ecmul_1_2_2_28000_96  | 93108 |
+| ecmul_1_2_340282366920938463463374607431768211456_21000_96  | 239382 |
+| ecmul_1_2_340282366920938463463374607431768211456_28000_128  | 239382 |
+| ecmul_1_2_340282366920938463463374607431768211456_21000_80  | 239382 |
+| ecmul_1_2_340282366920938463463374607431768211456_28000_80  | 239382 |
+| ecmul_1_2_340282366920938463463374607431768211456_28000_96  | 239382 |
+| ecmul_1_2_5616_21000_128  | 527424 |
+| ecmul_1_2_5616_21000_96  | 527424 |
+| ecmul_1_2_340282366920938463463374607431768211456_21000_128  | 239382 |
+| ecmul_1_2_5616_28000_128  | 527424 |
+| ecmul_1_2_5617_21000_96  | 493410 |
+| ecmul_1_2_5617_28000_96  | 493410 |
+| ecmul_1_2_5617_21000_128  | 493410 |
+| ecmul_1_2_616_28000_96  | 527424 |
+| ecmul_1_2_5617_28000_128  | 493410 |
+| ecmul_1_2_9935_21000_128  | 753546 |
+| ecmul_1_2_9935_21000_96  | 753546 |
+| ecmul_1_2_9_21000_128  | 96390 |
+| ecmul_1_2_9935_28000_128  | 753546 |
+| ecmul_1_2_9935_28000_96  | 753546 |
+| ecmul_1_2_9_21000_96  | 96390 |
+| ecmul_1_2_9_28000_128  | 96390 |
+| ecmul_1_2_9_28000_96  | 96390 |
+| ecmul_7827_6598_0_21000_128  | 54996 |
+| ecmul_7827_6598_0_28000_64  | 54996 |
+| ecmul_7827_6598_0_21000_64  | 54996 |
+| ecmul_7827_6598_0_28000_128  | 54996 |
+| ecmul_7827_6598_0_21000_96  | 54996 |
+| ecmul_7827_6598_0_21000_80  | 54996 |
+| ecmul_7827_6598_0_28000_96  | 54996 |
+| ecmul_7827_6598_1456_28000_128  | 239340 |
+| ecmul_7827_6598_1456_21000_80  | 239340 |
+| ecmul_7827_6598_1456_21000_96  | 239340 |
+| ecmul_7827_6598_0_28000_80  | 54996 |
+| ecmul_7827_6598_1456_21000_128  | 239340 |
+| ecmul_7827_6598_1456_28000_80  | 239340 |
+| ecmul_7827_6598_1456_28000_96  | 239340 |
+| ecmul_7827_6598_1_21000_128  | 55008 |
+| ecmul_7827_6598_1_28000_128  | 55008 |
+| ecmul_7827_6598_1_21000_96  | 55008 |
+| ecmul_7827_6598_1_28000_96  | 55008 |
+| ecmul_7827_6598_2_21000_128  | 90840 |
+| ecmul_7827_6598_2_21000_96  | 90840 |
+| ecmul_7827_6598_5616_21000_128  | 526626 |
+| ecmul_7827_6598_2_28000_128  | 90840 |
+| ecmul_7827_6598_2_28000_96  | 90840 |
+| ecmul_7827_6598_5616_21000_96  | 526626 |
+| ecmul_7827_6598_5616_28000_128  | 526626 |
+| ecmul_7827_6598_5616_28000_96  | 526626 |
+| ecmul_7827_6598_5617_28000_128  | 493410 |
+| ecmul_7827_6598_5617_21000_128  | 493410 |
+| ecmul_7827_6598_5617_21000_96  | 493410 |
+| ecmul_7827_6598_5617_28000_96  | 493410 |
+| ecmul_7827_6598_9935_21000_128  | 754734 |
+| ecmul_7827_6598_9935_21000_96  | 754734 |
+| ecmul_7827_6598_9935_28000_96  | 754734 |
+| ecmul_7827_6598_9935_28000_128  | 754734 |
+| ecmul_7827_6598_9_21000_96  | 96822 |
+| ecmul_7827_6598_9_21000_128  | 96822 |
+| ecmul_7827_6598_9_28000_128  | 96822 |
+| ecmul_7827_6598_9_28000_96  | 96822 |
 
 <aside>
 💡 *The second version of the optimization includes the usage of projective coordinates
@@ -60,36 +184,25 @@ The test cases are a subset of Ethereum’s [General State Tests](https://github
 
 The test cases are a subset of Ethereum’s [General State Tests](https://github.com/ethereum/tests/tree/develop/GeneralStateTests)
 
-| Test Case | Operation | L1 | Unomptimized L2 |
-| --- | --- | --- | --- |
-| ecpairing_one_point_not_in_subgroup |  | 260000 |  |
-| ecpairing_one_point_insufficient_gas |  | 260000 | 3814424 |
-| ecpairing_bad_length_191 |  | all | all |
-| ecpairing_empty_data |  | 100000 | 31 |
-| ecpairing_one_point_with_g1_zero |  | 260000 | 586 |
-| ecpairing_bad_length_193 |  | all | all |
-| ecpairing_empty_data_insufficient_gas |  | 100000 | 31 |
-| ecpairing_one_point_fail |  | 260000 | 3814424 |
-| ecpairing_perturb_g2_by_one |  | 260000 | all |
-| ecpairing_one_point_with_g2_zero |  | 260000 | 1726 |
-| ecpairing_one_point_with_g2_zero_and_g1_invalid |  | all | all |
-| ecpairing_perturb_g2_by_curve_order |  | 260000 | all |
-| ecpairing_perturb_g2_by_field_modulus_again |  | 260000 | all |
-| ecpairing_perturb_g2_by_field_modulus |  | 260000 | all |
-| ecpairing_perturb_zeropoint_by_curve_order |  | all | all |
-| ecpairing_three_point_fail_1 |  | 580000 | 11439640 |
-| ecpairing_two_point_fail_1 |  | 420000 | 7628628 |
-| ecpairing_three_point_match_1 |  | 580000 | 7626942 |
-| ecpairing_perturb_zeropoint_by_one |  | all | all |
-| ecpairing_two_point_fail_2 |  | 420000 | 7625634 |
-| ecpairing_perturb_zeropoint_by_field_modulus |  | all | all |
-| ecpairing_two_point_match_1 |  | 420000 | 7628760 |
-| ecpairing_two_point_match_2 |  | 420000 | 7628760 |
-| ecpairing_two_point_match_3 |  | 420000 | 7626984 |
-| ecpairing_two_point_match_4 |  | 420000 | 7625568 |
-| ecpairing_two_point_match_5 |  | 420000 | 1960 |
-| ecpairing_two_point_oog |  | 420000 | 7628760 |
-| ecpairing_two_points_with_one_g2_zero |  | 420000 | 3815798 |
+| Test case | Gas used |
+| --------- | -------- |
+| ecpairing_one_point_fail  | 6675152 |
+| ecpairing_empty_data_insufficient_gas  | 71566 |
+| ecpairing_one_point_with_g1_zero  | 1559074 |
+| ecpairing_empty_data  | 71566 |
+| ecpairing_one_point_insufficient_gas  | 6675152 |
+| ecpairing_one_point_with_g2_zero  | 72880 |
+| ecpairing_three_point_match_1  | 13277910 |
+| ecpairing_three_point_fail_1  | 19880182 |
+| ecpairing_two_point_match_3  | 13277166 |
+| ecpairing_two_point_fail_2  | 13277832 |
+| ecpairing_two_point_fail_1  | 13278594 |
+| ecpairing_two_point_match_1  | 13278732 |
+| ecpairing_two_point_match_2  | 13278732 |
+| ecpairing_two_points_with_one_g2_zero  | 6676184 |
+| ecpairing_two_point_match_4  | 13276878 |
+| ecpairing_two_point_oog  | 13278732 |
+| ecpairing_two_point_match_5  | 1560106 |
 
 ## modexp
 
@@ -99,113 +212,158 @@ The test cases are a subset of Ethereum’s [General State Tests](https://github
 
 The L1 gas cost is calculated using the function provided in the [EIP-198](https://eips.ethereum.org/EIPS/eip-198).
 
-| Test Case | Lengths | Operation | L1 | Unoptimized L2 |
-| --- | --- | --- | --- | --- |
-| modexp_0 | length_of_BASE = 1
-length_of_EXPONENT = 32
-length_of_MODULUS = 32 | 3 ** 115792089237316195423570985008687907853269984665640564039457584007908834671662 % 115792089237316195423570985008687907853269984665640564039457584007908834671663 | 13056 | 169866 |
-| modexp_1 | length_of_BASE = 0
-length_of_EXPONENT = 32
-length_of_MODULUS = 32 | 0 ** 115792089237316195423570985008687907853269984665640564039457584007908834671662 % 115792089237316195423570985008687907853269984665640564039457584007908834671663 | 13056 | 218 |
-| modexp_3 | length_of_BASE = 1
-length_of_EXPONENT = 32
-length_of_MODULUS = 32 | 3 ** 65535 % 57896044618658097711785492504343953926634992332820282019728792003956564819968 | 768 | 10741 |
-| modexp_4 | length_of_BASE = 1
-length_of_EXPONENT = 32
-length_of_MODULUS = 32 | 3 ** 65535 % 57896044618658097711785492504343953926634992332820282019728792003956564819968 | 768 | 10741 |
-| modexp_5 | length_of_BASE = 1
-length_of_EXPONENT = 32
-length_of_MODULUS = 32 | 3 ** 0 % 0 | 51 | 275 |
-| modexp_6 | length_of_BASE = 1
-length_of_EXPONENT = 0
-length_of_MODULUS = 32 | 3 ** 0 % 57896044618658097711785492504343953926634992332820282019728792003956564819968 | 52 | 140 |
-| modexp_7 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 0 ** 0 % 57896044618658097711785492504343953926634992332820282019728792003956564819968 | 52 | 348 |
-| modexp_8 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 0 ** 0 % 0 | 51 | 275 |
-| modexp_9 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 0 | 1 ** 1 % 0 | 0 | 200 |
-| modexp_10 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 0 ** 3 % 4 | 0 | 355 |
-| modexp_11 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 2 ** 0 % 4 | 0 | 373 |
-| modexp_12 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 2 ** 3 % 0 | 0 | 300 |
-| modexp_13 | length_of_BASE = 0
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 0 ** 3 % 4 | 0 | 268 |
-| modexp_14 | length_of_BASE = 1
-length_of_EXPONENT = 0
-length_of_MODULUS = 1 | 2 ** 0 % 4 | 0 | 165 |
-| modexp_15 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 0 | 2 ** 3 % 0 | 0 | 213 |
-| modexp_16 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 2 ** 3 % 6 | 51 | 854 |
-| modexp_17 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 2 ** 3 % 6 | 0 | 854 |
-| modexp_18 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 2 ** 3 % 0 | 51 | 300 |
-| modexp_19 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 2 ** 3 % 0 | 51 | 300 |
-| modexp_20 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 32 | 2 ** 3 % 0 | 51 | 300 |
-| modexp_21 | length_of_BASE = 1
-length_of_EXPONENT = 2
-length_of_MODULUS = 32 | 2 ** 12291 % 0 | 664 | 300 |
-| modexp_22 | length_of_BASE = 1
-length_of_EXPONENT = 2
-length_of_MODULUS = 32 | 2 ** 12288 % 0 | 665 | 300 |
-| modexp_23 | length_of_BASE = 1
-length_of_EXPONENT = 2
-length_of_MODULUS = 2 | 2 ** 0 % 0 | 0 | 300 |
-| modexp_24 | length_of_BASE = 1
-length_of_EXPONENT = 2
-length_of_MODULUS = 2 | 0 ** 0 % 0 | 0 | 300 |
-| modexp_25 | length_of_BASE = 3
-length_of_EXPONENT = 2
-length_of_MODULUS = 1 | 4097 ** 256 % 2 | 3 | 1346 |
-| modexp_26 | length_of_BASE = 1
-length_of_EXPONENT = 1
-length_of_MODULUS = 1 | 0 ** 0 % 64 | 0 | 373 |
-| modexp_27 | length_of_BASE = 1
-length_of_EXPONENT = 257
-length_of_MODULUS = 2 | 2 ** 3 % 6 | 360 | 2620 |
-| modexp_29 | length_of_BASE = 0
-length_of_EXPONENT = 0
-length_of_MODULUS =  | 0 ** 0 % 0 |  | 108 |
-| modexp_30 | length_of_BASE = 0
-length_of_EXPONENT = 64
-length_of_MODULUS = 0 | 0 ** 0 % 0 | 0 | 126 |
-| modexp_31 | length_of_BASE = 33
-length_of_EXPONENT = 16
-length_of_MODULUS = 16 | 390298093899999943928098409885853890809480289080848908498808490890809858888590 ** 328010176336108753607932954472681594880 % 328083392909999939299399093209090192209 | 6915 | 10930 |
-| modexp_32 | length_of_BASE = 5
-length_of_EXPONENT = 12
-length_of_MODULUS = 12 | 932908908098 ** 9999988732868956521427275408 % 9999989403808488488858939083 | 82 | 8432 |
-| modexp_33 | length_of_BASE = 6
-length_of_EXPONENT = 6
-length_of_MODULUS = 6 | 9098908831021 ** 75950175031200 % 98390809882211 |  | 8648 |
-| modexp_34 | length_of_BASE = 5
-length_of_EXPONENT = 13
-length_of_MODULUS = 13 | 9987654321 ** 98765432198765432198765432110 % 98765432198765432198765432111 | 811 | 8648 |
-| modexp_35 | length_of_BASE = 16
-length_of_EXPONENT = 18
-length_of_MODULUS = 18 | 9999803280800994289908318818890988333 ** 90789237521978178359484890498490858842220 % 90789237521978178359484890498490858842221 | 2203 | 70904 |
-| modexpRandomInput_0 | length_of_BASE = 227
-length_of_EXPONENT = 0
-length_of_MODULUS = 0 | 0 ** 0 % 0 | 1580 | 108 |
+| Test case | Gas used |
+| --------- | -------- |
+| modexp_one_limb_0_1_0  | 43707 |
+| modexp_one_limb_1_1_0  | 43719 |
+| modexp_one_limb_0_0_1  | 43707 |
+| modexp_one_limb_1_1_1  | 43719 |
+| modexp_one_limb_1_0_1  | 43719 |
+| modexp_one_limb_0_1_1  | 43707 |
+| modexp_one_limb_0_0_0  | 43707 |
+| modexp_one_limb_1_0_0  | 43719 |
+| modexp_one_limb_2_2_1  | 43719 |
+| modexp_one_limb_2_2_2  | 44187 |
+| modexp_one_limb_1_2_1  | 43719 |
+| modexp_10  | 44504 |
+| modexp_0  | 60581302 |
+| modexp_12  | 44105 |
+| modexp_14  | 44342 |
+| modexp_15  | 43656 |
+| modexp_16  | 573657 |
+| modexp_11  | 44415 |
+| modexp_1  | 44218 |
+| modexp_13  | 44316 |
+| modexp_18  | 44166 |
+| modexp_19  | 44166 |
+| modexp_17  | 573596 |
+| modexp_23  | 44166 |
+| modexp_20  | 44166 |
+| modexp_21  | 44166 |
+| modexp_22  | 44166 |
+| modexp_25  | 1186170 |
+| modexp_24  | 44093 |
+| modexp_28  | 43583 |
+| modexp_26  | 44415 |
+| modexp_27  | 3806949 |
+| modexp_3  | 2263287 |
+| modexp_29  | 43403 |
+| modexp_30  | 43403 |
+| modexp_32  | 10801229 |
+| modexp_33  | 6076467 |
+| modexp_34  | 10859461 |
+| modexp_31  | 19715945 |
+| modexp_7  | 44402 |
+| modexp_35  | 33306107 |
+| modexp_4  | 2263287 |
+| modexp_36  | 43583 |
+| modexp_5  | 44116 |
+| modexp_6  | 44329 |
+| modexp_9  | 43656 |
+| modexp_8  | 44116 |
+| modexp_edge_cases_1  | 43385 |
+| modexp_random_input_0  | 43656 |
+| modexp_random_input_1  | 43656 |
+| modexp_edge_cases_5  | 3722021 |
+| modexp_edge_cases_2  | 46201 |
+| modexp_edge_cases_4  | 44105 |
+| modexp_edge_cases_3  | 46128 |
+| modexp_tests_0  | 43403 |
+| modexp_tests_10  | 91673 |
+| modexp_tests_1  | 44032 |
+| modexp_tests_103  | 44093 |
+| modexp_tests_102  | 44032 |
+| modexp_tests_104  | 43583 |
+| modexp_tests_101  | 43583 |
+| modexp_tests_106  | 44093 |
+| modexp_tests_105  | 44032 |
+| modexp_tests_109  | 44093 |
+| modexp_tests_108  | 44032 |
+| modexp_tests_107  | 43583 |
+| modexp_tests_111  | 44032 |
+| modexp_tests_11  | 12919255 |
+| modexp_tests_110  | 43583 |
+| modexp_tests_112  | 44093 |
+| modexp_tests_115  | 183329 |
+| modexp_tests_114  | 531464 |
+| modexp_tests_116  | 496939 |
+| modexp_tests_118  | 70844 |
+| modexp_tests_117  | 496939 |
+| modexp_tests_119  | 311436 |
+| modexp_tests_122  | 496939 |
+| modexp_tests_113  | 45008 |
+| modexp_tests_120  | 43583 |
+| modexp_tests_121  | 44032 |
+| modexp_tests_123  | 44947 |
+| modexp_tests_126  | 568856 |
+| modexp_tests_125  | 719294 |
+| modexp_tests_124  | 44947 |
+| modexp_tests_17  | 43403 |
+| modexp_tests_18  | 44032 |
+| modexp_tests_23  | 44043 |
+| modexp_tests_2  | 44093 |
+| modexp_tests_22  | 44093 |
+| modexp_tests_19  | 44093 |
+| modexp_tests_20  | 44093 |
+| modexp_tests_21  | 44093 |
+| modexp_tests_24  | 44346 |
+| modexp_tests_25  | 45008 |
+| modexp_tests_27  | 91673 |
+| modexp_tests_3  | 44093 |
+| modexp_tests_26  | 44940 |
+| modexp_tests_34  | 43403 |
+| modexp_tests_35  | 44032 |
+| modexp_tests_28  | 12919255 |
+| modexp_tests_40  | 44093 |
+| modexp_tests_37  | 44093 |
+| modexp_tests_42  | 44346 |
+| modexp_tests_41  | 44043 |
+| modexp_tests_4  | 44093 |
+| modexp_tests_38  | 44093 |
+| modexp_tests_39  | 44093 |
+| modexp_tests_36  | 44093 |
+| modexp_tests_44  | 44940 |
+| modexp_tests_43  | 45008 |
+| modexp_tests_45  | 91673 |
+| modexp_tests_5  | 44093 |
+| modexp_tests_46  | 12919255 |
+| modexp_tests_56  | 44043 |
+| modexp_tests_52  | 44093 |
+| modexp_tests_53  | 44093 |
+| modexp_tests_54  | 44093 |
+| modexp_tests_58  | 45008 |
+| modexp_tests_60  | 91673 |
+| modexp_tests_6  | 44043 |
+| modexp_tests_59  | 44940 |
+| modexp_tests_57  | 44346 |
+| modexp_tests_68  | 44032 |
+| modexp_tests_67  | 43583 |
+| modexp_tests_7  | 44346 |
+| modexp_tests_69  | 44093 |
+| modexp_tests_61  | 12919255 |
+| modexp_tests_70  | 44093 |
+| modexp_tests_76  | 44940 |
+| modexp_tests_74  | 44346 |
+| modexp_tests_75  | 45008 |
+| modexp_tests_73  | 44043 |
+| modexp_tests_77  | 91673 |
+| modexp_tests_72  | 44093 |
+| modexp_tests_8  | 45008 |
+| modexp_tests_71  | 44093 |
+| modexp_tests_85  | 44032 |
+| modexp_tests_84  | 43583 |
+| modexp_tests_86  | 44093 |
+| modexp_tests_78  | 12919255 |
+| modexp_tests_88  | 44093 |
+| modexp_tests_91  | 44346 |
+| modexp_tests_89  | 44093 |
+| modexp_tests_87  | 44093 |
+| modexp_tests_9  | 44940 |
+| modexp_tests_90  | 44043 |
+| modexp_tests_92  | 45008 |
+| modexp_tests_93  | 44940 |
+| modexp_tests_94  | 91673 |
+| modexp_tests_95  | 12919255 |
 
 ## P256VERIFY
 
