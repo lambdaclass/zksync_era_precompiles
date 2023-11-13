@@ -76,18 +76,8 @@ jobs:
 
       - name: Setup project
         run: make setup
-      - name: Build test node
-        run: make build-test-node
-
-      # - name: Wait for era test node to build
-      #   run: |
-      #     PORT=8011
-      #     nc -l -p $PORT &
-      #     NC_PID=$!
-      #     timeout 600 tail -f /dev/null
-      #     kill $NC_PID
-      #     echo "Timeout: Test node did not start ..."
-
+      - name: Build and run test node
+        run: make build-test-node run
 
       - name: Run tests
         working-directory: tests
