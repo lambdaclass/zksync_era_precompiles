@@ -2,8 +2,8 @@
 
 DISCLAIMER: This implementation is still being developed and has not been reviewed or audited. Use at your own risk.
 
-This is a precompile library implemented in Yul to speedup arithmetic operations of elliptic curves.
-In the next weeks we will add more optimizations and benchmarks.
+This is a precompile library implemented in Yul to speed up arithmetic operations of elliptic curves.
+In the next weeks, we will add more optimizations and benchmarks.
 
 # Current Status
 
@@ -11,10 +11,10 @@ In the next weeks we will add more optimizations and benchmarks.
 | --- | --- | --- | --- | --- | --- |
 | ecAdd | ✅ | ✅ | Montgomery SOS Squaring | ✅ | - |
 | ecMul | ✅ | ✅ | Montgomery SOS Squaring + Mul GLV | ✅ | - |
-| ecPairing | ✅ | ✅ | - | 🏗️ | G2 subgroup check is missing because of performance limitations |
-| modexp | ✅ | 🏗️ | Montgomery Multiprecision Arithmetic | 🏗️ | Polishing the last details |
-| P256VERIFY | ✅ | ❌ | Shamir’s trick | ❌ | Shamir’s trick could reduce at least the cost of 1 ecMul execution |
-| secp256k1VERIFY | ✅ | ❌ | Shamir’s trick | ❌ | Shamir’s trick could reduce at least the cost of 1 ecMul execution |
+| ecPairing | ✅ | ✅ | - | 🏗️ | - |
+| modexp | ✅ | ✅ | - | 🏗️ | - |
+| P256VERIFY | ✅ | ✅ | Montgomery SOS Squaring | ✅ | - |
+| secp256k1VERIFY | ✅ | ✅ | Montgomery SOS Squaring | ✅ | - |
 
 ## Summary
 
@@ -33,8 +33,8 @@ In the next weeks we will add more optimizations and benchmarks.
     - **Optimizing Accumulated Value:** We are currently naively multiplying two fp12 elements, which contain many zeros. Modifying this calculation could enhance efficiency. *This is in WIP.*
 
     **Future Investigations:**  We need to investigate the reliability of additional optimizations, such as the application of the GLV method for multiplication of rational points of elliptic curves.
-- `P256VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
-- `secp256k1VERIFY` is already working with Shamir’s trick optimization. *This precompile has not been audited yet.*
+- `P256VERIFY` is already working and optimized with Shamir’s trick. *This precompile has been audited a first time and it is currently being audited a second time (after the fixes).*
+- `secp256k1VERIFY` is already working and optimized with Shamir’s trick. *This precompile has been audited a first time and it is currently being audited a second time (after the fixes).*
 
 ## [Gas Consumption](./docs/src/gas_consumption.md)
 
