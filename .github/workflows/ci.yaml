@@ -69,7 +69,17 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Era Test Node
-        uses: dutterbutter/era-test-node-action@latest
+        run: |
+          make run &
+      - name: Wait for era test node to build
+        run: |
+          PORT=8011
+          nc -l -p $PORT &
+          NC_PID=$!
+          timeout 600 tail -f /dev/null
+          kill $NC_PID
+          echo "Timeout: Test node did not start ..."
+
 
       - name: Run tests
         working-directory: tests
