@@ -15,3 +15,6 @@
     - [Specification](modexp/spec.md)
     - [API Docs](modexp/api.md)
     - [Optimizations](modexp/optimizations.md)
+- [P256Verify]()
+    - [Specification](p256verify/spec.md)
+    - [Report](p256verify/report.md)
