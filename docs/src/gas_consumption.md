@@ -209,28 +209,28 @@ length_of_MODULUS = 0 | 0 ** 0 % 0 | 1580 | 108 |
 
 ## P256VERIFY
 
-| Testcase | Unoptimized | Optimized |
-| --- | --- | --- |
-| p256verify_valid_signature_one | 2742770 | 1637022 |
-| p256verify_valid_signature_two | 2729984 | 1627242 |
-| p256verify_invalid_signature | 2681270 | 1620960 |
-| p256verify_invalid_r | all | all |
-| p256verify_invalid_s | all | all |
-| p256verify_public_key_inf | all | all |
-| p256verify_public_key_x_not_in_field | all | all |
-| p256verify_public_key_y_not_in_field | all | all |
-| p256verify_public_key_not_in_curve | all | all |
+| Testcase | Unoptimized | Optimized | Compiled with Os |
+| --- | --- | --- | --- |
+| p256verify_valid_signature_one | 2742770 | 1686801 | 1686801 |
+| p256verify_valid_signature_two | 2729984 | 1684749 | 1684749 |
+| p256verify_invalid_signature | 2681270 | 1677819 | 1677819 |
+| p256verify_invalid_r | all | all | all |
+| p256verify_invalid_s | all | all | all |
+| p256verify_public_key_inf | all | all | all |
+| p256verify_public_key_x_not_in_field | all | all | all |
+| p256verify_public_key_y_not_in_field | all | all | all |
+| p256verify_public_key_not_in_curve | all | all | all |
 
 ## secp256k1VERIFY
 
-| Testcase | Unoptimized | Optimized |
-| --- | --- | --- |
-| secp256k1verify_valid_signature_one | 2430944 | 1478760 |
-| secp256k1verify_valid_signature_two | 2465108 | 1502460 |
-| secp256k1verify_invalid_signature | 2456774 | 1499934 |
-| secp256k1verify_invalid_r | all | all |
-| secp256k1verify_invalid_s | all | all |
-| secp256k1verify_public_key_inf | all | all |
-| secp256k1verify_public_key_x_not_in_field | all | all |
-| secp256k1verify_public_key_y_not_in_field | all | all |
-| secp256k1verify_public_key_not_in_curve | all | all |
+| Testcase | Unoptimized | Optimized | Compiled with Os |
+| --- | --- | --- | --- |
+| secp256k1verify_valid_signature_one | 2430944 | 1552429 | 1552429 |
+| secp256k1verify_valid_signature_two | 2465108 | 1575361 | 1575361 |
+| secp256k1verify_invalid_signature | 2456774 | 1574803 | 1574803 |
+| secp256k1verify_invalid_r | all | all | all |
+| secp256k1verify_invalid_s | all | all | all |
+| secp256k1verify_public_key_inf | all | all | all |
+| secp256k1verify_public_key_x_not_in_field | all | all | all |
+| secp256k1verify_public_key_y_not_in_field | all | all | all |
+| secp256k1verify_public_key_not_in_curve | all | all | all |
