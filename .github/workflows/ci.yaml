@@ -71,10 +71,10 @@ jobs:
       - name: Setup rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
-      - name: Run Era Test Node
-        run: |
-          make setup
-          make run 
+      - name: Setup project
+        run: make setup
+      - name: Build test node
+        run: build-test-node
 
       # - name: Wait for era test node to build
       #   run: |
