@@ -68,6 +68,9 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v3
 
+      - name: Setup rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+
       - name: Run Era Test Node
         run: |
           make setup
