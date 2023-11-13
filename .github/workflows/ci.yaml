@@ -74,7 +74,7 @@ jobs:
       - name: Setup project
         run: make setup
       - name: Build test node
-        run: build-test-node
+        run: make build-test-node
 
       # - name: Wait for era test node to build
       #   run: |
