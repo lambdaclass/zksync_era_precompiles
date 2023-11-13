@@ -69,5 +69,4 @@ jobs:
         uses: dutterbutter/era-test-node-action@latest
 
       - name: Run tests
-        working-directory: tests
-        run: cargo test
+        run: ls && cargo test
