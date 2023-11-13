@@ -71,6 +71,9 @@ jobs:
       - name: Setup rust nightly
         uses: dtolnay/rust-toolchain@nightly
 
+      - name: Setup rust cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Setup project
         run: make setup
       - name: Build test node
