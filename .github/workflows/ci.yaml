@@ -65,9 +65,12 @@ jobs:
     name: "Run tests for precompiles"
     runs-on: ubuntu-latest
     steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+
       - name: Run Era Test Node
         uses: dutterbutter/era-test-node-action@latest
 
       - name: Run tests
-        working-directory: ./zksync_era_precompiles/tests
+        working-directory: tests
         run: cargo test
