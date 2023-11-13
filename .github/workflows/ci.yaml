@@ -61,3 +61,13 @@ jobs:
 
       - name: "Build precompiles"
         run: make build-precompiles
+  test-precompiles:
+    name: "Run tests for precompiles"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Era Test Node
+        uses: dutterbutter/era-test-node-action@latest
+
+      - name: Run tests
+        working-directory: ./tests
+        run: cargo test
