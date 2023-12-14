@@ -15,6 +15,7 @@ fn main() {
         "p256verify".to_string(),
         "secp256k1verify".to_string(),
         "verifier".to_string(),
+        "p256verify_benches_report".to_string(),
     ];
     precompiles_report_list
         .into_iter()

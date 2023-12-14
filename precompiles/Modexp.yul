@@ -760,6 +760,10 @@ object "ModExp" {
             let limbsExpLen, misalignment := bigIntLimbs(expLen)
             let limbsModLen, misalignment := bigIntLimbs(modLen)
 
+            if and(and(eq(limbsBaseLen, 1), eq(limbsExpLen, 1)), eq(limbsModLen, 1)) {
+                oneLimbImplementation()
+            }
+
             let ptrBaseLimbs
             parseCalldata(basePtr, baseLen, ptrBaseLimbs)
 
