@@ -30,7 +30,7 @@ build-node: copy-precompiles
 setup-node: download-node build-node
 
 update-node:
-	cd era-test-node && git pull && make rust-build
+	cd submodules/era-test-node && git pull && make rust-build
 
 run-node:
 	./submodules/era-test-node/target/release/era_test_node --show-calls=all --resolve-hashes --show-gas-details=all run
