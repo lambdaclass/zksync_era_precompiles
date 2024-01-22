@@ -63,19 +63,24 @@ Follow the instructions below to setup the repo and run a development L2 node.
 ### Setup the repo
 
 ```
-make setup
+make install
 ```
 
-### Update the submodules (if needed)
+### Running an era-test-node
+
+Once built, run one of the following commands to have a working test node.
 
 ```
-make update
+make run-node
+make run-node-light # no call trace, no hash resolving, and no gas details
 ```
 
-### Run a development L2 node
+### Must run after every change in a precompile
+
+Our precompiles are located in `precompiles/` but as they are there, they're no being tracked by our `era-test-node` clone. We need to always copy our precompiles into the `era-test-node` repo for it to be able to track and compile them for later testing.
 
 ```
-make run
+make build-node
 ```
 
 ### Run the tests
