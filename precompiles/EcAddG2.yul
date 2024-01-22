@@ -4,6 +4,22 @@ object "EcAddG2" {
         code {
             // CONSTANTS
 
+            /// @notice Constant function for value one in Montgomery form.
+            /// @dev This value was precomputed using Python.
+            /// @return m_one The value one in Montgomery form.
+            function MONTGOMERY_ONE() -> m_one {
+                m_one := 6350874878119819312338956282401532409788428879151445726012394534686998597021
+            }
+
+            /// @notice Constant function for the pre-computation of R^2 % N for the Montgomery REDC algorithm.
+            /// @dev R^2 is the Montgomery residue of the value 2^512.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value R^2 modulus the curve group order.
+            function R2_MOD_P() -> ret {
+                ret := 3096616502983703923843567936837374451735540968419076528771170197431451843209
+            }
+
             /// @notice Constant function for the alt_bn128 group order.
             /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
             /// @return ret The alt_bn128 group order.
@@ -19,17 +35,6 @@ object "EcAddG2" {
             function MONTGOMERY_TWISTED_CURVE_COEFFS() -> z0, z1 {
                 z0 := 16772280239760917788496391897731603718812008455956943122563801666366297604776
                 z1 := 568440292453150825972223760836185707764922522371208948902804025364325400423
-            }
-
-            /// @notice Constant function for the zero element in the twisted cuve on affine representation.
-            /// @return z00, z01, z10, z11, z20, z21 The values of infinity point on affine representation.
-            function G2_INFINITY() -> z00, z01, z02, z10, z11, z12 {
-                z00 := 0
-                z01 := 0
-                z02 := 0
-                z10 := 0
-                z11 := 0
-                z12 := 0
             }
 
             // HELPER FUNCTIONS
@@ -271,6 +276,69 @@ object "EcAddG2" {
                 c20, c21 := fp2Mul(t28, t29, h0, h1)
             }
 
+            // FP2 ARITHMETHICS
+
+            /// @notice Computes the sum of two Fp2 elements.
+            /// @dev Algorithm 5 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the A element to sum.
+            /// @param b00, b01 The coefficients of the B element to sum.
+            /// @return c00, c01 The coefficients of the element C = A + B.
+            function fp2Add(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomeryAdd(a00, b00)
+                c01 := montgomeryAdd(a01, b01)
+            }
+
+            /// @notice Computes the subtraction of two Fp2 elements.
+            /// @dev Algorithm 6 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the minuend A.
+            /// @param b00, b01 The coefficients of the subtrahend B.
+            /// @return c00, c01 The coefficients of the element C = A - B.
+            function fp2Sub(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomerySub(a00, b00)
+                c01 := montgomerySub(a01, b01)
+            }
+
+            /// @notice Computes the multiplication between a Fp2 element a Fp element.
+            /// @dev Algorithm 7 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @param scalar The value of the Fp element k.
+            /// @return c00, c01 The coefficients of the element C = k * A.
+            function fp2ScalarMul(a00, a01, scalar) -> c00, c01 {
+                c00 := montgomeryMul(a00, scalar)
+                c01 := montgomeryMul(a01, scalar)
+            }
+
+            /// @notice Computes the multiplication between two Fp2 elements.
+            /// @dev Algorithm 7 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @param a00, a01 The coefficients of the Fp2 element B.
+            /// @return c00, c01 The coefficients of the element C = A * B.
+            function fp2Mul(a00, a01, b00, b01) -> c00, c01 {
+                c00 := montgomerySub(montgomeryMul(a00, b00), montgomeryMul(a01, b01))
+                c01 := montgomeryAdd(montgomeryMul(a00, b01), montgomeryMul(a01, b00))
+            }
+
+            /// @notice Computes the negative of a Fp2 elements.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = -A.
+            function fp2Neg(a00, a01) -> c00, c01 {
+                c00, c01 := fp2Sub(0, 0, a00, a01)
+            }
+
+            /// @notice Computes the inverse of a Fp2 element.
+            /// @dev Algorithm 8 in: https://eprint.iacr.org/2010/354.pdf.
+            /// @param a00, a01 The coefficients of the Fp2 element A.
+            /// @return c00, c01 The coefficients of the element C = A^(-1).
+            function fp2Inv(a00, a01) -> c00, c01 {
+                let t0 := montgomeryMul(a00, a00)
+                let t1 := montgomeryMul(a01, a01)
+                t0 := montgomeryAdd(t0, t1)
+                t1 := montgomeryModularInverse(t0)
+
+                c00 := montgomeryMul(a00, t1)
+                c01 := montgomerySub(0, montgomeryMul(a01, t1))
+            }
+
             ////////////////////////////////////////////////////////////////
             //                      FALLBACK
             ////////////////////////////////////////////////////////////////
@@ -340,13 +408,10 @@ object "EcAddG2" {
                 let a_y0_mont := intoMontgomeryForm(a_y0)
                 let a_y1_mont := intoMontgomeryForm(a_y1)
 
-                // Ensure that the point is in the curve (Y^2 = X^3 + 3).
+                // Ensure that the point is in the curve.
                 if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
                     burnGas()
                 }
-
-                // We just need to go into the Montgomery form to perform the
-                // computations in pointIsInCurve, but we do not need to come back.
 
                 mstore(0, a_x0)
                 mstore(32, a_x1)
@@ -375,9 +440,14 @@ object "EcAddG2" {
             let b_y0_mont := intoMontgomeryForm(b_y0)
             let b_y1_mont := intoMontgomeryForm(b_y1)
 
+            let c00, c01, c10, c11, c20, c21 := g2JacobianAdd(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0, b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont, MONTGOMERY_ONE(), 0)
 
-
-            return(0, 64)
+            
+            mstore(0, c00)
+            mstore(32, c01)
+            mstore(64, c10)
+            mstore(96, c11)
+            return(0, 128)
         }
     }
 }
