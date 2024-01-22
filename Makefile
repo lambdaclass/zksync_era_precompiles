@@ -7,16 +7,10 @@ install: setup-node
 	cd submodules/era-test-node && \
 	make build-contracts
 
-run: build-precompiles
-	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes --show-gas-details=all run
-
 # Precompiles commands
 
 copy-precompiles:
 	cp precompiles/*.yul submodules/era-test-node/etc/system-contracts/contracts/precompiles/
-
-build-precompiles: copy-precompiles
-	cd submodules/era-test-node && make build-precompiles
 
 # Node Commands
 
@@ -24,7 +18,7 @@ download-node:
 	cd submodules && \
 	[ -d "./era-test-node" ] || git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
 
-build-node: copy-precompiles
+build-node:
 	cd submodules/era-test-node && make rust-build && make build-contracts
 
 setup-node: download-node build-node
