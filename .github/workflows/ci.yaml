@@ -53,8 +53,5 @@ jobs:
       - name: "Build precompiles"
         uses: actions/checkout@v3
 
-      - name: "Clone era-test-node"
-        run: make download-node
-
       - name: "Build precompiles"
-        run: make build-precompiles
+        run: make download-node && make build-precompiles
