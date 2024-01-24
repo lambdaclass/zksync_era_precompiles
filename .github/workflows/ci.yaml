@@ -57,4 +57,4 @@ jobs:
           path: 'submodules/era-test-node'
 
       - name: "Build precompiles"
-        run: cat Makefile && make build-precompiles
+        run: ls -l && make build-precompiles
