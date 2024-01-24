@@ -1,24 +1,42 @@
-.PHONY: setup update run test docs
+.PHONY: install run copy-precompiles build-precompiles download-node build-node setup-node update-node run-node run-node-light test docs clean
 
-setup:
-	git submodule update --init && \
+# Main commands
+
+install: setup-node
 	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
 	cd submodules/era-test-node && \
 	make build-contracts
 
-update:
-	git submodule update
+# Precompiles commands
 
-.PHONY: copy-precompiles
 copy-precompiles:
 	cp precompiles/*.yul submodules/era-test-node/etc/system-contracts/contracts/precompiles/
 
-.PHONY: build-precompiles
 build-precompiles: copy-precompiles
-	cd submodules/era-test-node && make build-precompiles
+	cd submodules/era-test-node && \
+	make build-contracts
 
-run: build-precompiles
-	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes --show-gas-details=all run
+# Node Commands
+
+download-node:
+	cd submodules && \
+	[ -d "./era-test-node" ] || git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
+
+build-node:
+	cd submodules/era-test-node && make rust-build && make build-contracts
+
+setup-node: download-node build-node
+
+update-node:
+	cd submodules/era-test-node && git pull && make rust-build
+
+run-node:
+	./submodules/era-test-node/target/release/era_test_node --show-calls=all --resolve-hashes --show-gas-details=all run
+
+run-node-light:
+	./submodules/era-test-node/target/release/era_test_node run
+
+# Other commands
 
 test:
 	cd tests && \
