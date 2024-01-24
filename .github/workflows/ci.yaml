@@ -53,10 +53,10 @@ jobs:
       - name: "Build precompiles"
         uses: actions/checkout@v3
 
-      - name: "Setup requirements"
-        run: make install
+      - name: "Download era-test-node"
+        run: make download-node
 
-      - name: copy-precompiles
+      - name: "Copy precompiles"
         run: make copy-precompiles
 
       - name: "Build precompiles"
