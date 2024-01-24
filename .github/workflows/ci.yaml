@@ -49,13 +49,13 @@ jobs:
   build-precompiles:
     name: "Build precompiles"
     runs-on: ubuntu-latest
-    with:
-      repository: ['matter-labs/era-test-node']
-      path: ['submodules/era-test-node']
-      token: ${{ secrets.GITHUB_AUTH_TOKEN }}
     steps:
-      - name: "Build precompiles"
+      - name: Checkout sources
         uses: actions/checkout@v3
+        with:
+          repository: ['matter-labs/era-test-node']
+          path: ['submodules/era-test-node']
+          token: ${{ secrets.GITHUB_AUTH_TOKEN }}
 
       - name: "Build precompiles"
         run: make build-precompiles
