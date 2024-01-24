@@ -52,9 +52,6 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-        with:
-          repository: 'matter-labs/era-test-node'
-          path: 'submodules/era-test-node'
 
       - name: "Build precompiles"
-        run: ls -l && make build-precompiles
+        run: make download-node && make build-precompiles
