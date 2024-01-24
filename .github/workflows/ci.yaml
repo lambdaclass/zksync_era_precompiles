@@ -52,6 +52,9 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+      
+      - name: Clone node
+        run: cd submodules && git clone https://github.com/lambdaclass/zksync_era_precompiles.git --branch lambdaclass_precompiles
 
       - name: "Build precompiles"
-        run: make download-node && make build-precompiles
+        run: make build-precompiles
