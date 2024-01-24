@@ -56,5 +56,8 @@ jobs:
       - name: Clone node
         run: cd submodules && git clone https://github.com/lambdaclass/era-test-node.git --branch lambdaclasss_precompiles
 
+      - name: Download solc
+        uses: pontem-network/get-solc@master
+
       - name: "Build precompiles"
         run: make build-precompiles
