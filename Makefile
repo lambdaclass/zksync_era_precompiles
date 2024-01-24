@@ -12,6 +12,10 @@ install: setup-node
 copy-precompiles:
 	cp precompiles/*.yul submodules/era-test-node/etc/system-contracts/contracts/precompiles/
 
+build-precompiles: copy-precompiles
+	cd submodules/era-test-node && \
+	make build-contracts
+
 # Node Commands
 
 download-node:
