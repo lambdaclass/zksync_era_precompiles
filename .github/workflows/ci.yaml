@@ -55,7 +55,6 @@ jobs:
         with:
           repository: 'matter-labs/era-test-node'
           path: 'submodules/era-test-node'
-          token: ${{ secrets.GITHUB_AUTH_TOKEN }}
 
       - name: "Build precompiles"
         run: make build-precompiles
