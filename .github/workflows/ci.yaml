@@ -57,4 +57,4 @@ jobs:
           path: 'submodules/era-test-node'
 
       - name: "Build precompiles"
-        run: make build-precompiles
+        run: echo $(pwd) && make build-precompiles
