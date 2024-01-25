@@ -84,7 +84,10 @@ make test PRECOMPILE=<precompile_name>
 ```
 
 
-### To update zk sync era node
+### To pull changes zk sync era node LC fork on the precompiles branch
 
-git subtree pull \
-  --prefix=test-node-subtree --squash git@github.com:lambdaclass/zksync_era_precompiles.git lambdaclasss_precompiles
+```git subtree pull --prefix=test-node-subtree --squash git@github.com:lambdaclass/era-test-node.git lambdaclasss_precompiles```
+
+### To push changes from local node to the branch
+
+ ```git subtree push -P test-node-subtree git@github.com:lambdaclass/era-test-node.git lambdaclasss_precompiles```
