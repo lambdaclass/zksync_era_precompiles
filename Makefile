@@ -23,12 +23,6 @@ build-precompiles:
 copied_precompiles:
 	cp precompiles/*.yul $(precompile_dst_path)
 
-build_contracts 
-$(era_test_node_makefile):
-	mkdir -p submodules && \
-	cd submodules && \
-	git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
-
 # Node Commands
 update-node: era_test_node
 	cd $(era_test_node_base_path) && git pull && make rust-build
