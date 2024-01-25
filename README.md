@@ -87,4 +87,4 @@ make test PRECOMPILE=<precompile_name>
 ### To update zk sync era node
 
 git subtree pull \
-  --prefix=test-node-subtree --squash git@github.com:lambdaclass/zksync_era_precompiles.git master
+  --prefix=test-node-subtree --squash git@github.com:lambdaclass/zksync_era_precompiles.git lambdaclasss_precompiles
