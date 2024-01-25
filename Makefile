@@ -32,6 +32,8 @@ $(era_test_node_makefile):
 	cd submodules && \
 	git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
 
+build-precompiles: $(precompiles_dst)
+
 # Node Commands
 update-node: era_test_node
 	cd $(era_test_node_base_path) && git pull && make rust-build
