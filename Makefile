@@ -9,9 +9,6 @@ precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts
 precompiles_source = $(wildcard $(current_dir)/precompiles/*.yul)
 precompiles_dst = $(patsubst $(current_dir)/precompiles/%, $(precompile_dst_path)/%, $(precompiles_source))
 
-print:
-	echo $(precompiles_dst)
-
 run-node: $(era_test_node) $(precompiles_dst)
 	$(era_test_node) --show-calls=all --resolve-hashes --show-gas-details=all run
 
