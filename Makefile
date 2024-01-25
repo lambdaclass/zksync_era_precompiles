@@ -7,7 +7,7 @@ era_test_node_makefile := $(era_test_node_base_path)/Makefile
 precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
 
 run-node: era_test_node
-	./submodules/era-test-node/target/release/era_test_node --show-calls=all --resolve-hashes --show-gas-details=all run
+	.$(era_test_node) --show-calls=all --resolve-hashes --show-gas-details=all run
 
 run-node-light: era_test_node
 	$(era_test_node) run
