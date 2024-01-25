@@ -68,6 +68,13 @@ Run one of the following commands to have a working test node.
 make run-node
 make run-node-light # no call trace, no hash resolving, and no gas details
 ```
+### Must run after every change in a precompile
+
+Our precompiles are located in `precompiles/` but as they are there, they're no being tracked by our `era-test-node` clone. We need to always copy our precompiles into the `era-test-node` repo for it to be able to track and compile them for later testing.
+
+```
+make build-precompiles
+```
 
 ### Run the tests
 
