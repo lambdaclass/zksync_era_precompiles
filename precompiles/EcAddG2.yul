@@ -326,6 +326,36 @@ object "EcAddG2" {
                 c20, c21 := fp2Mul(t28, t29, h0, h1)
             }
 
+            /// @notice Double a g2 point represented in jacobian coordinates.
+            /// @dev The coordinates must be encoded in Montgomery form.
+            /// @param a_x0, a_x1 The x coordinate of the point.
+            /// @param a_y0, a_y1 The y coordinate of the point.
+            /// @param a_z0, a_z1 The z coordinate of the point.
+            /// @return c00, c01, c10, c11, c20, c21 The coordinates of the doubled point.
+            function g2JacobianDouble(a_x0, a_x1, a_y0, a_y1, a_z0, a_z1) -> c00, c01, c10, c11, c20, c21 {
+                let a00, a01 := fp2Mul(a_x0, a_x1, a_x0, a_x1)
+                let b00, b01 := fp2Mul(a_y0, a_y1, a_y0, a_y1)
+                let c00, c01 := fp2Mul(b00, b01, b00, b01)
+                let t00, t01 := fp2Add(a_x0, a_x1, b00, b01)
+                let t10, t11 := fp2Mul(t00, t01, t00, t01)
+                let t20, t21 := fp2Sub(t10, t11, a00, a01)
+                let t30, t31 := fp2Sub(t20, t21, c00, c01)
+                let d00, d01 := fp2Add(t30, t31, t30, t31)
+                let e00, e01 := fp2Add(a00, a01, a00, a01)
+                e00, e01 := fp2Add(e00, e01, a00, a01)
+                let f00, f01 := fp2Mul(e00, e01, e00, e01)
+                let t40, t41 := fp2Add(d00, d01, d00, d01)
+                c00, c01 := fp2Sub(f00, f01, t40, t41)
+                let t50, t51 := fp2Sub(d00, d01, c00, c01)
+                let t60, t61 := fp2Add(c00, c01, c00, c01)
+                t60, t61 := fp2Add(t60, t61, t60, t61)
+                t60, t61 := fp2Add(t60, t61, t60, t61)
+                let t70, t71 := fp2Mul(e00, e01, t50, t51)
+                c10, c11 := fp2Sub(t70, t71, t60, t61)
+                let t80, t81 := fp2Mul(a_y0, a_y1, a_z0, a_z1)
+                c20, c21 := fp2Add(t80, t81, t80, t81)
+            }
+
             /// @notice Computes the affine coordinates from Jacobian.
             /// @param x0, x1 The coefficients of the x coordinate.
             /// @param y0, y1 The coefficients of the y coordinate.
