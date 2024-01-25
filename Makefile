@@ -12,13 +12,18 @@ run-node: era_test_node
 run-node-light: era_test_node
 	$(era_test_node) run
 
-# We could make a better rule for copied_precompiles, as to avoid running the cp everytime, but it's not very relevant. Doing this the precompiles are always updated
-era_test_node: $(era_test_node_makefile) copied_precompiles
-	cd submodules/era-test-node && make rust-build && make build-contracts
+# We could make a better rule for copied_precompiles, as to avoid running the cp everytime and building the contracts, but it's not very relevant. Doing this the precompiles are always updated
+era_test_node: $(era_test_node_makefile) copied_precompiles 
+	cd $(era_test_node_base_path) && make rust-build && make build-contracts
+
+## This is only used by the CI
+build-precompiles:
+	cd $(era_test_node_base_path) && make build-contracts
 
 copied_precompiles:
 	cp precompiles/*.yul $(precompile_dst_path)
 
+build_contracts 
 $(era_test_node_makefile):
 	mkdir -p submodules && \
 	cd submodules && \
