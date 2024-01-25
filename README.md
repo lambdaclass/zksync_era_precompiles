@@ -60,22 +60,13 @@ You can find a curated list of helpful resources that we've used for guiding our
 
 Follow the instructions below to setup the repo and run a development L2 node.
 
-### Setup the repo
+### Running an era-test-node
+
+Run one of the following commands to have a working test node.
 
 ```
-make setup
-```
-
-### Update the submodules (if needed)
-
-```
-make update
-```
-
-### Run a development L2 node
-
-```
-make run
+make run-node
+make run-node-light # no call trace, no hash resolving, and no gas details
 ```
 
 ### Run the tests
