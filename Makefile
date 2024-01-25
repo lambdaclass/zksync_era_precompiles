@@ -6,7 +6,6 @@ era_test_node := $(era_test_node_base_path)/target/release/era_test_node
 era_test_node_makefile := $(era_test_node_base_path)/Makefile
 precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
 
-precompiles_dst := 
 precompiles_source = $(wildcard $(current_dir)/precompiles/*.yul)
 precompiles_dst = $(patsubst $(current_dir)/precompiles/%, $(precompile_dst_path)/%, $(precompiles_source))
 
