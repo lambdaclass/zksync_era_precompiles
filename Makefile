@@ -6,7 +6,12 @@ era_test_node := $(era_test_node_base_path)/target/release/era_test_node
 era_test_node_makefile := $(era_test_node_base_path)/Makefile
 precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
 
-run-node: $(era_test_node)
+precompiles_source = $(wildcard $(current_dir)/precompiles/*.yul)
+
+print:
+	echo $(precompiles_source)
+
+run-node: $(era_test_node) build-precompiles 
 	$(era_test_node) --show-calls=all --resolve-hashes --show-gas-details=all run
 
 run-node-light: $(era_test_node)
