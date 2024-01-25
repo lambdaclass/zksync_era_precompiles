@@ -13,7 +13,7 @@ run-node-light: $(era_test_node)
 	$(era_test_node) run
 
 # We could make a better rule for copied_precompiles, as to avoid running the cp everytime and building the contracts, but it's not very relevant. Doing this the precompiles are always updated
-era_test_node: $(era_test_node_makefile) build-precompiles 
+$(era_test_node): $(era_test_node_makefile) build-precompiles 
 	cd $(era_test_node_base_path) && make rust-build
 	
 ## This is only used by the CI
