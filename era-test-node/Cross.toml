@@ -1,9 +1,0 @@
-# Cross.toml
-
-[target.x86_64-unknown-linux-gnu]
-pre-build = [
-    "export DEBIAN_FRONTEND=noninteractive",
-    "export TZ=Etc/UTC",
-    "dpkg --add-architecture $CROSS_DEB_ARCH",
-    "apt update -q && apt upgrade -yq && apt install --assume-yes --no-install-recommends libclang-10-dev clang-10 cmake build-essential pkg-config libssl-dev:$CROSS_DEB_ARCH libsasl2-dev llvm-dev gnutls-bin"
-]
