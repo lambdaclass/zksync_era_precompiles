@@ -82,3 +82,9 @@ If you want to run a specific test:
 ```
 make test PRECOMPILE=<precompile_name>
 ```
+
+
+### To update zk sync era node
+
+git subtree pull \
+  --prefix=test-node-subtree --squash git@github.com:lambdaclass/zksync_era_precompiles.git master

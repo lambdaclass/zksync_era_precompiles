@@ -1,7 +1,7 @@
 .PHONY: clean
 
 current_dir := ${CURDIR}
-era_test_node_base_path := $(current_dir)/submodules/era-test-node
+era_test_node_base_path := $(current_dir)/test-node-subtree
 era_test_node := $(era_test_node_base_path)/target/release/era_test_node
 era_test_node_makefile := $(era_test_node_base_path)/Makefile
 precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
@@ -21,11 +21,6 @@ $(era_test_node): $(era_test_node_makefile)
 ## precompile source is added just to avoid recompiling if they haven't changed
 $(precompiles_dst): $(precompiles_source)
 	cp precompiles/*.yul $(precompile_dst_path) && cd $(era_test_node_base_path) && make build-contracts
-
-$(era_test_node_makefile):
-	mkdir -p submodules && \
-	cd submodules && \
-	git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
 
 build-precompiles: $(precompiles_dst)
 
