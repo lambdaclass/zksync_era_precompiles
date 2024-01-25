@@ -122,7 +122,7 @@ async fn old_verifier_fails() {
 // Note: This test deploys a Verifier with a test verifying key which was
 // extracted from this PR https://github.com/matter-labs/era-contracts/pull/83/files#diff-7d10171e170dd1cd2c7502e8a682141ad6904c95c14bf631f0c97439fa90a0f6.
 #[tokio::test]
-#[ignore = "This is not working, and it stops the test suite, hiding problems"]
+#[ignore = "This is not working, and it stops the test suits"]
 async fn new_verifier_succeeds() {
     init_logger();
 
