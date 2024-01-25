@@ -1,7 +1,5 @@
 object "EcAdd" {
-    code {
-        return(0, 0)
-    }
+    code { }
     object "EcAdd_deployed" {
         code {
             ////////////////////////////////////////////////////////////////
@@ -45,18 +43,18 @@ object "EcAdd" {
             //////////////////////////////////////////////////////////////////
 
             /// @dev Executes the `precompileCall` opcode.
-            function precompileCall(precompileParams, gasToBurn) -> ret {
-                // Compiler simulation for calling `precompileCall` opcode
-                ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
-            }
+			function precompileCall(precompileParams, gasToBurn) -> ret {
+				// Compiler simulation for calling `precompileCall` opcode
+				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
+			}
 
             /// @notice Burns remaining gas until revert.
             /// @dev This function is used to burn gas in the case of a failed precompile call.
-            function burnGas() {
-                // Precompiles that do not have a circuit counterpart
-                // will burn the provided gas by calling this function.
-                precompileCall(0, gas())
-            }
+			function burnGas() {
+				// Precompiles that do not have a circuit counterpart
+				// will burn the provided gas by calling this function.
+				precompileCall(0, gas())
+		  	}
 
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
@@ -247,7 +245,7 @@ object "EcAdd" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
-            /// @return ret The result of the Montgomery subtraction.
+            /// @return ret The result of the Montgomery addition.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
@@ -300,7 +298,7 @@ object "EcAdd" {
                 mstore(32, 0)
                 return(0, 64)
             }
-            if and(p1IsInfinity, iszero(p2IsInfinity)) {
+            if p1IsInfinity {
                 // Infinity + P = P
 
                 // Ensure that the coordinates are between 0 and the field order.
@@ -323,7 +321,7 @@ object "EcAdd" {
                 mstore(32, y2)
                 return(0, 64)
             }
-            if and(iszero(p1IsInfinity), p2IsInfinity) {
+            if p2IsInfinity {
                 // P + Infinity = P
 
                 // Ensure that the coordinates are between 0 and the field order.
@@ -368,7 +366,7 @@ object "EcAdd" {
                 let m_y2 := intoMontgomeryForm(y2)
 
                 // Ensure that the points are in the curve (Y^2 = X^3 + 3).
-                if or(iszero(pointIsInCurve(m_x1, m_y1)), iszero(pointIsInCurve(m_x2, m_y2))) {
+                if iszero(pointIsInCurve(m_x1, m_y1)) {
                     burnGas()
                 }
 
@@ -378,10 +376,6 @@ object "EcAdd" {
                 mstore(0, 0)
                 mstore(32, 0)
                 return(0, 64)
-            }
-
-            if and(eq(x1, x2), and(iszero(eq(y1, y2)), iszero(eq(y1, submod(0, y2, P()))))) {
-                burnGas()
             }
 
             if and(eq(x1, x2), eq(y1, y2)) {
@@ -397,11 +391,11 @@ object "EcAdd" {
 
                 // (3 * x1^2 + a) / (2 * y1)
                 let x1_squared := montgomeryMul(x, x)
-                let slope := montgomeryDiv(addmod(x1_squared, addmod(x1_squared, x1_squared, P()), P()), addmod(y, y, P()))
+                let slope := montgomeryDiv(montgomeryAdd(x1_squared, montgomeryAdd(x1_squared, x1_squared)), montgomeryAdd(y, y))
                 // x3 = slope^2 - 2 * x1
-                let x3 := submod(montgomeryMul(slope, slope), addmod(x, x, P()), P())
+                let x3 := montgomerySub(montgomeryMul(slope, slope), montgomeryAdd(x, x))
                 // y3 = slope * (x1 - x3) - y1
-                let y3 := submod(montgomeryMul(slope, submod(x, x3, P())), y, P())
+                let y3 := montgomerySub(montgomeryMul(slope, montgomerySub(x, x3)), y)
 
                 x3 := outOfMontgomeryForm(x3)
                 y3 := outOfMontgomeryForm(y3)
@@ -424,11 +418,11 @@ object "EcAdd" {
             }
 
             // (y2 - y1) / (x2 - x1)
-            let slope := montgomeryDiv(submod(y2, y1, P()), submod(x2, x1, P()))
+            let slope := montgomeryDiv(montgomerySub(y2, y1), montgomerySub(x2, x1))
             // x3 = slope^2 - x1 - x2
-            let x3 := submod(montgomeryMul(slope, slope), addmod(x1, x2, P()), P())
+            let x3 := montgomerySub(montgomeryMul(slope, slope), montgomeryAdd(x1, x2))
             // y3 = slope * (x1 - x3) - y1
-            let y3 := submod(montgomeryMul(slope, submod(x1, x3, P())), y1, P())
+            let y3 := montgomerySub(montgomeryMul(slope, montgomerySub(x1, x3)), y1)
 
             x3 := outOfMontgomeryForm(x3)
             y3 := outOfMontgomeryForm(y3)

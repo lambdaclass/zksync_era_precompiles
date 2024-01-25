@@ -1,7 +1,7 @@
 .PHONY: clean
 
 current_dir := ${CURDIR}
-era_test_node_base_path := $(current_dir)/test-node-subtree
+era_test_node_base_path := $(current_dir)/.test-node-subtree
 era_test_node := $(era_test_node_base_path)/target/release/era_test_node
 era_test_node_makefile := $(era_test_node_base_path)/Makefile
 precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
