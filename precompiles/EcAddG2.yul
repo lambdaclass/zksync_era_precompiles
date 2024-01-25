@@ -27,6 +27,15 @@ object "EcAddG2" {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
             }
 
+            /// @notice Constant function for the pre-computation of N' for the Montgomery REDC algorithm.
+            /// @dev N' is a value such that NN' = -1 mod R, with N being the curve group order.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further detals.
+            /// @dev This value was precomputed using Python.
+            /// @return ret The value N'.
+            function N_PRIME() -> ret {
+                ret := 111032442853175714102588374283752698368366046808579839647964533820976443843465
+            }
+
             /// @notice constant function for the coeffitients of the sextic twist of the BN256 curve.
             /// @dev E': y' ** 2 = x' ** 3 + 3 / (3 + u)
             /// @dev the curve E' is defined over Fp2 elements.
@@ -199,6 +208,47 @@ object "EcAddG2" {
                     ret := REDC(lowest_half_of_m, higher_half_of_m)
             }
 
+            /// @notice Computes the Montgomery addition.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param augend The augend in Montgomery form.
+            /// @param addend The addend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
+            function montgomeryAdd(augend, addend) -> ret {
+                ret := add(augend, addend)
+                if iszero(lt(ret, P())) {
+                    ret := sub(ret, P())
+                }
+            }
+
+            /// @notice Computes the Montgomery subtraction.
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param minuend The minuend in Montgomery form.
+            /// @param subtrahend The subtrahend in Montgomery form.
+            /// @return ret The result of the Montgomery addition.
+            function montgomerySub(minuend, subtrahend) -> ret {
+                ret := montgomeryAdd(minuend, sub(P(), subtrahend))
+            }
+
+            /// @notice Computes the Montgomery multiplication using the Montgomery reduction algorithm (REDC).
+            /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_REDC_algorithm for further details on the Montgomery multiplication.
+            /// @param multiplicand The multiplicand in Montgomery form.
+            /// @param multiplier The multiplier in Montgomery form.
+            /// @return ret The result of the Montgomery multiplication.
+            function montgomeryMul(multiplicand, multiplier) -> ret {
+                let higher_half_of_product := getHighestHalfOfMultiplication(multiplicand, multiplier)
+                let lowest_half_of_product := mul(multiplicand, multiplier)
+                ret := REDC(lowest_half_of_product, higher_half_of_product)
+            }
+
+            /// @notice Computes the Montgomery modular inverse skipping the Montgomery reduction step.
+            /// @dev The Montgomery reduction step is skept because a modification in the binary extended Euclidean algorithm is used to compute the modular inverse.
+            /// @dev See the function `binaryExtendedEuclideanAlgorithm` for further details.
+            /// @param a The field element in Montgomery form to compute the modular inverse of.
+            /// @return invmod The result of the Montgomery modular inverse (in Montgomery form).
+            function montgomeryModularInverse(a) -> invmod {
+                invmod := binaryExtendedEuclideanAlgorithm(a)
+            }
+
             // G2 ARITHMETICS
 
             /// @notice Checks if a coordinate is on the curve group order.
@@ -233,7 +283,7 @@ object "EcAddG2" {
                 b0, b1 := fp2Add(b0, b1, a0, a1)
                 let c0, c1 := fp2Mul(y0, y1, y0, y1)
                 ret := and(eq(b0, c0), eq(b1, c1))
-			}add
+			}
 
             /// @notice Add two g2 points represented in jacobian coordinates.
             /// @dev The coordinates must be encoded in Montgomery form.
@@ -274,6 +324,16 @@ object "EcAddG2" {
                 let t26, t27 := fp2Sub(t24, t25, aux0, aux1)
                 let t28, t29 := fp2Sub(t26, t27, aux2, aux3)
                 c20, c21 := fp2Mul(t28, t29, h0, h1)
+            }
+
+
+            function g2OutOfJacobian(x0, x1, y0, y1, z0, z1) -> c00, c01, c10, c11 {
+                let z0Square, z1Square := fp2Mul(z0, z1, z0, z1)
+                let z0Cube, z1Cube := fp2Mul(z0Square, z1Square, z0, z1)
+                let t0, t1 := fp2Inv(z0Square, z1Square)
+                let t2, t3 := fp2Inv(z0Cube, z1Cube)
+                c00, c01 := fp2Mul(x0, x1, t0, t1)
+                c10, c11 := fp2Mul(y0, y1, t2, t3)
             }
 
             // FP2 ARITHMETHICS
@@ -334,14 +394,11 @@ object "EcAddG2" {
                 let t1 := montgomeryMul(a01, a01)
                 t0 := montgomeryAdd(t0, t1)
                 t1 := montgomeryModularInverse(t0)
-
                 c00 := montgomeryMul(a00, t1)
                 c01 := montgomerySub(0, montgomeryMul(a01, t1))
             }
 
-            ////////////////////////////////////////////////////////////////
-            //                      FALLBACK
-            ////////////////////////////////////////////////////////////////
+            // FALLBACK
 
             // Retrieve the coordinates from the calldata
             let a_x0 := calldataload(0)
@@ -371,7 +428,7 @@ object "EcAddG2" {
                 // Infinity + B = B
 
                 // Ensure that the coordinates are between 0 and the field order.
-                if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_x0, b_x1))) {
+                if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
                     burnGas()
                 }
 
@@ -399,7 +456,7 @@ object "EcAddG2" {
                 // A + Infinity = A
 
                 // Ensure that the coordinates are between 0 and the field order.
-                if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_x1, a_y1))) {
+                if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
                     burnGas()
                 }
 
@@ -421,10 +478,10 @@ object "EcAddG2" {
             }
 
             // Ensure that the coordinates are between 0 and the field order.
-            if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_x1, a_y1))) {
+            if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
                 burnGas()
             }
-            if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_x1, b_y1))) {
+            if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
                 burnGas()
             }
 
@@ -440,9 +497,25 @@ object "EcAddG2" {
             let b_y0_mont := intoMontgomeryForm(b_y0)
             let b_y1_mont := intoMontgomeryForm(b_y1)
 
+            // Ensure that the point is in the curve.
+            if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
+                console_log(0xACA)
+                burnGas()
+            }
+            if iszero(g2AffinePointIsOnCurve(b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont)) {
+                console_log(0xBEBE)
+                burnGas()
+            }
+            
             let c00, c01, c10, c11, c20, c21 := g2JacobianAdd(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0, b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont, MONTGOMERY_ONE(), 0)
 
-            
+            c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
+
+            c00 := outOfMontgomeryForm(c00)
+            c01 := outOfMontgomeryForm(c01)
+            c10 := outOfMontgomeryForm(c10)
+            c11 := outOfMontgomeryForm(c11)
+
             mstore(0, c00)
             mstore(32, c01)
             mstore(64, c10)
