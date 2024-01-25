@@ -12,10 +12,9 @@ precompiles_dst = $(patsubst $(current_dir)/precompiles/%, $(precompile_dst_path
 run-node: $(era_test_node) $(precompiles_dst)
 	$(era_test_node) --show-calls=all --resolve-hashes --show-gas-details=all run
 
-run-node-light: $(era_test_node)
+run-node-light: $(era_test_node) $(precompiles_dst)
 	$(era_test_node) run
 
-# We could make a better rule for copied_precompiles, as to avoid running the cp everytime and building the contracts, but it's not very relevant. Doing this the precompiles are always updated
 $(era_test_node): $(era_test_node_makefile)
 	cd $(era_test_node_base_path) && make rust-build
 	
