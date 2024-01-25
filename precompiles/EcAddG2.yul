@@ -326,7 +326,11 @@ object "EcAddG2" {
                 c20, c21 := fp2Mul(t28, t29, h0, h1)
             }
 
-
+            /// @notice Computes the affine coordinates from Jacobian.
+            /// @param x0, x1 The coefficients of the x coordinate.
+            /// @param y0, y1 The coefficients of the y coordinate.
+            /// @param z0, z1 The coefficients of the z coordinate.
+            /// @return c00, c01, c10, c11 The coefficients of the point in affine coordinates.
             function g2OutOfJacobian(x0, x1, y0, y1, z0, z1) -> c00, c01, c10, c11 {
                 let z0Square, z1Square := fp2Mul(z0, z1, z0, z1)
                 let z0Cube, z1Cube := fp2Mul(z0Square, z1Square, z0, z1)
@@ -427,7 +431,7 @@ object "EcAddG2" {
             if aIsInfinity {
                 // Infinity + B = B
 
-                // Ensure that the coordinates are between 0 and the field order.
+                // Ensure that the coordinates are between 0 and the field order
                 if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
                     burnGas()
                 }
@@ -437,13 +441,10 @@ object "EcAddG2" {
                 let b_y0_mont := intoMontgomeryForm(b_y0)
                 let b_y1_mont := intoMontgomeryForm(b_y1)
 
-                // Ensure that the point is in the curve (Y^2 = X^3 + 3).
+                // Ensure that the point is in the curve
                 if iszero(g2AffinePointIsOnCurve(b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont)) {
                     burnGas()
                 }
-
-                // We just need to go into the Montgomery form to perform the
-                // computations in pointIsInCurve, but we do not need to come back.
 
                 mstore(0, b_x0)
                 mstore(32, b_x1)
@@ -455,7 +456,7 @@ object "EcAddG2" {
             if bIsInfinity {
                 // A + Infinity = A
 
-                // Ensure that the coordinates are between 0 and the field order.
+                // Ensure that the coordinates are between 0 and the field order
                 if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
                     burnGas()
                 }
@@ -465,7 +466,7 @@ object "EcAddG2" {
                 let a_y0_mont := intoMontgomeryForm(a_y0)
                 let a_y1_mont := intoMontgomeryForm(a_y1)
 
-                // Ensure that the point is in the curve.
+                // Ensure that the point is in the curve
                 if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
                     burnGas()
                 }
@@ -477,7 +478,7 @@ object "EcAddG2" {
                 return(0, 128)
             }
 
-            // Ensure that the coordinates are between 0 and the field order.
+            // Ensure that the coordinates are between 0 and the field order
             if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
                 burnGas()
             }
@@ -497,7 +498,7 @@ object "EcAddG2" {
             let b_y0_mont := intoMontgomeryForm(b_y0)
             let b_y1_mont := intoMontgomeryForm(b_y1)
 
-            // Ensure that the point is in the curve.
+            // Ensure that the points are in the curve
             if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
                 console_log(0xACA)
                 burnGas()
@@ -506,7 +507,7 @@ object "EcAddG2" {
                 console_log(0xBEBE)
                 burnGas()
             }
-            
+
             let c00, c01, c10, c11, c20, c21 := g2JacobianAdd(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0, b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont, MONTGOMERY_ONE(), 0)
 
             c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
