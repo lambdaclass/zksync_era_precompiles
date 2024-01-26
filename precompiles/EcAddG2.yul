@@ -547,7 +547,7 @@ object "EcAddG2" {
                     return(0, 128)
                 }
 
-                // If Y coordinates are diferent, the only possibility is that: A = -A. In this case A + (-A) = Infinity.
+                // If Y coordinates are diferent, the only possibility is that: B = -A. In this case A + (-A) = Infinity.
                 let b_y0_mont := intoMontgomeryForm(b_y0)
                 let b_y1_mont := intoMontgomeryForm(b_y1)
 
