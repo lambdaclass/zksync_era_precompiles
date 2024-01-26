@@ -1,0 +1,65 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ensures proper formatting and clippy lint
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly-2023-07-23
+          components: rustfmt, clippy
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: "yarn"
+          cache-dependency-path: 'e2e-tests/yarn.lock'
+
+      - name: Run Linters
+        run: make lint
+
+  # ensures build is successful
+  build:
+    name: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly-2023-07-23
+
+      - name: Build Code
+        run: make all
+
+      - name: Create artifact
+        run: |
+          cd ./target/release
+          tar -czf era_test_node-${{ matrix.os }}.tar.gz ./era_test_node*
+
+      - name:  Upload artifact
+        uses:  actions/upload-artifact@v3
+        with:
+          name: era_test_node-${{ matrix.os }}.tar.gz
+          path: ./target/release/era_test_node-${{ matrix.os }}.tar.gz
+  e2e:
+    needs: build
+    uses: ./.github/workflows/e2e.yml
+    name: e2e-tests
