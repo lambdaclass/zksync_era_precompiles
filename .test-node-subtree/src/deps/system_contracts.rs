@@ -155,16 +155,12 @@ pub static COMPILED_IN_SYSTEM_CONTRACTS: Lazy<Vec<DeployedContract>> = Lazy::new
             include_bytes!("contracts/EcAdd.yul.zbin").to_vec(),
         ),
         (
-<<<<<<< Updated upstream
-            "ECMUL_PRECOMPILE_ADDRESS",
-=======
             "EcAddG2",
             ECADD_G2_PRECOMPILE_ADDRESS,
             include_bytes!("contracts/EcAddG2.yul.zbin").to_vec(),
         ),
         (
             "EcMul",
->>>>>>> Stashed changes
             ECMUL_PRECOMPILE_ADDRESS,
             include_bytes!("contracts/EcMul.yul.zbin").to_vec(),
         ),
