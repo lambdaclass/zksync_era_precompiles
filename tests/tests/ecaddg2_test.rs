@@ -110,3 +110,35 @@ async fn ecadd_g2_valid_3() {
             ).unwrap());
     assert_eq!(era_output, result)
 }
+
+#[tokio::test]
+async fn ecadd_g2_valid_point_double() {
+
+    // P + P = R
+    // P = [(1536b2e79d6f2116ce8f06e33cb7997612d2514df64a41e1e5fae866b1c0d779 + 1f60381668f1c1d04cc11964dd3937c2ef0b11db4bbac18501c3ccd53ec87c6e * u),
+    //      (2dfe2cb093eafecb76994ca8cabb488d3171747c4e9fe6b3afc2123e31ac9c6f + 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec * u)]
+    // R = [(24121a621d058041283e3f33249834ed5babd0a2bf14db0afbd369d897e76f63 + 0f8c50d38c94ea7ed7f870103f77bb6dfc223becc0e8c31933c66de54933cd7e * u),
+    //      (26f5199f284136bf0fd7a5371b97fe7503bf7e1dc7215b829eb16b08a9163e64 + 14833f347a9f9a8ab50e210749f055b2a42617a3f9ec26ae08f48e5f6dce2d95 * u)]
+
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "1536b2e79d6f2116ce8f06e33cb7997612d2514df64a41e1e5fae866b1c0d779\
+                1f60381668f1c1d04cc11964dd3937c2ef0b11db4bbac18501c3ccd53ec87c6e\
+                2dfe2cb093eafecb76994ca8cabb488d3171747c4e9fe6b3afc2123e31ac9c6f\
+                1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec\
+                1536b2e79d6f2116ce8f06e33cb7997612d2514df64a41e1e5fae866b1c0d779\
+                1f60381668f1c1d04cc11964dd3937c2ef0b11db4bbac18501c3ccd53ec87c6e\
+                2dfe2cb093eafecb76994ca8cabb488d3171747c4e9fe6b3afc2123e31ac9c6f\
+                1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec"
+                ).unwrap()))).await.unwrap();
+    let (era_output, _gas_used) = parse_call_result(&era_response);
+
+    let result = Bytes::from(
+        hex::decode(
+            "24121a621d058041283e3f33249834ed5babd0a2bf14db0afbd369d897e76f63\
+            0f8c50d38c94ea7ed7f870103f77bb6dfc223becc0e8c31933c66de54933cd7e\
+            26f5199f284136bf0fd7a5371b97fe7503bf7e1dc7215b829eb16b08a9163e64\
+            1e03e473a20f412127a0d354f6e0b4ce69b2f27455c67fba65e55fbb42b0500e"
+            ).unwrap());
+    assert_eq!(era_output, result)
+}
