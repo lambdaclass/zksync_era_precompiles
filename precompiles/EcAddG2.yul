@@ -509,10 +509,8 @@ object "EcAddG2" {
                 return(0, 128)
             }
 
-            if and(and(eq(a_x0, b_x0), eq(a_x1, b_x1)), and(eq(a_y0, b_y0), eq(a_y1, b_y1))) {
-                // A + A = 2A
-
-                console_log(0xaca)
+            // Check if X cordinate is the same in bouth points.
+            if and(eq(a_x0, b_x0), eq(a_x1, b_x1)) {
 
                 // Ensure that the coordinates are between 0 and the field order
                 if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
@@ -529,21 +527,43 @@ object "EcAddG2" {
                     burnGas()
                 }
 
-                let c00, c01, c10, c11, c20, c21 := g2JacobianDouble(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0)
-                
-                c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
-    
-                c00 := outOfMontgomeryForm(c00)
-                c01 := outOfMontgomeryForm(c01)
-                c10 := outOfMontgomeryForm(c10)
-                c11 := outOfMontgomeryForm(c11)
-    
-                mstore(0, c00)
-                mstore(32, c01)
-                mstore(64, c10)
-                mstore(96, c11)
+                if and(eq(a_y0, b_y0), eq(a_y1, b_y1)) {
+
+                    // A + A = 2A
+
+                    let c00, c01, c10, c11, c20, c21 := g2JacobianDouble(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0)
+                    
+                    c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
+        
+                    c00 := outOfMontgomeryForm(c00)
+                    c01 := outOfMontgomeryForm(c01)
+                    c10 := outOfMontgomeryForm(c10)
+                    c11 := outOfMontgomeryForm(c11)
+        
+                    mstore(0, c00)
+                    mstore(32, c01)
+                    mstore(64, c10)
+                    mstore(96, c11)
+                    return(0, 128)
+                }
+
+                // If Y coordinates are diferent, the only possibility is that: A = -A. In this case A + (-A) = Infinity.
+                let b_y0_mont := intoMontgomeryForm(b_y0)
+                let b_y1_mont := intoMontgomeryForm(b_y1)
+
+                // Ensure that the point is in the curve
+                if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, b_y0_mont, b_y1_mont)) {
+                    burnGas()
+                }
+
+                mstore(0, 0)
+                mstore(32, 0)
+                mstore(64, 0)
+                mstore(96, 0)
                 return(0, 128)
             }
+
+            // A + B = C
 
             // Ensure that the coordinates are between 0 and the field order
             if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
@@ -552,8 +572,6 @@ object "EcAddG2" {
             if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
                 burnGas()
             }
-
-            // TODO: ADD OPTIMIZATIONS FOR A = (-B)
 
             let a_x0_mont := intoMontgomeryForm(a_x0)
             let a_x1_mont := intoMontgomeryForm(a_x1)

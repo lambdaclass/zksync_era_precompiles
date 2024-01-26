@@ -142,3 +142,35 @@ async fn ecadd_g2_valid_point_double() {
             ).unwrap());
     assert_eq!(era_output, result)
 }
+
+#[tokio::test]
+async fn ecadd_g2_valid_p_minus_p() {
+
+    // P + (-P) = 0
+    // P = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
+    //      (1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa + 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90 * u)]
+    // -P = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
+    //      (15523e1b96f53820a895a2f0ebd389303c73bcd6adfe511fecc99b512cdba14d + 18d005dfc1d9bc69c574898748365e41f25d7e3c9de71eb9f8172e7deae32eb7 * u)]
+
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+                0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+                1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
+                179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90\
+                2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+                0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+                15523e1b96f53820a895a2f0ebd389303c73bcd6adfe511fecc99b512cdba14d\
+                18d005dfc1d9bc69c574898748365e41f25d7e3c9de71eb9f8172e7deae32eb7"
+                ).unwrap()))).await.unwrap();
+    let (era_output, _gas_used) = parse_call_result(&era_response);
+
+    let result = Bytes::from(
+        hex::decode(
+            "0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000"
+            ).unwrap());
+    assert_eq!(era_output, result)
+}
