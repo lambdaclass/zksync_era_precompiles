@@ -548,6 +548,12 @@ object "EcAddG2" {
                 }
 
                 // If Y coordinates are diferent, the only possibility is that: B = -A. In this case A + (-A) = Infinity.
+
+                // Ensure that the coordinates are between 0 and the field order
+                if iszero(g2CoordinateIsOnFieldOrder(b_y0, b_y1) {
+                    burnGas()
+                }
+
                 let b_y0_mont := intoMontgomeryForm(b_y0)
                 let b_y1_mont := intoMontgomeryForm(b_y1)
 

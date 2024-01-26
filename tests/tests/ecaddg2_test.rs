@@ -9,6 +9,9 @@ pub const ECADD_G2_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x0A,
 ]);
 
+const EXECUTION_REVERTED: &str =
+    "(code: 3, message: execution reverted, data: Some(String(\"0x\")))";
+
 #[tokio::test]
 async fn ecadd_g2_valid_1() {
 
@@ -144,7 +147,7 @@ async fn ecadd_g2_valid_point_double() {
 }
 
 #[tokio::test]
-async fn ecadd_g2_valid_p_minus_p() {
+async fn ecadd_g2_valid_p_minus_p_is_infinity() {
 
     // P + (-P) = 0
     // P = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
@@ -173,4 +176,160 @@ async fn ecadd_g2_valid_p_minus_p() {
             0000000000000000000000000000000000000000000000000000000000000000"
             ).unwrap());
     assert_eq!(era_output, result)
+}
+
+#[tokio::test]
+async fn ecadd_g2_valid_b_is_infinity_is_a() {
+
+    // A + 0 = A
+    // A = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
+    //      (1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa + 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90 * u)]
+
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+                0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+                1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
+                179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000"
+                ).unwrap()))).await.unwrap();
+    let (era_output, _gas_used) = parse_call_result(&era_response);
+
+    let result = Bytes::from(
+        hex::decode(
+            "2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+            0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+            1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
+            179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90"
+            ).unwrap());
+    assert_eq!(era_output, result)
+}
+
+#[tokio::test]
+async fn ecadd_g2_valid_a_is_infinity_is_b() {
+
+    // 0 + B = B
+    // B = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
+    //      (1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa + 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90 * u)]
+
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+                0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+                1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
+                179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90"
+                ).unwrap()))).await.unwrap();
+    let (era_output, _gas_used) = parse_call_result(&era_response);
+
+    let result = Bytes::from(
+        hex::decode(
+            "2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867\
+            0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017\
+            1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
+            179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90"
+            ).unwrap());
+    assert_eq!(era_output, result)
+}
+
+#[tokio::test]
+async fn ecadd_g2_valid_a_and_b_are_infinity_is_infinity() {
+
+    // 0 + B = B
+    // B = [(2d8a913eeee7c28aa12c81a2dbf4e8a753b7745c4910254a0404f09c4f36d867 + 0686e06cae2b68521cfe51921e30ef9291eeee283f1b3b503a1c8c8f70b86017 * u),
+    //      (1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa + 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90 * u)]
+
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000"
+                ).unwrap()))).await.unwrap();
+    let (era_output, _gas_used) = parse_call_result(&era_response);
+
+    let result = Bytes::from(
+        hex::decode(
+            "0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000\
+            0000000000000000000000000000000000000000000000000000000000000000"
+            ).unwrap());
+    assert_eq!(era_output, result)
+}
+
+#[tokio::test]
+async fn ecadd_g2_invalid_a_not_in_curve() {
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000001\
+                123364d138d3c357b288a1eda53008a69e8fff2234acb97555bd4832575b4440\
+                026e5131791db07c83124fc5959235d073e735137a2c7b6627254f9ec45d45e2\
+                2b1f80d2f89aaba97ecce556ce75b17002deb6bbeccbc5d9ca5e03474b82acfc\
+                039f8a1bcc72edfaecf7527355fc27d1a2c62f88da5a7c8fdd6d5f7176c97bfd"
+                ).unwrap()))).await
+                .err()
+                .unwrap()
+                .to_string();
+            
+    assert_eq!(era_response, EXECUTION_REVERTED);
+}
+
+#[tokio::test]
+async fn ecadd_g2_invalid_b_not_in_curve() {
+    let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                "123364d138d3c357b288a1eda53008a69e8fff2234acb97555bd4832575b4440\
+                026e5131791db07c83124fc5959235d073e735137a2c7b6627254f9ec45d45e2\
+                2b1f80d2f89aaba97ecce556ce75b17002deb6bbeccbc5d9ca5e03474b82acfc\
+                039f8a1bcc72edfaecf7527355fc27d1a2c62f88da5a7c8fdd6d5f7176c97bfd\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000000\
+                0000000000000000000000000000000000000000000000000000000000000001"
+                ).unwrap()))).await
+                .err()
+                .unwrap()
+                .to_string();
+            
+    assert_eq!(era_response, EXECUTION_REVERTED);
+}
+
+#[tokio::test]
+async fn ecadd_g2_coordinates_not_in_field() {
+
+    // This number is bigger than the field
+    let over_the_field = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    let good_field = "00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    for i in 0..8 {
+        
+        let initial_string = good_field.repeat(i);
+        let mid_string = over_the_field;
+        let end_string = good_field.repeat(8-i);
+        let input = initial_string + mid_string + &end_string;
+
+        let era_response = era_call(ECADD_G2_PRECOMPILE_ADDRESS, None, Some(Bytes::from(
+            hex::decode(
+                input
+                ).unwrap()))).await
+                .err()
+                .unwrap()
+                .to_string();
+        
+        assert_eq!(era_response, EXECUTION_REVERTED);
+    }    
 }
