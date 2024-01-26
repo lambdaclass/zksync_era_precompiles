@@ -585,11 +585,9 @@ object "EcAddG2" {
 
             // Ensure that the points are in the curve
             if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
-                console_log(0xACA)
                 burnGas()
             }
             if iszero(g2AffinePointIsOnCurve(b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont)) {
-                console_log(0xBEBE)
                 burnGas()
             }
 
