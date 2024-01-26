@@ -15,7 +15,7 @@ run-node: $(era_test_node) $(precompiles_dst)
 run-node-light: $(era_test_node) $(precompiles_dst)
 	$(era_test_node) run
 
-$(era_test_node): $(era_test_node_makefile)
+$(era_test_node): $(era_test_node_makefile) $(precompiles_dst)
 	cd $(era_test_node_base_path) && make rust-build
 	
 ## precompile source is added just to avoid recompiling if they haven't changed
@@ -26,7 +26,7 @@ build-precompiles: $(precompiles_dst)
 
 # Node Commands
 update-node: era_test_node
-	cd $(era_test_node_base_path) && git pull && make rust-build
+	cd $(era_test_node_base_path) && make rust-build
 
 test:
 	cd tests && \
