@@ -18,7 +18,6 @@ run-node-light: $(era_test_node) $(precompiles_dst)
 
 # test node needs contracts for include bytes directive
 # source files are obtained just to recompile if there are changes, and located with a find
-
 $(era_test_node): $(era_test_node_makefile) $(era_test_node_src_files) $(precompiles_dst)
 	cd $(era_test_node_base_path) && make rust-build
 	
