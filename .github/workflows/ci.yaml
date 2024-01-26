@@ -50,14 +50,14 @@ jobs:
     name: "Build precompiles"
     runs-on: ubuntu-latest
     steps:
-      - name: "Build precompiles"
+      - name: Checkout sources
         uses: actions/checkout@v3
+      
+      - name: Clone node
+        run: cd submodules && git clone https://github.com/lambdaclass/era-test-node.git --branch lambdaclasss_precompiles
 
-      - name: "Setup requirements"
-        run: make setup
-
-      - name: copy-precompiles
-        run: make copy-precompiles
+      - name: Download solc
+        uses: pontem-network/get-solc@master
 
       - name: "Build precompiles"
         run: make build-precompiles

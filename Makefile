@@ -1,24 +1,37 @@
-.PHONY: setup update run test docs
+.PHONY: clean
 
-setup:
-	git submodule update --init && \
-	cp -r precompiles/ submodules/era-test-node/etc/system-contracts/contracts/precompiles && \
-	cd submodules/era-test-node && \
-	make build-contracts
+current_dir := ${CURDIR}
+era_test_node_base_path := $(current_dir)/submodules/era-test-node
+era_test_node := $(era_test_node_base_path)/target/release/era_test_node
+era_test_node_makefile := $(era_test_node_base_path)/Makefile
+precompile_dst_path := $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles
 
-update:
-	git submodule update
+precompiles_source = $(wildcard $(current_dir)/precompiles/*.yul)
+precompiles_dst = $(patsubst $(current_dir)/precompiles/%, $(precompile_dst_path)/%, $(precompiles_source))
 
-.PHONY: copy-precompiles
-copy-precompiles:
-	cp precompiles/*.yul submodules/era-test-node/etc/system-contracts/contracts/precompiles/
+run-node: $(era_test_node) $(precompiles_dst)
+	$(era_test_node) --show-calls=all --resolve-hashes --show-gas-details=all run
 
-.PHONY: build-precompiles
-build-precompiles: copy-precompiles
-	cd submodules/era-test-node && make build-precompiles
+run-node-light: $(era_test_node) $(precompiles_dst)
+	$(era_test_node) run
 
-run: build-precompiles
-	cd submodules/era-test-node && cargo +nightly run -- --show-calls=all --resolve-hashes --show-gas-details=all run
+$(era_test_node): $(era_test_node_makefile)
+	cd $(era_test_node_base_path) && make rust-build
+	
+## precompile source is added just to avoid recompiling if they haven't changed
+$(precompiles_dst): $(precompiles_source)
+	cp precompiles/*.yul $(precompile_dst_path) && cd $(era_test_node_base_path) && make build-contracts
+
+$(era_test_node_makefile):
+	mkdir -p submodules && \
+	cd submodules && \
+	git clone git@github.com:LambdaClass/era-test-node.git --branch lambdaclasss_precompiles
+
+build-precompiles: $(precompiles_dst)
+
+# Node Commands
+update-node: era_test_node
+	cd $(era_test_node_base_path) && git pull && make rust-build
 
 test:
 	cd tests && \
@@ -28,4 +41,4 @@ docs:
 	cd docs && mdbook serve --open
 
 clean:
-	rm submodules/era-test-node/src/deps/contracts/*.yul.zbin submodules/era-test-node/etc/system-contracts/contracts/precompiles/*.yul
+	rm $(era_test_node_base_path)/src/deps/contracts/*.yul.zbin $(era_test_node_base_path)/etc/system-contracts/contracts/precompiles/*.yul
