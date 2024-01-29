@@ -82,3 +82,14 @@ If you want to run a specific test:
 ```
 make test PRECOMPILE=<precompile_name>
 ```
+
+
+### To pull changes zk sync era node LC fork on the precompiles branch
+
+```git subtree pull --prefix=.test-node-subtree --squash git@github.com:lambdaclass/era-test-node.git lambdaclasss_precompiles```
+
+### To push changes from local node to the branch
+
+This should be used if for example a precompile is added or modified, and we want to push the chanes to the fork upstream
+
+ ```git subtree push -P .test-node-subtree git@github.com:lambdaclass/era-test-node.git lambdaclasss_precompiles```
