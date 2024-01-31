@@ -1,7 +1,5 @@
-// use zksync_web3_rs::{types::Bytes, zks_utils::ECADDG2_PRECOMPILE_ADDRESS};
-
 mod test_utils;
-use test_utils::{era_call, parse_call_result};
+use test_utils::{era_call, parse_call_result, write_ecaddg2_gas_result};
 use zksync_web3_rs::types::{Address, Bytes, H160};
 
 pub const ECADD_G2_PRECOMPILE_ADDRESS: Address = H160([
@@ -34,7 +32,8 @@ async fn ecadd_g2_valid_1() {
                 1f96db302eb6f987734ba048b6f52de5cf8c3a983687eb472cd95b333666a49e\
                 072d44f229ed6afa5d666b374c5e480a7d6927ef04d0c19038d4a412d813c947"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -68,7 +67,8 @@ async fn ecadd_g2_valid_2() {
                 2f146452dc0ad6ea48a438b0f88958b9591d834892b7e6e5383616545c9fb596\
                 0c90472097ba74ad9e818144862bcdd5889f52f7efb2e1d43dd9e45d5ee5b5a4"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -102,7 +102,8 @@ async fn ecadd_g2_valid_3() {
                 2ead7e668665df160741d0047feee0c0426c5881a525c62c96a3a6a09df60eca\
                 166f12fcd94202b021eb6178d5253ac78e867546ada6480b9d66eadb17e53021"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -134,7 +135,8 @@ async fn ecadd_g2_valid_point_double() {
                 2dfe2cb093eafecb76994ca8cabb488d3171747c4e9fe6b3afc2123e31ac9c6f\
                 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -166,7 +168,8 @@ async fn ecadd_g2_valid_p_minus_p_is_infinity() {
                 15523e1b96f53820a895a2f0ebd389303c73bcd6adfe511fecc99b512cdba14d\
                 18d005dfc1d9bc69c574898748365e41f25d7e3c9de71eb9f8172e7deae32eb7"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -196,7 +199,8 @@ async fn ecadd_g2_valid_b_is_infinity_is_a() {
                 0000000000000000000000000000000000000000000000000000000000000000\
                 0000000000000000000000000000000000000000000000000000000000000000"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -226,7 +230,8 @@ async fn ecadd_g2_valid_a_is_infinity_is_b() {
                 1b1210574a3c68090fbaa2c595adcf2d5b0dadbaba73796d4f56f0c5aba15bfa\
                 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -256,7 +261,8 @@ async fn ecadd_g2_valid_a_and_b_are_infinity_is_infinity() {
                 0000000000000000000000000000000000000000000000000000000000000000\
                 0000000000000000000000000000000000000000000000000000000000000000"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecaddg2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
