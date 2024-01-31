@@ -82,7 +82,7 @@ object "EcMulG2" {
                 ret := and(shr(index, n), 1)
             }
 
-            // MONTGOMERY
+           // MONTGOMERY
 
             /// @notice Computes the inverse in Montgomery Form of a number in Montgomery Form.
             /// @dev Reference: https://github.com/lambdaclass/lambdaworks/blob/main/math/src/field/fields/montgomery_backed_prime_fields.rs#L169
@@ -516,7 +516,6 @@ object "EcMulG2" {
             let aY1 := calldataload(96)
 
             if iszero(and(g2CoordinateIsOnFieldOrder(aX0, aX1), g2CoordinateIsOnFieldOrder(aY0, aY1))) {
-                console_log(0xa)
                 burnGas()
             }
 

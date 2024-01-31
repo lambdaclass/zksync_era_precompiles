@@ -1,7 +1,7 @@
 // use zksync_web3_rs::{types::Bytes, zks_utils::ECADDG2_PRECOMPILE_ADDRESS};
 
 mod test_utils;
-use test_utils::{era_call, parse_call_result};
+use test_utils::{era_call, parse_call_result, write_ecmul_g2_gas_result};
 use zksync_web3_rs::types::{Address, Bytes, H160};
 
 pub const ECMUL_G2_PRECOMPILE_ADDRESS: Address = H160([
@@ -30,7 +30,8 @@ async fn ecmul_g2_valid_1() {
                 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec\
                 13f483281822f1f4ba278675eae97895cd9b6b056cffa37636891b1e9bfb3e72"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -61,7 +62,8 @@ async fn ecmul_g2_valid_2() {
                 179448931f57e3bff2dbbc2f394afa1ba523ec54ca8aabd344095d98ed99ce90\
                 2f3ee6ad9ed78b75bf31c54d279ec79494a54793bacbffc439f186ece6f08d3f"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -91,7 +93,8 @@ async fn ecmul_g2_valid_3() {
                 1634ac6acf25be203d8b61a06297d60d00d2143df741847cb10b278eb5fb12cc\
                 284812b537be5f93b6e71c951db201ab8206195a90d61b08dfcb02444beca7a7"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -118,7 +121,8 @@ async fn ecmul_g2_p_times_one_is_p() {
                 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec\
                 0000000000000000000000000000000000000000000000000000000000000001"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -147,7 +151,8 @@ async fn ecmul_g2_p_times_two_is_2p() {
                 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec\
                 0000000000000000000000000000000000000000000000000000000000000002"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -174,7 +179,8 @@ async fn ecmul_g2_p_times_zero_is_infinity() {
                 1bddcd8f468cc2657ef23699b3bc07a16c314cd67d46c8dbb9372985c2dcc8ec\
                 0000000000000000000000000000000000000000000000000000000000000000"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -201,7 +207,8 @@ async fn ecmul_g2_p_infinity_times_k_is_infinity() {
                 0000000000000000000000000000000000000000000000000000000000000000\
                 13f483281822f1f4ba278675eae97895cd9b6b056cffa37636891b1e9bfb3e72"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
@@ -226,7 +233,8 @@ async fn ecmul_g2_p_infinity_times_0_is_infinity() {
                 0000000000000000000000000000000000000000000000000000000000000000\
                 13f483281822f1f4ba278675eae97895cd9b6b056cffa37636891b1e9bfb3e72"
                 ).unwrap()))).await.unwrap();
-    let (era_output, _gas_used) = parse_call_result(&era_response);
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    write_ecmul_g2_gas_result(gas_used);
 
     let result = Bytes::from(
         hex::decode(
