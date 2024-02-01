@@ -10,6 +10,7 @@ fn main() {
     let precompiles_report_list: Vec<String> = vec![
         "modexp".to_string(),
         "ecadd".to_string(),
+        "ecaddg2".to_string(),
         "ecmul".to_string(),
         "ecpairing".to_string(),
         "p256verify".to_string(),
