@@ -273,22 +273,22 @@ object "EcAddG2" {
 
             /// @notice Add two g2 points represented in jacobian coordinates.
             /// @dev The coordinates must be encoded in Montgomery form.
-            /// @param a_x0, a_x1 The x coordinate of the first point.
-            /// @param a_y0, a_y1 The y coordinate of the first point.
+            /// @param aX0, aX1 The x coordinate of the first point.
+            /// @param aY0, aY1 The y coordinate of the first point.
             /// @param a_z0, a_z1 The z coordinate of the first point.
-            /// @param b_x0, b_x1 The x coordinate of the second point.
-            /// @param b_y0, b_y1 The y coordinate of the second point.
+            /// @param bX0, bX1 The x coordinate of the second point.
+            /// @param bY0, bY1 The y coordinate of the second point.
             /// @param b_z0, b_z1 The z coordinate of the second point.
             /// @return c00, c01, c10, c11, c20, c21 The coordinates of the added points.
-            function g2JacobianAdd(a_x0, a_x1, a_y0, a_y1, a_z0, a_z1, b_x0, b_x1, b_y0, b_y1, b_z0, b_z1) -> c00, c01, c10, c11, c20, c21 {
+            function g2JacobianAdd(aX0, aX1, aY0, aY1, a_z0, a_z1, bX0, bX1, bY0, bY1, b_z0, b_z1) -> c00, c01, c10, c11, c20, c21 {
                 let aux0, aux1 := fp2Mul(a_z0, a_z1, a_z0, a_z1)
                 let aux2, aux3 := fp2Mul(b_z0, b_z1, b_z0, b_z1)
-                let u0, u1 := fp2Mul(a_x0, a_x1, aux2, aux3)
-                let u2, u3 := fp2Mul(b_x0, b_x1, aux0, aux1)
+                let u0, u1 := fp2Mul(aX0, aX1, aux2, aux3)
+                let u2, u3 := fp2Mul(bX0, bX1, aux0, aux1)
                 let t0, t1 := fp2Mul(b_z0, b_z1, aux2, aux3)
-                let s0, s1 := fp2Mul(a_y0, a_y1, t0, t1)
+                let s0, s1 := fp2Mul(aY0, aY1, t0, t1)
                 let t2, t3 := fp2Mul(a_z0, a_z1, aux0, aux1)
-                let s2, s3 := fp2Mul(b_y0, b_y1, t2, t3)
+                let s2, s3 := fp2Mul(bY0, bY1, t2, t3)
                 let h0, h1 := fp2Sub(u2, u3, u0, u1)
                 let t4, t5 := fp2Add(h0, h1, h0, h1)
                 let i0, i1 := fp2Mul(t4, t5, t4, t5)
@@ -314,8 +314,8 @@ object "EcAddG2" {
 
             /// @notice Double a g2 point represented in jacobian coordinates.
             /// @dev The coordinates must be encoded in Montgomery form.
-            /// @param a_x0, a_x1 The x coordinate of the point.
-            /// @param a_y0, a_y1 The y coordinate of the point.
+            /// @param aX0, aX1 The x coordinate of the point.
+            /// @param aY0, aY1 The y coordinate of the point.
             /// @param a_z0, a_z1 The z coordinate of the point.
             /// @return c00, c01, c10, c11, c20, c21 The coordinates of the doubled point.
             function g2JacobianDouble(xp0, xp1, yp0, yp1, zp0, zp1) -> xr0, xr1, yr0, yr1, zr0, zr1 {
@@ -422,19 +422,19 @@ object "EcAddG2" {
             // FALLBACK
 
             // Retrieve the coordinates from the calldata
-            let a_x0 := calldataload(0)
-            let a_x1 := calldataload(32)
-            let a_y0 := calldataload(64)
-            let a_y1 := calldataload(96)
+            let aX0 := calldataload(0)
+            let aX1 := calldataload(32)
+            let aY0 := calldataload(64)
+            let aY1 := calldataload(96)
 
-            let b_x0 := calldataload(128)
-            let b_x1 := calldataload(160)
-            let b_y0 := calldataload(192)
-            let b_y1 := calldataload(224)
+            let bX0 := calldataload(128)
+            let bX1 := calldataload(160)
+            let bY0 := calldataload(192)
+            let bY1 := calldataload(224)
 
             // Check if points are infinite
-            let aIsInfinity := g2AffinePointIsInfinity(a_x0, a_x1, a_y0, a_y1)
-            let bIsInfinity := g2AffinePointIsInfinity(b_x0, b_x1, b_y0, b_y1)
+            let aIsInfinity := g2AffinePointIsInfinity(aX0, aX1, aY0, aY1)
+            let bIsInfinity := g2AffinePointIsInfinity(bX0, bX1, bY0, bY1)
 
             if and(aIsInfinity, bIsInfinity) {
                 // Infinity + Infinity = Infinity
@@ -449,24 +449,24 @@ object "EcAddG2" {
                 // Infinity + B = B
 
                 // Ensure that the coordinates are between 0 and the field order
-                if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
+                if iszero(and(g2CoordinateIsOnFieldOrder(bX0, bX1), g2CoordinateIsOnFieldOrder(bY0, bY1))) {
                     burnGas()
                 }
 
-                let b_x0_mont := intoMontgomeryForm(b_x0)
-                let b_x1_mont := intoMontgomeryForm(b_x1)
-                let b_y0_mont := intoMontgomeryForm(b_y0)
-                let b_y1_mont := intoMontgomeryForm(b_y1)
+                let bX0Mont := intoMontgomeryForm(bX0)
+                let bX1Mont := intoMontgomeryForm(bX1)
+                let bY0Mont := intoMontgomeryForm(bY0)
+                let bY1Mont := intoMontgomeryForm(bY1)
 
                 // Ensure that the point is in the curve
-                if iszero(g2AffinePointIsOnCurve(b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont)) {
+                if iszero(g2AffinePointIsOnCurve(bX0Mont, bX1Mont, bY0Mont, bY1Mont)) {
                     burnGas()
                 }
 
-                mstore(0, b_x0)
-                mstore(32, b_x1)
-                mstore(64, b_y0)
-                mstore(96, b_y1)
+                mstore(0, bX0)
+                mstore(32, bX1)
+                mstore(64, bY0)
+                mstore(96, bY1)
                 return(0, 128)
             }
 
@@ -474,50 +474,50 @@ object "EcAddG2" {
                 // A + Infinity = A
 
                 // Ensure that the coordinates are between 0 and the field order
-                if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
+                if iszero(and(g2CoordinateIsOnFieldOrder(aX0, aX1), g2CoordinateIsOnFieldOrder(aY0, aY1))) {
                     burnGas()
                 }
 
-                let a_x0_mont := intoMontgomeryForm(a_x0)
-                let a_x1_mont := intoMontgomeryForm(a_x1)
-                let a_y0_mont := intoMontgomeryForm(a_y0)
-                let a_y1_mont := intoMontgomeryForm(a_y1)
+                let aX0Mont := intoMontgomeryForm(aX0)
+                let aX1Mont := intoMontgomeryForm(aX1)
+                let aY0Mont := intoMontgomeryForm(aY0)
+                let aY1Mont := intoMontgomeryForm(aY1)
 
                 // Ensure that the point is in the curve
-                if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
+                if iszero(g2AffinePointIsOnCurve(aX0Mont, aX1Mont, aY0Mont, aY1Mont)) {
                     burnGas()
                 }
 
-                mstore(0, a_x0)
-                mstore(32, a_x1)
-                mstore(64, a_y0)
-                mstore(96, a_y1)
+                mstore(0, aX0)
+                mstore(32, aX1)
+                mstore(64, aY0)
+                mstore(96, aY1)
                 return(0, 128)
             }
 
             // Check if X cordinate is the same in bouth points.
-            if and(eq(a_x0, b_x0), eq(a_x1, b_x1)) {
+            if and(eq(aX0, bX0), eq(aX1, bX1)) {
 
                 // Ensure that the coordinates are between 0 and the field order
-                if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
+                if iszero(and(g2CoordinateIsOnFieldOrder(aX0, aX1), g2CoordinateIsOnFieldOrder(aY0, aY1))) {
                     burnGas()
                 }
 
-                let a_x0_mont := intoMontgomeryForm(a_x0)
-                let a_x1_mont := intoMontgomeryForm(a_x1)
-                let a_y0_mont := intoMontgomeryForm(a_y0)
-                let a_y1_mont := intoMontgomeryForm(a_y1)
+                let aX0Mont := intoMontgomeryForm(aX0)
+                let aX1Mont := intoMontgomeryForm(aX1)
+                let aY0Mont := intoMontgomeryForm(aY0)
+                let aY1Mont := intoMontgomeryForm(aY1)
 
                 // Ensure that the point is in the curve
-                if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
+                if iszero(g2AffinePointIsOnCurve(aX0Mont, aX1Mont, aY0Mont, aY1Mont)) {
                     burnGas()
                 }
 
-                if and(eq(a_y0, b_y0), eq(a_y1, b_y1)) {
+                if and(eq(aY0, bY0), eq(aY1, bY1)) {
 
                     // A + A = 2A
 
-                    let c00, c01, c10, c11, c20, c21 := g2JacobianDouble(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0)
+                    let c00, c01, c10, c11, c20, c21 := g2JacobianDouble(aX0Mont, aX1Mont, aY0Mont, aY1Mont, MONTGOMERY_ONE(), 0)
                     
                     c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
         
@@ -536,15 +536,15 @@ object "EcAddG2" {
                 // If Y coordinates are diferent, the only possibility is that: B = -A. In this case A + (-A) = Infinity.
 
                 // Ensure that the coordinates are between 0 and the field order
-                if iszero(g2CoordinateIsOnFieldOrder(b_y0, b_y1) {
+                if iszero(g2CoordinateIsOnFieldOrder(bY0, bY1)) {
                     burnGas()
                 }
 
-                let b_y0_mont := intoMontgomeryForm(b_y0)
-                let b_y1_mont := intoMontgomeryForm(b_y1)
+                let bY0Mont := intoMontgomeryForm(bY0)
+                let bY1Mont := intoMontgomeryForm(bY1)
 
                 // Ensure that the point is in the curve
-                if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, b_y0_mont, b_y1_mont)) {
+                if iszero(g2AffinePointIsOnCurve(aX0Mont, aX1Mont, bY0Mont, bY1Mont)) {
                     burnGas()
                 }
 
@@ -558,32 +558,32 @@ object "EcAddG2" {
             // A + B = C
 
             // Ensure that the coordinates are between 0 and the field order
-            if iszero(and(g2CoordinateIsOnFieldOrder(a_x0, a_x1), g2CoordinateIsOnFieldOrder(a_y0, a_y1))) {
+            if iszero(and(g2CoordinateIsOnFieldOrder(aX0, aX1), g2CoordinateIsOnFieldOrder(aY0, aY1))) {
                 burnGas()
             }
-            if iszero(and(g2CoordinateIsOnFieldOrder(b_x0, b_x1), g2CoordinateIsOnFieldOrder(b_y0, b_y1))) {
+            if iszero(and(g2CoordinateIsOnFieldOrder(bX0, bX1), g2CoordinateIsOnFieldOrder(bY0, bY1))) {
                 burnGas()
             }
 
-            let a_x0_mont := intoMontgomeryForm(a_x0)
-            let a_x1_mont := intoMontgomeryForm(a_x1)
-            let a_y0_mont := intoMontgomeryForm(a_y0)
-            let a_y1_mont := intoMontgomeryForm(a_y1)
+            let aX0Mont := intoMontgomeryForm(aX0)
+            let aX1Mont := intoMontgomeryForm(aX1)
+            let aY0Mont := intoMontgomeryForm(aY0)
+            let aY1Mont := intoMontgomeryForm(aY1)
 
-            let b_x0_mont := intoMontgomeryForm(b_x0)
-            let b_x1_mont := intoMontgomeryForm(b_x1)
-            let b_y0_mont := intoMontgomeryForm(b_y0)
-            let b_y1_mont := intoMontgomeryForm(b_y1)
+            let bX0Mont := intoMontgomeryForm(bX0)
+            let bX1Mont := intoMontgomeryForm(bX1)
+            let bY0Mont := intoMontgomeryForm(bY0)
+            let bY1Mont := intoMontgomeryForm(bY1)
 
             // Ensure that the points are in the curve
-            if iszero(g2AffinePointIsOnCurve(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont)) {
+            if iszero(g2AffinePointIsOnCurve(aX0Mont, aX1Mont, aY0Mont, aY1Mont)) {
                 burnGas()
             }
-            if iszero(g2AffinePointIsOnCurve(b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont)) {
+            if iszero(g2AffinePointIsOnCurve(bX0Mont, bX1Mont, bY0Mont, bY1Mont)) {
                 burnGas()
             }
 
-            let c00, c01, c10, c11, c20, c21 := g2JacobianAdd(a_x0_mont, a_x1_mont, a_y0_mont, a_y1_mont, MONTGOMERY_ONE(), 0, b_x0_mont, b_x1_mont, b_y0_mont, b_y1_mont, MONTGOMERY_ONE(), 0)
+            let c00, c01, c10, c11, c20, c21 := g2JacobianAdd(aX0Mont, aX1Mont, aY0Mont, aY1Mont, MONTGOMERY_ONE(), 0, bX0Mont, bX1Mont, bY0Mont, bY1Mont, MONTGOMERY_ONE(), 0)
 
             c00, c01, c10, c11 := g2OutOfJacobian(c00, c01, c10, c11, c20, c21)
 
