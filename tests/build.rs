@@ -12,6 +12,7 @@ fn main() {
         "ecadd".to_string(),
         "ecaddg2".to_string(),
         "ecmul".to_string(),
+        "ecmulg2".to_string(),
         "ecpairing".to_string(),
         "p256verify".to_string(),
         "secp256k1verify".to_string(),

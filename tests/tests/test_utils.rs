@@ -66,6 +66,11 @@ pub fn write_ecmul_gas_result(used_gas: u32) {
 }
 
 #[allow(dead_code)]
+pub fn write_ecmul_g2_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/ecmulg2_report.md");
+}
+
+#[allow(dead_code)]
 pub fn write_ecpairing_gas_result(used_gas: u32) {
     write_line_to_report(used_gas, "gas_reports/ecpairing_report.md");
 }
