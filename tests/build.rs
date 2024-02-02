@@ -11,6 +11,7 @@ fn main() {
         "modexp".to_string(),
         "ecadd".to_string(),
         "ecmul".to_string(),
+        "ecmulg2".to_string(),
         "ecpairing".to_string(),
         "p256verify".to_string(),
         "secp256k1verify".to_string(),
