@@ -56,6 +56,11 @@ pub fn write_ecadd_gas_result(used_gas: u32) {
 }
 
 #[allow(dead_code)]
+pub fn write_ecaddg2_gas_result(used_gas: u32) {
+    write_line_to_report(used_gas, "gas_reports/ecaddg2_report.md");
+}
+
+#[allow(dead_code)]
 pub fn write_ecmul_gas_result(used_gas: u32) {
     write_line_to_report(used_gas, "gas_reports/ecmul_report.md");
 }
