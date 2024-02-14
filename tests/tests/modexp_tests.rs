@@ -800,7 +800,11 @@ async fn modexp_tests_54() {
 // FIXME: This test fails on L1 with "out of gas" error and success on L2 returning `0x00...000` because of mod length being 16.
 #[tokio::test]
 async fn modexp_tests_55() {
-    assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.is_err());
+
+    assert!(eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("
+    0000000000000000000000000000000000000000000000000000000000000000\
+    0000000000000000000000000000000000000000000000000000000000ffffff\
+    0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.is_err());
     let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(Bytes::from(hex::decode("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ffffff0000000000000000000000000000000000000000000000000000000000000010").unwrap()))).await.unwrap();
     let (era_output, gas_used) = parse_call_result(&era_response);
     write_modexp_gas_result(gas_used);
@@ -1420,6 +1424,78 @@ async fn modexp_tests_126() {
     write_modexp_gas_result(gas_used);
     assert_eq!(era_output, Bytes::from(vec![0; 42_965]));
 }
+
+#[tokio::test]
+async fn modexp_problematic() {
+
+    // lens
+    // base, exp, mod
+    // 40 -> 64
+    // 40 -> 3
+    // 40 -> 64
+
+    // numbers
+    // base = 58226961635345143612778721768012624353085932353582798008543209505692649801875 = 0x80bb4ada562d33b39294c2028ed837ea6cfd537d69f5ffab2a2673fdd4ec4893
+    // exp = 0x010001
+    // mod = 0x4ae1d9c44534429c88f5f943c688d399d2f91a581f1b89abaa4d0d6ff4e68ebf7c281f04fdf6e3ea039d07fabccb3523c06cdc5ad8b364d41b1eedafe5366616
+
+    // expected result = 0x1ad17e409ee09710872bb81e2f171fa4b2b13847919eda04295b8316537fe31a92b1c202622d7c55d0aaf689ab30ad26345acc647934954f47bf245ae3f1d5a4
+
+    let number = hex::decode("\
+    0000000000000000000000000000000000000000000000000000000000000040\
+    0000000000000000000000000000000000000000000000000000000000000003\
+    0000000000000000000000000000000000000000000000000000000000000040\
+    80bb4ada562d33b39294c2028ed837ea6cfd537d69f5ffab2a2673fdd4ec4893913b2b2b4bdf05cf3b51a4a97094ec5252f257201041f7966155669da70b2c80\
+    010001\
+    4ae1d9c44534429c88f5f943c688d399d2f91a581f1b89abaa4d0d6ff4e68ebf7c281f04fdf6e3ea039d07fabccb3523c06cdc5ad8b364d41b1eedafe5366616\
+    ").unwrap();
+
+    let number_bytes = Bytes::from(number);
+
+    let eth_response = eth_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(number_bytes.clone())).await.unwrap();
+    let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(number_bytes)).await.unwrap();
+    let (era_output, gas_used) = parse_call_result(&era_response);
+    
+    write_modexp_gas_result(gas_used);
+    assert_eq!(eth_response, era_output);
+}
+
+
+#[tokio::test]
+async fn modexp_problematic2() {
+
+    let number = hex::decode("\
+    0000000000000000000000000000000000000000000000000000000000000021\
+    0000000000000000000000000000000000000000000000000000000000000003\
+    0000000000000000000000000000000000000000000000000000000000000021\
+    1\
+    0000000000000000000000000000000000000000000000000000000000000001\
+    100002\
+    1\
+    0000000000000000000000000000000000000000000000000000000000000001\
+    ").unwrap();
+
+    let number_bytes = Bytes::from(number);
+
+    let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(number_bytes)).await.unwrap();
+
+    // Now we change the exponent to start with 0 and it breaks
+    let number = hex::decode("\
+    0000000000000000000000000000000000000000000000000000000000000021\
+    0000000000000000000000000000000000000000000000000000000000000003\
+    0000000000000000000000000000000000000000000000000000000000000021\
+    1\
+    0000000000000000000000000000000000000000000000000000000000000001\
+    000002\
+    1\
+    0000000000000000000000000000000000000000000000000000000000000001\
+    ").unwrap();
+
+    let number_bytes = Bytes::from(number);
+
+    let era_response = era_call(MODEXP_PRECOMPILE_ADDRESS, None, Some(number_bytes)).await.unwrap();
+}
+
 
 #[tokio::test]
 async fn modexp_random_input_0() {
