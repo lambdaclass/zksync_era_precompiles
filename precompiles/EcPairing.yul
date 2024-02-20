@@ -1551,9 +1551,10 @@ object "EcPairing" {
 
 		  	let inputSize := calldatasize()
 
-			// Empty input is valid and results in succcess with empty return data.
-		  	if iszero(inputSize) {
-				return(0, 0)
+			// Empty input is valid and results in returning one.
+		  	if eq(inputSize, 0) {
+                mstore(0, 1)
+				return(0, 32)
 			}
 
 			// If the input length is not a multiple of 192, the call fails.
