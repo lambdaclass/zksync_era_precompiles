@@ -1553,7 +1553,7 @@ object "EcPairing" {
 
 			// Empty input is valid and results in returning one.
 		  	if eq(inputSize, 0) {
-                mstore(0, 1)
+				mstore(0, 1)
 				return(0, 32)
 			}
 
