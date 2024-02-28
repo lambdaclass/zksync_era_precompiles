@@ -16,22 +16,10 @@ pub const ECADD_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x06,
 ]);
 
-/// The `ecAddG2` system contract address.
-pub const ECADD_G2_PRECOMPILE_ADDRESS: Address = H160([
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x0A,
-]);
-
 /// The `ecMul` system contract address.
 pub const ECMUL_PRECOMPILE_ADDRESS: Address = H160([
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x07,
-]);
-
-/// The `ecMulG2` system contract address.
-pub const ECMUL_G2_PRECOMPILE_ADDRESS: Address = H160([
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x0B,
 ]);
 
 /// The `ecPairing` system contract address.
@@ -163,19 +151,9 @@ pub static COMPILED_IN_SYSTEM_CONTRACTS: Lazy<Vec<DeployedContract>> = Lazy::new
             include_bytes!("contracts/EcAdd.yul.zbin").to_vec(),
         ),
         (
-            "ECADD_G2_PRECOMPILE_ADDRESS",
-            ECADD_G2_PRECOMPILE_ADDRESS,
-            include_bytes!("contracts/EcAddG2.yul.zbin").to_vec(),
-        ),
-        (
             "ECMUL_PRECOMPILE_ADDRESS",
             ECMUL_PRECOMPILE_ADDRESS,
             include_bytes!("contracts/EcMul.yul.zbin").to_vec(),
-        ),
-        (
-            "ECMUL_G2_PRECOMPILE_ADDRESS",
-            ECMUL_G2_PRECOMPILE_ADDRESS,
-            include_bytes!("contracts/EcMulG2.yul.zbin").to_vec(),
         ),
         (
             "ECPAIRING_PRECOMPILE_ADDRESS",

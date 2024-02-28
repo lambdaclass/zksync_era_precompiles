@@ -1,5 +1,7 @@
 object "EcMul" {
-    code { }
+    code {
+        return(0, 0)
+    }
     object "EcMul_deployed" {
         code {
             ////////////////////////////////////////////////////////////////
@@ -57,18 +59,18 @@ object "EcMul" {
             // ////////////////////////////////////////////////////////////////
 
             /// @dev Executes the `precompileCall` opcode.
-			function precompileCall(precompileParams, gasToBurn) -> ret {
-				// Compiler simulation for calling `precompileCall` opcode
-				ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
-			}
+            function precompileCall(precompileParams, gasToBurn) -> ret {
+                // Compiler simulation for calling `precompileCall` opcode
+                ret := verbatim_2i_1o("precompile", precompileParams, gasToBurn)
+            }
 
             /// @notice Burns remaining gas until revert.
             /// @dev This function is used to burn gas in the case of a failed precompile call.
-			function burnGas() {
-				// Precompiles that do not have a circuit counterpart
-				// will burn the provided gas by calling this function.
-				precompileCall(0, gas())
-		  	}
+            function burnGas() {
+                // Precompiles that do not have a circuit counterpart
+                // will burn the provided gas by calling this function.
+                precompileCall(0, gas())
+            }
 
             /// @notice Retrieves the highest half of the multiplication result.
             /// @param multiplicand The value to multiply.
@@ -223,7 +225,7 @@ object "EcMul" {
             /// @dev See https://en.wikipedia.org/wiki/Montgomery_modular_multiplication#The_The_REDC_algorithm for further details on the Montgomery multiplication.
             /// @param minuend The minuend in Montgomery form.
             /// @param subtrahend The subtrahend in Montgomery form.
-            /// @return ret The result of the Montgomery addition.
+            /// @return ret The result of the Montgomery subtraction.
             function montgomerySub(minuend, subtrahend) -> ret {
                 ret := montgomeryAdd(minuend, sub(P(), subtrahend))
             }
@@ -387,8 +389,6 @@ object "EcMul" {
 
             if affinePointIsInfinity(x, y) {
                 // Infinity * scalar = Infinity
-                mstore(0x00, 0x00)
-                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
 
@@ -402,8 +402,6 @@ object "EcMul" {
 
             if eq(scalar, 0) {
                 // P * 0 = Infinity
-                mstore(0x00, 0x00)
-                mstore(0x20, 0x00)
                 return(0x00, 0x40)
             }
             if eq(scalar, 1) {
