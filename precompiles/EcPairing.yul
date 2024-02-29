@@ -1614,12 +1614,10 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_x0), coordinateIsOnFieldOrder(g2_x1))) {
                     burnGas()
                 }
 
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_y0), coordinateIsOnFieldOrder(g2_y1))) {
                     burnGas()
                 }
