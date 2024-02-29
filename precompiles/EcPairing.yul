@@ -35,7 +35,7 @@ object "EcPairing" {
             }
 
             /// @notice Constant function for the alt_bn128 group order.
-            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details.
+            /// @dev See https://eips.ethereum.org/EIPS/eip-196 for further details. 
             /// @return ret The alt_bn128 group order.
             function P() -> ret {
                 ret := 21888242871839275222246405745257275088696311157297823662689037894645226208583
@@ -1614,12 +1614,10 @@ object "EcPairing" {
 				let g2_y1 := mload(g2_y1_offset)
 				let g2_y0 := mload(g2_y0_offset)
 
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_x0), coordinateIsOnFieldOrder(g2_x1))) {
                     burnGas()
                 }
 
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_y0), coordinateIsOnFieldOrder(g2_y1))) {
                     burnGas()
                 }
