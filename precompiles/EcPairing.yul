@@ -448,17 +448,6 @@ object "EcPairing" {
                 ny0, ny1 := fp2Neg(y0, y1)
             }
 
-            /// @notice Check if a G2 point in jacobian coordinates is in the subgroup of the twisted curve.
-            /// @dev The coordinates are encoded in Montgomery form.
-            /// @param xp0, xp1 The x coordinate of the point.
-            /// @param yp0, yp1 The y coordinate of the point.
-            /// @param zp0, zp1 The z coordinate of the point.
-            /// @return ret True if the point is in the subgroup, false otherwise.
-            function g2IsInSubGroup(xp0, xp1, yp0, yp1, zp0, zp1) -> ret {
-                let xr0, xr1, yr0, yr1, zr0, zr1 := g2ScalarMul(xp0, xp1, yp0, yp1, zp0, zp1, TWISTED_SUBGROUP_ORDER())
-                ret := and(iszero(zr0), iszero(zr1))
-            }
-
             /// @notice Double a g2 point represented in jacobian coordinates.
             /// @dev The coordinates must be encoded in Montgomery form.
             /// @param xp0, xp1 The x coordinate of the point.
@@ -1579,11 +1568,9 @@ object "EcPairing" {
 			// Calldata "parsing"
 			for { let i := 0 } lt(i, inputSize) { i := add(i, PAIR_LENGTH()) } {
 				/* G1 */
-				calldatacopy(i, i, 32) // x
-				calldatacopy(add(i, 32), add(i, 32), 32) // y
 
-				let g1_x := mload(i)
-				let g1_y := mload(add(i, 32))
+				let g1_x := calldataload(i)
+				let g1_y := calldataload(add(i, 32))
 
                 if iszero(and(coordinateIsOnFieldOrder(g1_x), coordinateIsOnFieldOrder(g1_y))) {
                     burnGas()
@@ -1593,33 +1580,21 @@ object "EcPairing" {
                 g1_y := intoMontgomeryForm(g1_y)
 
                 let g1IsInfinity := g1AffinePointIsInfinity(g1_x, g1_y)
-
 				if and(iszero(g1IsInfinity), iszero(g1AffinePointIsOnCurve(g1_x, g1_y))) {
 					burnGas()
 				}
 
 				/* G2 */
-				let g2_x1_offset := add(i, 64)
-				let g2_x0_offset := add(i, 96)
-				let g2_y1_offset := add(i, 128)
-				let g2_y0_offset := add(i, 160)
 
-				calldatacopy(g2_x1_offset, g2_x1_offset, 32)
-				calldatacopy(g2_x0_offset, g2_x0_offset, 32)
-				calldatacopy(g2_y1_offset, g2_y1_offset, 32)
-				calldatacopy(g2_y0_offset, g2_y0_offset, 32)
+				let g2_x1 := calldataload(add(i, 64))
+				let g2_x0 := calldataload(add(i, 96))
+				let g2_y1 := calldataload(add(i, 128))
+				let g2_y0 := calldataload(add(i, 160))
 
-				let g2_x1 := mload(g2_x1_offset)
-				let g2_x0 := mload(g2_x0_offset)
-				let g2_y1 := mload(g2_y1_offset)
-				let g2_y0 := mload(g2_y0_offset)
-
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_x0), coordinateIsOnFieldOrder(g2_x1))) {
                     burnGas()
                 }
 
-                // TODO: Double check if this is right
                 if iszero(and(coordinateIsOnFieldOrder(g2_y0), coordinateIsOnFieldOrder(g2_y1))) {
                     burnGas()
                 }
@@ -1632,10 +1607,6 @@ object "EcPairing" {
                 g2_x1 := intoMontgomeryForm(g2_x1)
                 g2_y0 := intoMontgomeryForm(g2_y0)
                 g2_y1 := intoMontgomeryForm(g2_y1)
-
-                if iszero(g2IsInSubGroup(g2_x0,g2_x1, g2_y0, g2_y1, MONTGOMERY_ONE(), 0)) {
-                    burnGas()
-				}
 
                 if iszero(g2AffinePointIsOnCurve(g2_x0, g2_x1, g2_y0, g2_y1)) {
 					burnGas()
